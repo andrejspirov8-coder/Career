@@ -1,0 +1,347 @@
+# Machine-readable fit profiles for assistive job matching.
+# Slugs align with filenames: andrej-spirov-cv-<slug>.md and output PDF stems.
+variants:
+  luxury-retail:
+    pdf_stem: andrej-spirov-cv-luxury-retail
+    markdown: andrej-spirov-cv-luxury-retail.md
+    target_titles:
+      - Luxury Retail
+      - Premium Retail
+      - Store Manager
+      - Boutique Manager
+      - Area Manager
+      - Deputy Manager
+      - Assistant Store Manager
+      - Retail Manager
+      - Luxury Sales
+      - Sales Associate
+      - Client Advisor
+      - Clienteling
+      - Retail Leadership
+      - Vilnius Retail
+      - Luxury Brand
+      - Duty Manager
+    # Single tokens or short phrases searched as substrings (lowercased).
+    keywords:
+      - luxury
+      - premium
+      - boutique
+      - concession
+      - harrods
+      - clienteling
+      - client advisory
+      - visual merchandising
+      - merchandising
+      - store standards
+      - brand ambassador
+      - brand standards
+      - high net worth
+      - personal shopping
+      - private clients
+      - resale
+      - reselling
+      - online auctions
+      - sourcing
+      - online sales
+      - online listings
+      - pricing
+      - pre-owned luxury
+      - made to measure
+      - tailoring
+      - store manager
+      - store opening
+      - new store opening
+      - manager training
+      - staff management
+      - team of 30
+      - boutique manager
+      - area manager
+      - deputy manager
+      - assistant manager
+      - retail leadership
+      - sales consultant
+      - sales associate
+      - fashion
+      - apparel
+      - accessories
+      - watches
+      - jewellery
+      - jewelry
+      - conversion
+      - ATV
+      - upt
+      - units per transaction
+      - shrink
+      - stocktake
+      - stock accuracy
+      - replenishment
+      - housekeeping
+      - opening routines
+      - closing routines
+      - cashier
+      - cash-wrap
+      - Russian
+      - English
+      - Lithuanian
+      # Lithuanian JD tokens (Vilnius market); extend after more real inbox pastes.
+      - prabangos
+      - prabangi
+      - parduotuvės vadovas
+      - parduotuvės atidarymas
+      - vadovų mokymai
+      - darbuotojų valdymas
+      - 30 darbuotojų
+      - parduotuvės direktorius
+      - pardavimų konsultantas
+      - klientų aptarnavimas
+      - pardavėjas
+      - mados
+      - prekybos centras
+      - vilniaus
+    negative_keywords:
+      - senior backend
+      - distributed systems
+      - kubernetes
+      - microservices architecture
+      - machine learning engineer
+      - FPGA
+      - devops engineer
+
+  luxury-retail-lt:
+    pdf_stem: andrej-spirov-cv-luxury-retail-lt
+    markdown: andrej-spirov-cv-luxury-retail-lt.md
+    target_titles:
+      - Parduotuvės vadovas
+      - Boutique vadovas
+      - Premium parduotuvės vadovas
+      - Prabangios prekybos vadovas
+      - Pamainos vadovas
+      - Klientų aptarnavimo vadovas
+      - Pardavimų vadovas
+      - Retail vadovas
+      - Vilniaus prekyba
+    keywords:
+      - prabangos
+      - prabangi
+      - premium
+      - boutique
+      - parduotuvės vadovas
+      - parduotuvės direktorius
+      - pamainos vadovas
+      - pardavimų vadovas
+      - pardavimų konsultantas
+      - klientų aptarnavimas
+      - klientų patirtis
+      - klientų lojalumas
+      - privatūs klientai
+      - perpardavimas
+      - online aukcionai
+      - prekių paieška
+      - online pardavimai
+      - online skelbimai
+      - kainodara
+      - vizualinis prekių pateikimas
+      - vizualinė prekyba
+      - prekių ženklas
+      - mados
+      - aksesuarai
+      - juvelyrika
+      - prekybos centras
+      - vilnius
+      - vilniaus
+      - lietuvių
+      - anglų
+      - rusų
+      - konversija
+      - ATV
+      - UPT
+      - atsargų tikslumas
+      - atsargų papildymas
+      - kasa
+      - komandos ugdymas
+      - darbo grafikai
+      - aptarnavimo standartai
+      - HQ
+      - koncesija
+    negative_keywords:
+      - senior backend
+      - distributed systems
+      - kubernetes
+      - microservices architecture
+      - machine learning engineer
+      - FPGA
+      - devops engineer
+
+  operations-management:
+    pdf_stem: andrej-spirov-cv-operations-management
+    markdown: andrej-spirov-cv-operations-management.md
+    target_titles:
+      - Operations Manager
+      - Sales Manager
+      - Operations Lead
+      - Retail Operations
+      - Area Manager
+      - Store Manager
+      - Office Manager
+      - Front Office
+      - Guest Services
+      - Customer Experience Manager
+      - Service Manager
+      - Site Manager
+      - Multi-site
+      - District Manager
+      - Regional Manager
+      - Business Manager
+    keywords:
+      - operations
+      - operational excellence
+      - sales management
+      - sales operations
+      - commercial
+      - retail operations
+      - multi-site
+      - multi site
+      - area management
+      - store operations
+      - team leadership
+      - store opening
+      - new store opening
+      - manager training
+      - staff management
+      - team of 30
+      - people management
+      - sourcing
+      - online sales
+      - online listings
+      - pricing
+      - fulfilment
+      - private clients
+      - resale
+      - rota
+      - scheduling
+      - workforce planning
+      - onboarding
+      - coaching
+      - performance management
+      - stakeholder
+      - landlord
+      - supplier
+      - HQ
+      - head office
+      - escalation
+      - service recovery
+      - customer experience
+      - guest experience
+      - hospitality
+      - front office
+      - audit
+      - compliance
+      - standards
+      - housekeeping
+      - inventory
+      - replenishment
+      - cash control
+      - shrink
+      - reporting
+      - targets
+      - planning
+      - Vilnius
+      - retail
+      - premium
+      # Lithuanian JD tokens (Vilnius market); extend after more real inbox pastes.
+      - veiklos vadovas
+      - komandos vadovas
+      - padalinio vadovas
+      - darbuotojų valdymas
+      - planavimas ir organizavimas
+      - aptarnavimo kokybė
+      - biuro administravimas
+    negative_keywords:
+      - staff software engineer
+      - principal engineer
+      - react native
+      - terraform
+      - AWS solutions architect
+
+  it-business:
+    pdf_stem: andrej-spirov-cv-it-business
+    markdown: andrej-spirov-cv-it-business.md
+    target_titles:
+      - IT Support
+      - Business Analyst
+      - Operations Support
+      - Customer Success
+      - Technical Support
+      - Application Support
+      - Systems Support
+      - Helpdesk
+      - Service Desk
+      - Business Operations
+      - Process Analyst
+      - Junior Developer
+      - Automation
+      - Data Entry
+      - Reporting Analyst
+      - Retail Systems
+    keywords:
+      - business support
+      - operations support
+      - IT support
+      - application support
+      - technical support
+      - helpdesk
+      - service desk
+      - customer success
+      - onboarding users
+      - user training
+      - software training
+      - business process
+      - process documentation
+      - triage
+      - ticket
+      - Jira
+      - ServiceNow
+      - reporting
+      - data cleanup
+      - SQL
+      - Python
+      - bash
+      - git
+      - version control
+      - automation
+      - workflow
+      - inventory system
+      - e-commerce
+      - online listings
+      - online sales
+      - marketplace
+      - resale
+      - product information
+      - sales tracking
+      - stakeholders
+      - liaison
+      - coordination
+      - retail systems
+      - admin
+      - administrator
+      - Vilnius
+      - junior
+      - trainee
+      - associate analyst
+      # Lithuanian JD tokens (Vilnius market); extend after more real inbox pastes.
+      - IT specialistas
+      - IT pagalba
+      - techninė pagalba
+      - sistemos administratorius
+      - vartotojų parama
+      - pagalbos tarnyba
+      - duomenų analizė
+      - informacinių technologijų
+    negative_keywords:
+      - staff engineer
+      - senior software engineer
+      - principal backend
+      - staff level
+      - architect 10+ years
+      - PhD computer science
+      - kernel development

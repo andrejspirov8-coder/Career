@@ -1,0 +1,30 @@
+.DS_Store
+__pycache__/
+*.pyc
+.env
+.env.*
+
+# Job-search local / sensitive data (see job-search/.gitignore)
+job-search/output/
+job-search/tmp/
+job-search/inbox/jobs/*.job.txt
+job-search/packs/*/
+!job-search/packs/README.md
+job-search/pipeline/applications.csv
+job-search/pipeline/recruiters.csv
+job-search/pipeline/recruiter_outreach_log.csv
+job-search/linkedin/.browser-profile/
+job-search/linkedin/run_logs/
+job-search/pipeline/run_logs/
+job-search/*.pdf
+job-search/.job_processing_log.json
+job-search/batch_results.json
+job-search/summary_report_*.md
+job-search/summary_report_*.json
+
+# Raycast extension build artifacts
+raycast-job-search-hub/node_modules/
+raycast-job-search-hub/dist/
+
+# Browser automation scratch
+.playwright-cli/

@@ -1,0 +1,6 @@
+# Development dependencies (optional)
+# Install with: pip install -r requirements-dev.txt
+
+black==24.3.0          # Code formatter
+ruff==0.4.2            # Fast linter
+pytest==7.4.4          # Testing framework (optional)

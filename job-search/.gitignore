@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+.DS_Store
+output/
+tmp/
+inbox/jobs/*.job.txt
+packs/*/
+!packs/README.md
+pipeline/applications.csv
+pipeline/recruiters.csv
+linkedin/.browser-profile/
+linkedin/run_logs/
+*.pdf
+.job_processing_log.json
+batch_results.json
+summary_report_*.md
+summary_report_*.json

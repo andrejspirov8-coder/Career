@@ -1,0 +1,195 @@
+# LinkedIn recruiter automation (personal use)
+
+This mini-app drives **your installed Google Chrome** via Playwright (default) or **Chrome + the Cursor `browse` CLI** when `browser.backend: browse_ws`, searches LinkedIn People for recruiters/staffers, scores each profile with **sector keywords + your CV keyword matcher** (see [`../tools/recruiter_match.py`](../tools/recruiter_match.py)), and can **automatically send connection requests** with a short, personalized note (first name + one line from *their* headline/about + optional CV anchor / keyword accent).
+
+Primary day driver is now **`tools/recruiter_orchestrate.py`** (`scout` writes `pipeline/recruiter_action_plan.jsonl`, `plan` builds `pipeline/recruiter_session_state.json`, `dispatch` replays queued URLs directly). Legacy single-entry launcher: `linkedin_recruiter_bot.py` (calls the same engine).
+
+### Orchestrator shortcuts
+
+```bash
+cd job-search
+python3 tools/recruiter_orchestrate.py preflight
+python3 tools/recruiter_orchestrate.py scout --headed
+python3 tools/recruiter_orchestrate.py plan --tier tier_1
+python3 tools/recruiter_orchestrate.py dispatch --headed --tier tier_1 --dry-run
+python3 tools/recruiter_orchestrate.py daily --headed --dry-run
+python3 tools/recruiter_orchestrate.py daily --headed --dispatch-tier tier_1 --max-dispatch 1
+python3 tools/recruiter_orchestrate.py followup --headed   # wrappers around linkedin_followup.py
+python3 tools/recruiter_orchestrate.py report              # wraps recruiter_performance.py
+```
+
+Artifacts:
+
+- `pipeline/recruiter_action_plan.jsonl` — latest scout payloads (tier, recruiter gate flags, templated notes).
+- `pipeline/recruiter_session_state.json` — filtered queue Cursor agents / dispatch consume.
+- `pipeline/recruiters.csv` — append-only CSV audit log (still the ground truth for accept/reply stats).
+
+## Browser: real Chrome, not “Chrome for Testing”
+
+By default [`config.yaml`](config.yaml) sets `browser.channel: chrome`. That launches **Google Chrome from your Mac** (the same app you use day to day), with a **separate profile folder** at `linkedin/.browser-profile/` so the bot does not touch your normal Chrome bookmarks/history.
+
+**Before each run:** quit any **leftover automation Chrome** from a previous bot run (the window that used `linkedin/.browser-profile/`). Your normal everyday Chrome can stay open — the bot uses a separate profile folder. If launch fails with “profile already in use”, run `python3 tools/recruiter_orchestrate.py preflight` to clear a stale lock.
+
+To fall back to Playwright’s bundled Chromium (old behaviour):
+
+```yaml
+browser:
+  channel: chromium
+```
+
+### Browse (`browse_ws`) backend
+
+Keeps **`linkedin/.browser-profile/`** in sync with Playwright launches a dedicated Chrome with remote debugging (`browser.browse_debug_port`, default **9247**) and pipes commands through the **`browse`** binary (Cursor Browse plugin installs it under `.cursor/plugins/.../.bin/browse` unless `BROWSE_CLI` overrides).
+
+**What could go wrong:** Quit every desktop Chrome session before attaching; checkpoints still require solving manually.
+
+## Risks you accept by running it
+
+- **LinkedIn may restrict your account** (limits on invites, temporary blocks, checkpoints). Automated outreach conflicts with LinkedIn’s normal-use expectations.
+- **The UI breaks when LinkedIn ships layout changes.** You may need small edits under [`tools/linkedin_selectors.py`](../tools/linkedin_selectors.py).
+- **You are accountable for message content.** Review templates in [`config.yaml`](config.yaml).
+
+**What could go wrong:** Your account lands on “verify identity” mid-run; invitations go to mismatched contacts if scoring thresholds are wrong; CSV/history grows on disk (local only).
+
+## One-time setup
+
+From the `job-search` folder:
+
+```bash
+python3 -m pip install -r requirements.txt
+```
+
+Install **Google Chrome** if it is not already installed: https://www.google.com/chrome/
+
+You do **not** need `playwright install chromium` when using `browser.channel: chrome`. Only install the Playwright bundle if you switch config to `chromium`.
+
+First run uses a **headed** browser so you can log in manually; the LinkedIn session is saved under **`linkedin/.browser-profile/`** (gitignored). That folder is Chrome profile data for the bot only—not your everyday Chrome profile.
+
+## Sign in once (stay logged in)
+
+The bot **does** remember LinkedIn login — but only inside its own Chrome profile folder (`linkedin/.browser-profile/`). You should **not** need to sign in on every run if that profile stays healthy.
+
+**One-time setup (do this once):**
+
+1. Quit extra Chrome windows (see below).
+2. From `job-search/`, run:
+
+   ```bash
+   python3 tools/recruiter_orchestrate.py preflight
+   python3 tools/linkedin_recruiter_bot.py --headed --dry-run
+   ```
+
+3. When the **automation Chrome window** opens (not Cursor’s Glass/browser panel), sign in to LinkedIn and complete any verification.
+4. Wait until the terminal prints `Login check passed — continuing.`
+
+**Each later run:** use the same commands (`--headed` or `--no-headed` after login works). Do **not** sign in again unless LinkedIn asks or you deleted `.browser-profile/`.
+
+**Why people think login “resets” every time:**
+
+| Cause | What to do |
+|--------|------------|
+| Signed in via **Cursor’s browser** (Glass / MCP) | That is a **different** session. Sign in only in the window opened by `linkedin_recruiter_bot.py` or `recruiter_orchestrate.py`. |
+| **Profile locked** — previous Chrome still holding `.browser-profile` | Quit the leftover automation Chrome, or run `preflight` to clear a **stale** lock. |
+| First run was **`--no-headed`** before login | Headless mode cannot complete manual login; use `--headed` once. |
+| Switched `browser.channel` from `chromium` to `chrome` (or vice versa) | Rare edge case; sign in once in the new channel’s window. |
+| LinkedIn **checkpoint** / unusual activity | Solve it in the automation window; the bot stops and logs `checkpoint_or_auth_url` in `recruiters.csv`. |
+
+**Check session health:**
+
+```bash
+python3 tools/recruiter_orchestrate.py preflight
+```
+
+Look for `Saved session cookies: yes` and `Profile lock: unlocked`.
+
+## Daily workflow
+
+Always **dry-run** after changing queries or thresholds:
+
+```bash
+cd job-search
+python3 tools/linkedin_recruiter_bot.py --headed --dry-run
+```
+
+Pilot with a single invitation:
+
+```bash
+python3 tools/linkedin_recruiter_bot.py --headed --max 1
+```
+
+Normal full-auto capped run (`max_connections_per_day` in config):
+
+```bash
+python3 tools/linkedin_recruiter_bot.py --headed
+```
+
+### Flags
+
+| Flag | Meaning |
+|------|---------|
+| `--headed` | Show the browser window (recommended until stable). Use `--no-headed` for headless (experimental). |
+| `--dry-run` | Search + open profiles + score + append CSV rows; never click Connect. |
+| `--max N` | Override `max_connections_per_day` for this run only |
+| `--variant SLUG` | Only run searches for one CV slug |
+| `--browser-channel chrome` | Force installed Google Chrome (default from config) |
+| `--browser-channel chromium` | Force Playwright’s downloaded Chromium |
+| `--config PATH` | Alternate YAML config |
+
+Outputs:
+
+- **`pipeline/recruiters.csv`** — gitignored audit log ([schema](../pipeline/README.md))
+- **`linkedin/run_logs/`** — screenshots when Connect cannot be found (`*-noconnect-*.png`) for debugging UI changes
+
+### After invites: acceptance + replies (read-only)
+
+Close the loop so you can tune thresholds against real outcomes:
+
+```bash
+cd job-search
+python3 tools/linkedin_followup.py --headed
+```
+
+This opens **Sent invitations** and **Messaging**, then updates `accepted_at`, `reply_at`, and `reply_excerpt` in `recruiters.csv` (best-effort heuristics; UI changes can break detection).
+
+Weekly funnel summary:
+
+```bash
+python3 tools/recruiter_performance.py
+```
+
+### Pacing and caps
+
+[`config.yaml`](config.yaml) `limits.*` controls lognormal-ish gaps between profiles, occasional feed “idle” browsing, a cool-down after each successful invite, and a **conservative daily cap** until enough sent invites show an accept rate ≥ 40% (see `max_connections_per_day_low_accept` and related keys).
+
+### Best practices (2026 outreach safety)
+
+These rules match what industry guides recommend and what this repo enforces in code/config:
+
+1. **Volume:** Aim for **12–15 personalized invites per day** (not 50+). Weekly totals near **~100** are safer than one big spike; the bot’s pacemaker uses **12/day** until your logged accept rate is strong.
+2. **Acceptance rate:** If accept rate in `recruiters.csv` drops below **~40%**, lower volume and tighten `matching.min_primary_score` before raising caps again.
+3. **Pacing:** Keep `between_profiles_seconds_median` (~70s) and idle feed browsing — sudden bursts of clicks look automated.
+4. **Hours:** Run headed during **local business hours**; avoid overnight marathons.
+5. **Targeting:** Prefer **hiring ecosystem** contacts (recruiters, HR, area/store directors) via `require_recruiter_gate: true` — not generic sales ICs.
+6. **Notes:** Stay under **280 characters** (LinkedIn’s limit is 300); mention *their* context, not a wall of CV text.
+7. **Session:** Use **one Chrome profile** (`linkedin/.browser-profile`) — not Cursor’s Glass browser — and run `preflight` if you see profile-lock errors.
+8. **Backends:** Default **Playwright + persistent Chrome** is most reliable; `browse_ws` is optional for MCP parity — quit other Chrome instances using the same profile first.
+9. **Hygiene:** Run `linkedin_followup.py` weekly; withdraw stale pending invites on LinkedIn manually if your pending queue grows.
+10. **Blockers:** On checkpoint/CAPTCHA, stop the bot, solve in the automation window, wait **24h** before resuming at half volume.
+
+Sources used for these limits: [ConnectSafely 2026 limits](https://connectsafely.ai/articles/linkedin-connection-limit-per-day-guide-2026), [Linkboost automation limits](https://blog.linkboost.co/linkedin-automation-daily-limits-guidelines-2026/), [Playwright persistent context docs](https://playwright.dev/python/docs/api/class-browsertype#browser-type-launch-persistent-context).
+
+## If LinkedIn shows a blocker
+
+The bot **stops** when it detects login walls, checkpoints, CAPTCHA-ish copy, or “unusual activity” strings (see [`linkedin_selectors.py`](../tools/linkedin_selectors.py)).
+
+1. Run again with **`--headed`**, solve the prompt in the automation Chrome window.
+2. Lower daily caps/delays in [`config.yaml`](config.yaml).
+3. If still stuck, wait several hours before retrying.
+
+## Switching from Chromium to Chrome
+
+If you previously logged in using bundled Chromium, you may need to **sign in again** once in the Google Chrome automation window—the profile format is separate.
+
+## Tuning scoring
+
+Raise `matching.min_primary_score` if invitations feel off-target; lower slightly if nobody passes. Prefer changing **keywords** on your CV variants in [`cv/variant_profiles.yaml`](../cv/variant_profiles.yaml); the recruiter bot reuses those lists automatically.

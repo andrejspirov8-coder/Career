@@ -1,0 +1,175 @@
+# LinkedIn recruiter scout — tweak after dry-run (see ../linkedin/README.md)
+#
+# limits.matching.*
+# -----------------
+# Uses the same scorer as job adverts (matching_lib.score_variant keywords),
+# combined with recruiter_matching sector keywords in tools/recruiter_match.py.
+
+linkedin_base_url: "https://www.linkedin.com"
+
+# Uses your installed Google Chrome (not Playwright's bundled Chromium).
+# backend: playwright — launch via Playwright persistent context (default).
+# backend: browse_ws — Chrome with --remote-debugging-port + Cursor Browse CLI (see linkedin/README.md).
+browser:
+  channel: chrome
+  backend: playwright
+  browse_debug_port: 9247
+  browse_headless: false
+
+limits:
+  # Research-backed daily cap (2026): ~15–20 invites/day safe for established accounts;
+  # weekly ~100 is the practical ceiling. Pacemaker stays on 12 until accept rate ≥ 40%.
+  max_connections_per_day: 15
+  max_connections_per_day_low_accept: 12
+  min_accept_rate_for_full_cap: 0.4
+  min_sent_for_accept_rate: 5
+  max_profiles_scored_per_run: 55
+  scroll_result_pages_max: 6
+  scroll_step_px: 900
+  # Legacy wide band; pacing between profiles now uses lognormal + idle feed (below).
+  delay_seconds_min: 45
+  delay_seconds_max: 120
+  dwell_after_navigate_seconds_min: 2
+  dwell_after_navigate_seconds_max: 6
+  action_delay_seconds_min: 1.5
+  action_delay_seconds_max: 4.0
+  between_profiles_seconds_median: 70
+  between_profiles_lognormal_sigma: 0.38
+  between_profiles_seconds_floor: 8
+  between_profiles_seconds_cap: 420
+  idle_browse_seconds_min: 60
+  idle_browse_seconds_max: 120
+  cool_down_after_sent_seconds: 90
+
+matching:
+  min_primary_score: 12.0
+  require_clear_winner: false
+  min_margin_over_second: 4.0
+  # Must show hiring-ecosystem signal (recruiter, HR, hiring manager, area/store director, etc.)
+  require_recruiter_gate: true
+  append_top_keyword_hit_to_note_if_fits_chars: true
+  note_max_chars: 280
+
+# Priority buckets for recruiter_orchestrate (session planning).
+# company_signals_any: if non-empty, at least one substring must match profile/company text (lowercased).
+tiers:
+  tier_1:
+    min_primary_score: 15
+    min_margin_over_second: 4.0
+    require_recruiter_gate: true
+    require_clear_winner: true
+    allow_tie_review: false
+    company_signals_any:
+      - "michael kors"
+      - "michael page"
+      - "experis"
+  tier_2:
+    min_primary_score: 12
+    min_margin_over_second: 4.0
+    require_recruiter_gate: true
+    require_clear_winner: true
+    allow_tie_review: false
+    company_signals_any: []
+  tier_3:
+    min_primary_score: 12
+    min_margin_over_second: 4.0
+    require_recruiter_gate: true
+    require_clear_winner: false
+    allow_tie_review: true
+    company_signals_any: []
+
+# Sector → variant keywords + gate terms (optional overrides).
+# recruiter_gate_terms: if set, replaces Python defaults in tools/recruiter_match.py
+recruiter_matching:
+  sector_beats_cv_min_score: 6
+  sector_keywords:
+    luxury-retail:
+      - "store director"
+      - "retail director"
+      - "head of retail"
+      - "head of stores"
+      - "area manager"
+      - "regional manager"
+      - "operations director"
+      - "hiring manager"
+    luxury-retail-lt:
+      - "parduotuvės direktor"
+      - "mažmeninės prekybos vadov"
+      - "mažmeninės prekybos direktor"
+      - "regiono vadov"
+      - "personalo vadov"
+    operations-management:
+      - "area manager"
+      - "regional manager"
+      - "operations director"
+      - "general manager"
+      - "district manager"
+      - "cluster manager"
+      - "multi-site"
+    it-business:
+      - "it support manager"
+      - "service desk manager"
+      - "it operations manager"
+      - "service delivery manager"
+
+search:
+  # Used in keyword URL only; geo filters on LinkedIn may still need confirmation in headed mode.
+  default_geo_keyword: ""
+  queries_by_variant:
+    luxury-retail:
+      - "recruiter luxury retail Vilnius"
+      - "talent acquisition premium retail Lithuania"
+      - "area manager retail Vilnius"
+      - "regional manager premium retail Lithuania"
+      - "store director luxury Lithuania"
+      - "retail director premium fashion Lithuania"
+      - "operations director retail Vilnius"
+      - "HR manager retail Vilnius"
+      - "HR business partner retail Lithuania"
+      - "hiring manager premium retail Lithuania"
+      - "Head of People Vilnius retail"
+      - "Head of HR luxury retail Baltics"
+    luxury-retail-lt:
+      - "personalas prabangos prekyba Vilnius recruiter"
+      - "personalo vadovė mažmeninė prekyba Vilnius"
+      - "personalo verslo partnerė prekyba Vilnius"
+      - "regiono vadovas mažmeninė prekyba Vilnius"
+      - "parduotuvės direktorius prabanga Lietuva"
+      - "mažmeninės prekybos direktorius Lietuva"
+      - "personalo vadovas prekyba Vilnius"
+      - "įdarbinimo vadovas Vilnius prekyba"
+      - "įdarbinimo specialistas Vilnius prekyba"
+      - "talento pritraukimas prabangos prekyba Lietuva"
+      - "area manager luxury retail Vilnius"
+      - "retail director premium Lithuania"
+      - "Head of People Vilnius retail"
+    operations-management:
+      - "recruiter operations retail Lithuania"
+      - "talent acquisition area manager Lithuania"
+      - "area manager operations Lithuania"
+      - "regional manager retail Vilnius"
+      - "operations director Lithuania"
+      - "general manager multi-site retail Lithuania"
+      - "store director operations Lithuania"
+      - "retail director operations Baltics"
+      - "HR manager operations Lithuania"
+      - "HR business partner retail Vilnius"
+      - "Head of People retail operations Lithuania"
+      - "hiring manager operations Lithuania"
+      - "store operations director Lithuania"
+    it-business:
+      - "recruiter IT support Lithuania"
+      - "technical recruiter business analyst Lithuania"
+      - "talent acquisition IT Lithuania"
+      - "HR manager IT Lithuania"
+      - "HR business partner IT Vilnius"
+      - "hiring manager IT support Vilnius"
+      - "people operations IT Vilnius"
+      - "IT operations manager Lithuania"
+      - "service desk manager Vilnius"
+
+connection_notes:
+  luxury-retail: "Hi {first_name}, I'm exploring premium retail leadership in Vilnius — would value connecting, especially if you're involved in hiring or growing teams."
+  luxury-retail-lt: "Sveika, {first_name}, ieškau vadovaujančių pareigų prabangos/prekybos srityje Vilniuje — norėčiau prisijungti, ypač jei dalyvaujate įdarbinime ar komandos augime."
+  operations-management: "Hi {first_name}, I'm pursuing multi-site / operations leadership in Lithuania — happy to connect if you hire or lead ops teams."
+  it-business: "Hi {first_name}, I'm exploring IT support / business-analysis roles locally — would appreciate connecting if you're involved in hiring for those areas."

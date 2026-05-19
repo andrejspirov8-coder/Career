@@ -1,0 +1,98 @@
+[
+  {
+    "canonical_id": "recruiter:linkedin:jane-doe-baltics-123",
+    "recruiter_name": "Jane Doe",
+    "company": "Michael Kors",
+    "profile_url": "https://www.linkedin.com/in/jane-doe-baltics-123/",
+    "tier": "tier_1",
+    "variant_slug": "luxury-retail",
+    "primary_score": 19.5,
+    "action": "send",
+    "reason": "ready:tier_1",
+    "note_preview": "Hi Jane, I am exploring premium retail leadership in Vilnius — would greatly appreciate connecting. Context: strong fit around luxury brand operations."
+  },
+  {
+    "canonical_id": "recruiter:linkedin:john-smith-staffing-456",
+    "recruiter_name": "John Smith",
+    "company": "Michael Page Lithuania",
+    "profile_url": "https://www.linkedin.com/in/john-smith-staffing-456/",
+    "tier": "tier_2",
+    "variant_slug": "luxury-retail",
+    "primary_score": 14.2,
+    "action": "send",
+    "reason": "ready:tier_2",
+    "note_preview": "Hi John, I am exploring premium retail leadership in Vilnius — would greatly appreciate connecting. Context: strong fit around retail management."
+  },
+  {
+    "canonical_id": "recruiter:linkedin:ruta-vilnius-789",
+    "recruiter_name": "Rūta Jonavičienė",
+    "company": "Baltic HR Solutions",
+    "profile_url": "https://www.linkedin.com/in/ruta-jonaviciene-789/",
+    "tier": "tier_2",
+    "variant_slug": "luxury-retail-lt",
+    "primary_score": 12.8,
+    "action": "send",
+    "reason": "ready:tier_2",
+    "note_preview": "Sveika, Rūta, ieškau vadovaujančių pareigų prabangos/prekybos srityje Vilniuje — norėčiau prisijungti."
+  },
+  {
+    "canonical_id": "recruiter:linkedin:thomas-ops-234",
+    "recruiter_name": "Thomas Wilson",
+    "company": "Experis",
+    "profile_url": "https://www.linkedin.com/in/thomas-wilson-ops-234/",
+    "tier": "tier_3",
+    "variant_slug": "operations-management",
+    "primary_score": 11.2,
+    "action": "queue",
+    "reason": "lower_tier_3",
+    "note_preview": null
+  },
+  {
+    "canonical_id": "recruiter:linkedin:marina-retail-567",
+    "recruiter_name": "Marina Petrov",
+    "company": "HR Connect Vilnius",
+    "profile_url": "https://www.linkedin.com/in/marina-petrov-567/",
+    "tier": "tier_3",
+    "variant_slug": "luxury-retail",
+    "primary_score": 9.5,
+    "action": "queue",
+    "reason": "lower_tier_3",
+    "note_preview": null
+  },
+  {
+    "canonical_id": "recruiter:linkedin:alex-tech-support-890",
+    "recruiter_name": "Alexander Tech",
+    "company": "TechStaff Solutions",
+    "profile_url": "https://www.linkedin.com/in/alexander-tech-support-890/",
+    "tier": "tier_skip_low_score:6.8<8.0",
+    "variant_slug": "it-business",
+    "primary_score": 6.8,
+    "action": "skip",
+    "reason": "low_score:6.8<8.0",
+    "note_preview": null
+  },
+  {
+    "canonical_id": "recruiter:linkedin:kate-generalist-012",
+    "recruiter_name": "Kate Anderson",
+    "company": "Universal Recruitment",
+    "profile_url": "https://www.linkedin.com/in/kate-anderson-generalist-012/",
+    "tier": "tier_skip_ambiguous_fit:tie_review",
+    "variant_slug": "operations-management",
+    "primary_score": 8.2,
+    "action": "skip",
+    "reason": "ambiguous_fit:tie_review",
+    "note_preview": null
+  },
+  {
+    "canonical_id": "recruiter:linkedin:david-mk-insider-345",
+    "recruiter_name": "David Müller",
+    "company": "Michael Kors EMEA",
+    "profile_url": "https://www.linkedin.com/in/david-muller-mk-345/",
+    "tier": "tier_1",
+    "variant_slug": "luxury-retail",
+    "primary_score": 20.1,
+    "action": "send",
+    "reason": "ready:tier_1",
+    "note_preview": "Hi David, I am exploring premium retail leadership in Vilnius and would greatly appreciate connecting. Context: strong fit around luxury brand management."
+  }
+]

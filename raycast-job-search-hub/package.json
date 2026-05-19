@@ -1,0 +1,78 @@
+{
+  "name": "raycast-job-search-hub",
+  "title": "Job Search Hub",
+  "description": "Manage Andrej's local job-search toolkit from Raycast.",
+  "icon": "icon.png",
+  "author": "andrej",
+  "license": "MIT",
+  "platforms": [
+    "macOS"
+  ],
+  "categories": [
+    "Productivity"
+  ],
+  "scripts": {
+    "dev": "ray develop",
+    "build": "ray build",
+    "lint": "ray lint",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "commands": [
+    {
+      "name": "job-new",
+      "title": "Job: New",
+      "description": "Create a new job posting file interactively.",
+      "mode": "view"
+    },
+    {
+      "name": "job-match",
+      "title": "Job: Match All",
+      "description": "Batch match all jobs in the inbox to CV variants.",
+      "mode": "view"
+    },
+    {
+      "name": "job-review",
+      "title": "Job: Review",
+      "description": "Review generated application packs.",
+      "mode": "view"
+    },
+    {
+      "name": "job-log",
+      "title": "Job: Log Application",
+      "description": "Log an application outcome to applications.csv.",
+      "mode": "view"
+    },
+    {
+      "name": "job-analytics",
+      "title": "Job: Analytics",
+      "description": "Show application pipeline and variant performance.",
+      "mode": "view"
+    },
+    {
+      "name": "job-deadlines",
+      "title": "Job: Deadlines",
+      "description": "Show upcoming application deadlines.",
+      "mode": "view"
+    },
+    {
+      "name": "job-rebuild-cvs",
+      "title": "Job: Rebuild CVs",
+      "description": "Rebuild all CV PDFs and Canva paste files.",
+      "mode": "view"
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "latest",
+    "csv": "^6.0.0",
+    "date-fns": "^2.30.0"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "2.1.1",
+    "@types/node": "^24.0.0",
+    "eslint": "10.4.0",
+    "prettier": "3.8.3",
+    "typescript": "^5.9.0",
+    "vitest": "^4.0.0"
+  }
+}
