@@ -5,13 +5,12 @@ from __future__ import annotations
 import sys
 import unittest
 from pathlib import Path
-from pathlib import Path
 
 TOOLS_DIR = Path(__file__).resolve().parents[1] / "tools"
 sys.path.insert(0, str(TOOLS_DIR))
 
-import linkedin_selectors as lis  # noqa: E402
 import linkedin_recruiter_bot as bot  # noqa: E402
+import linkedin_selectors as lis  # noqa: E402
 import recruiter_log as rlog  # noqa: E402
 import recruiter_match as rm  # noqa: E402
 import recruiter_orchestrate as orch  # noqa: E402
@@ -28,9 +27,22 @@ class TestCanonicalProfileUrls(unittest.TestCase):
             "https://www.linkedin.com/in/jane-example-123456/",
         )
 
-
     def test_rejects_company_placeholder(self) -> None:
-        self.assertEqual(lis.canonical_profile_url("https://www.linkedin.com/company/acme/in/bad"), "")
+        self.assertEqual(
+            lis.canonical_profile_url("https://www.linkedin.com/company/acme/in/bad"),
+            "",
+        )
+
+    def test_normalizes_to_www_for_no_subdomain_input(self) -> None:
+        """Exa returns URLs like 'linkedin.com/in/foo' (no www) — we must
+        canonicalize those identically to 'https://www.linkedin.com/in/foo/'
+        so the enrichment dict-lookup succeeds."""
+        canon_no_www = lis.canonical_profile_url("linkedin.com/in/tatyanagorelova")
+        canon_with_www = lis.canonical_profile_url(
+            "https://www.linkedin.com/in/tatyanagorelova/"
+        )
+        self.assertEqual(canon_no_www, canon_with_www)
+        self.assertEqual(canon_no_www, "https://www.linkedin.com/in/tatyanagorelova/")
 
 
 class TestBrowserChannelResolution(unittest.TestCase):
@@ -38,7 +50,9 @@ class TestBrowserChannelResolution(unittest.TestCase):
         self.assertEqual(bot.resolve_browser_channel({}, None), "chrome")
 
     def test_chromium_alias_is_bundled(self) -> None:
-        self.assertIsNone(bot.resolve_browser_channel({"browser": {"channel": "chromium"}}, None))
+        self.assertIsNone(
+            bot.resolve_browser_channel({"browser": {"channel": "chromium"}}, None)
+        )
 
     def test_cli_override_wins(self) -> None:
         self.assertEqual(
@@ -80,21 +94,17 @@ class TestPlannedInviteMetadata(unittest.TestCase):
 
 
 class TestBlockingHeuristics(unittest.TestCase):
-
     def test_checkpoint_url_detected(self) -> None:
-
 
         blocker = lis.detect_blockers(
             url="https://www.linkedin.com/checkpoint/lg/sign-in-phone",
             html_sample="<html></html>",
         )
 
-
         self.assertEqual(blocker, "checkpoint_or_auth_url")
 
 
 class TestRecruiterMatchIntegration(unittest.TestCase):
-
     def test_explicit_retail_voice_scores_luxury(self) -> None:
         snippet = """
 
@@ -127,16 +137,15 @@ class TestRecruiterMatchIntegration(unittest.TestCase):
             require_recruiter_gate=False,
         )
 
-
         slug = result["recommendation"]["variant_slug"]
 
         self.assertTrue(ok)
 
-
         self.assertEqual(refusal, "")
 
-
-        self.assertIn(slug, {"luxury-retail", "luxury-retail-lt", "operations-management"})
+        self.assertIn(
+            slug, {"luxury-retail", "luxury-retail-lt", "operations-management"}
+        )
         self.assertGreater(result["recommendation"]["primary_score"], 8.0)
 
     def test_area_manager_passes_hiring_gate(self) -> None:
@@ -239,7 +248,9 @@ class TestOrchestratorLatestJsonl(unittest.TestCase):
     def test_latest_record_wins_duplicate_url(self) -> None:
         import tempfile
 
-        with tempfile.NamedTemporaryFile("w", suffix=".jsonl", delete=False, encoding="utf-8") as tmp:
+        with tempfile.NamedTemporaryFile(
+            "w", suffix=".jsonl", delete=False, encoding="utf-8"
+        ) as tmp:
             p = Path(tmp.name)
             tmp.write(
                 '{"profile_url":"https://www.linkedin.com/in/jane-sample/","tier":"tier_2"}\n'

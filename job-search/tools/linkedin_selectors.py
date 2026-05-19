@@ -15,6 +15,14 @@ BLOCK_URL_FRAGMENTS = (
 )
 
 # Lowercased substrings scanned from the raw HTML snippet (cheap safety net).
+# LinkedIn profile page failed to render (transient or rate-limit); skip, do not halt whole run.
+PROFILE_LOAD_ERROR_PHRASES = (
+    "something went wrong when opening your profile",
+    "something went wrong when opening",
+    "this profile can't be accessed",
+    "profile isn't available",
+)
+
 BLOCK_PAGE_TEXT_HINTS = (
     "quick security check",
     "security verification",
@@ -41,7 +49,11 @@ def canonical_profile_url(href: str) -> str:
     parsed = urlparse(trimmed)
     scheme = parsed.scheme.lower() if parsed.scheme else "https"
     host = parsed.netloc.lower() if parsed.netloc else ""
-    if not host.endswith("linkedin.com"):
+    # Always normalize to www.linkedin.com so callers (e.g. profile enrichment)
+    # can match against URLs returned by Exa/Firecrawl that strip the www.
+    if host.endswith("linkedin.com"):
+        host = "www.linkedin.com"
+    else:
         host = "www.linkedin.com"
 
     segments = [s for s in (parsed.path or "").split("/") if s]
@@ -77,7 +89,7 @@ CONNECT_BUTTON_FALLBACK_SELECTORS = (
     'button[aria-label*="connect" i]:not([disabled])',
     ".pvs-profile-actions button.artdeco-button--primary:not([disabled])",
     ".pv-top-card-v2-cta button.artdeco-button--primary:not([disabled])",
-    'button.artdeco-button--primary:not([disabled])',
+    "button.artdeco-button--primary:not([disabled])",
 )
 
 # Modern profile header often uses a link, not a button (a11y name: "Invite <Name> to connect").
@@ -89,7 +101,9 @@ CONNECT_LINK_FALLBACK_SELECTORS = (
 )
 
 # LinkedIn often labels the control "Invite <Name> to connect", not plain "Connect".
-CONNECT_ROLE_NAME_RE = r"(invite\s+.+\s+to\s+connect|invite\s+to\s+connect|^connect$|^invite$)"
+CONNECT_ROLE_NAME_RE = (
+    r"(invite\s+.+\s+to\s+connect|invite\s+to\s+connect|^connect$|^invite$)"
+)
 
 # Click the top-card Connect control near main h1 (avoids sidebar suggestion buttons).
 CONNECT_CLICK_NEAR_H1_JS = r"""
@@ -169,7 +183,15 @@ CONNECT_CLICK_NEAR_H1_JS = r"""
 """
 
 
-def detect_blockers(*, url: str, html_sample: str, scan_html: bool = True) -> str | None:
+def profile_page_load_failed(html_sample: str) -> bool:
+    """True when LinkedIn shows a broken profile shell (skip one URL, keep scouting)."""
+    blob = (html_sample or "").lower()
+    return any(phrase in blob for phrase in PROFILE_LOAD_ERROR_PHRASES)
+
+
+def detect_blockers(
+    *, url: str, html_sample: str, scan_html: bool = True
+) -> str | None:
     """Return blocker code if automation should halt; otherwise None."""
     u = url.lower()
     if any(seg in u for seg in BLOCK_URL_FRAGMENTS):

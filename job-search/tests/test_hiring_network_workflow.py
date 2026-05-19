@@ -6,10 +6,13 @@ contracts that sit before browser dispatch.
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
+from io import StringIO
 from pathlib import Path
 
 TOOLS_DIR = Path(__file__).resolve().parents[1] / "tools"
@@ -34,7 +37,9 @@ class TestHiringNetworkSchemas(unittest.TestCase):
             headline="Area Manager premium retail Lithuania",
         )
         persona = hn.classify_persona(candidate, hn.default_hiring_network_config())
-        cv_match = hn.match_candidate_to_cv(candidate, hn.default_hiring_network_config())
+        cv_match = hn.match_candidate_to_cv(
+            candidate, hn.default_hiring_network_config()
+        )
         with self.assertRaises(ValueError):
             hn.RankedInvite(
                 candidate=candidate,
@@ -53,7 +58,9 @@ class TestHiringNetworkClassification(unittest.TestCase):
     def setUp(self) -> None:
         self.cfg = hn.default_hiring_network_config()
 
-    def classify(self, headline: str, about: str = "", company: str = "") -> hn.PersonaDecision:
+    def classify(
+        self, headline: str, about: str = "", company: str = ""
+    ) -> hn.PersonaDecision:
         candidate = hn.ProfileCandidate(
             profile_url="https://www.linkedin.com/in/sample-person/",
             name="Sample Person",
@@ -95,6 +102,22 @@ class TestHiringNetworkClassification(unittest.TestCase):
         )
         self.assertEqual(persona.persona, "low_relevance")
         self.assertIn("sales_only_no_hiring_signal", persona.risk_flags)
+
+    def test_generic_director_without_industry_is_low_relevance(self) -> None:
+        persona = self.classify(
+            "Director",
+            "Corporate strategy and governance.",
+            company="Generic Holdings",
+        )
+        self.assertEqual(persona.persona, "low_relevance")
+
+    def test_finance_director_without_retail_is_not_area_leader(self) -> None:
+        persona = self.classify(
+            "Finance Director",
+            "FP&A and treasury for a manufacturing group.",
+            company="Industrial Group",
+        )
+        self.assertNotEqual(persona.persona, "retail_area_leader")
 
 
 class TestHiringNetworkRankingAndNotes(unittest.TestCase):
@@ -140,8 +163,51 @@ class TestHiringNetworkRankingAndNotes(unittest.TestCase):
         self.assertLessEqual(len(invite.note), 280)
         self.assertIn("Lina", invite.note)
         self.assertTrue(
-            any(token in invite.note.lower() for token in ("retail", "vilnius", "lithuania"))
+            any(
+                token in invite.note.lower()
+                for token in ("retail", "vilnius", "lithuania")
+            )
         )
+
+    def test_search_variant_prior_approves_retail_hr_profile(self) -> None:
+        candidate = hn.candidate_from_scout_record(
+            {
+                "profile_url": "https://www.linkedin.com/in/vitaval/",
+                "name": "Vita Valiene",
+                "headline": "HR Manager Apranga Group luxury retail Massimo Dutti",
+                "variant_slug": "luxury-retail",
+                "location": "Kaunas",
+            }
+        )
+        invite = hn.build_ranked_invite(
+            candidate,
+            cfg=self.cfg,
+            history=hn.HistorySignals(),
+            already_contacted=False,
+            pending_visible=False,
+        )
+
+        self.assertEqual(invite.cv_match.best_cv_variant, "luxury-retail")
+        self.assertGreaterEqual(invite.cv_match.score, 76)
+        self.assertEqual(invite.send_tier, "auto_send")
+        self.assertIn("Apranga", invite.note)
+
+    def test_action_record_includes_source_backend(self) -> None:
+        candidate = hn.ProfileCandidate(
+            profile_url="https://www.linkedin.com/in/lina-area/",
+            name="Lina Area",
+            headline="Area Manager premium retail Lithuania",
+            source_backend="offline_stub",
+        )
+        invite = hn.build_ranked_invite(
+            candidate,
+            cfg=self.cfg,
+            history=hn.HistorySignals(),
+            already_contacted=False,
+            pending_visible=False,
+        )
+        record = invite.to_action_record()
+        self.assertEqual(record.get("source_backend"), "offline_stub")
 
     def test_safety_governor_skips_duplicates_and_pending_invites(self) -> None:
         duplicate = hn.build_ranked_invite(
@@ -167,7 +233,9 @@ class TestHiringNetworkRankingAndNotes(unittest.TestCase):
 
 class TestHiringNetworkFilesAndVision(unittest.TestCase):
     def test_action_plan_reader_accepts_json_array_legacy_file(self) -> None:
-        with tempfile.NamedTemporaryFile("w", suffix=".jsonl", delete=False, encoding="utf-8") as tmp:
+        with tempfile.NamedTemporaryFile(
+            "w", suffix=".jsonl", delete=False, encoding="utf-8"
+        ) as tmp:
             path = Path(tmp.name)
             json.dump(
                 [
@@ -190,13 +258,118 @@ class TestHiringNetworkFilesAndVision(unittest.TestCase):
 
     def test_screen_state_labels_blocker_text(self) -> None:
         self.assertEqual(
-            hn.classify_screen_state_from_text("Please complete this CAPTCHA to continue"),
+            hn.classify_screen_state_from_text(
+                "Please complete this CAPTCHA to continue"
+            ),
             "captcha",
         )
         self.assertEqual(
             hn.classify_screen_state_from_text("Invite Lina Area to connect"),
             "connect_visible",
         )
+
+    def test_legacy_recruiter_action_record_gets_recruiter_context(self) -> None:
+        candidate = hn.candidate_from_scout_record(
+            {
+                "canonical_id": "recruiter:linkedin:jane-doe",
+                "profile_url": "https://www.linkedin.com/in/jane-doe/",
+                "recruiter_name": "Jane Doe",
+                "company": "Michael Page Lithuania",
+                "tier": "tier_1",
+                "action": "send",
+                "variant_slug": "luxury-retail",
+            }
+        )
+        persona = hn.classify_persona(candidate, hn.default_hiring_network_config())
+        self.assertEqual(persona.persona, "recruiter_hr")
+
+    def test_full_auto_tier_includes_approved_auto_send(self) -> None:
+        with tempfile.NamedTemporaryFile(
+            "w", suffix=".jsonl", delete=False, encoding="utf-8"
+        ) as tmp:
+            path = Path(tmp.name)
+            rows = [
+                {
+                    "profile_url": "https://www.linkedin.com/in/send-me/",
+                    "name": "Send Me",
+                    "headline": "Area Manager retail",
+                    "decision": "approved",
+                    "send_tier": "auto_send",
+                    "cv_variant": "luxury-retail",
+                },
+                {
+                    "profile_url": "https://www.linkedin.com/in/skip-me/",
+                    "decision": "review",
+                    "send_tier": "queue_review",
+                    "cv_variant": "luxury-retail",
+                },
+            ]
+            for row in rows:
+                tmp.write(json.dumps(row) + "\n")
+
+        try:
+            approved = hn._approved_invites_from_plan(
+                path, tier="full_auto", max_profiles=None
+            )
+        finally:
+            path.unlink(missing_ok=True)
+
+        self.assertEqual(len(approved), 1)
+        self.assertIn("send-me", approved[0]["profile_url"])
+
+    def test_dispatch_dry_run_previews_without_calling_browser_sender(self) -> None:
+        with tempfile.NamedTemporaryFile(
+            "w", suffix=".jsonl", delete=False, encoding="utf-8"
+        ) as tmp:
+            path = Path(tmp.name)
+            tmp.write(
+                json.dumps(
+                    {
+                        "profile_url": "https://www.linkedin.com/in/jane-dry-run/",
+                        "name": "Jane Dry",
+                        "send_tier": "auto_send",
+                        "decision": "approved",
+                        "cv_variant": "luxury-retail",
+                        "rank_score": 88.0,
+                        "persona": "retail_area_leader",
+                        "note": "Hi Jane, dry-run note.",
+                    }
+                )
+                + "\n"
+            )
+
+        class FailingBot:
+            @staticmethod
+            def load_config(config_path: Path) -> dict[str, object]:
+                raise AssertionError("dry-run must not load sender config")
+
+            @staticmethod
+            def run_linked_in_campaign_backend(*args: object, **kwargs: object) -> int:
+                raise AssertionError("dry-run must not call Playwright dispatcher")
+
+        old_bot = hn.bot
+        hn.bot = FailingBot()  # type: ignore[assignment]
+        out = StringIO()
+        try:
+            with redirect_stdout(out):
+                rc = hn.cmd_dispatch(
+                    argparse.Namespace(
+                        output=path,
+                        tier="auto_send",
+                        max=1,
+                        dry_run=True,
+                        headed=True,
+                        config=hn.DEFAULT_LINKEDIN_CONFIG,
+                        browser_channel=None,
+                    )
+                )
+        finally:
+            hn.bot = old_bot
+            path.unlink(missing_ok=True)
+
+        self.assertEqual(rc, 0)
+        self.assertIn("DRY RUN", out.getvalue())
+        self.assertIn("Jane Dry", out.getvalue())
 
 
 if __name__ == "__main__":

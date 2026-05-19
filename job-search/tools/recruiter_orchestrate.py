@@ -28,15 +28,14 @@ try:
 except ModuleNotFoundError:
     yaml = None
 
-from matching_lib import CV_DIR, PROFILES_PATH, load_profiles
-
-import linkedin_selectors as lis
 import linkedin_recruiter_bot as bot
+import linkedin_selectors as lis
 from linkedin_browser import browse_debug_port
 from linkedin_profile_lock import (
     describe_profile_lock,
     release_stale_chrome_profile_lock,
 )
+from matching_lib import CV_DIR, PROFILES_PATH, load_profiles
 from recruiter_linkedin_paths import (
     ACTION_PLAN_JSONL,
     DEFAULT_LINKEDIN_CONFIG,
@@ -105,6 +104,72 @@ def read_jsonl_latest_by_url(path: Path) -> dict[str, dict[str, Any]]:
     return latest
 
 
+def merge_mcp_stubs_into_action_plan(
+    mcp_path: Path,
+    *,
+    sink_path: Path = ACTION_PLAN_JSONL,
+) -> int:
+    """Append MCP harvest stubs as scout-shaped JSONL rows for hiring_network rank."""
+    if not mcp_path.is_file():
+        raise SystemExit(f"MCP harvest file not found: {mcp_path}")
+    n = 0
+    sink = scout_sink_factory(sink_path)
+    with mcp_path.open(encoding="utf-8") as fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                stub = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            url = (stub.get("profile_url") or "").strip()
+            canon = lis.canonical_profile_url(url) or url
+            if not canon or "/in/" not in canon:
+                continue
+            sink(
+                {
+                    "schema": "linkedin_recruit_scout_v1",
+                    "source": "mcp_discovery",
+                    "profile_url": canon,
+                    "name": stub.get("name") or "",
+                    "headline": stub.get("headline") or "",
+                    "company_guess": stub.get("company") or "",
+                    "location": stub.get("location") or "",
+                    "about": stub.get("about") or "",
+                    "role_text": stub.get("role_text") or "",
+                    "search_variant_slug": stub.get("variant_slug") or "luxury-retail",
+                    "search_intent": stub.get("search_intent") or "",
+                }
+            )
+            n += 1
+    print(f"Merged {n} MCP stub(s) into {sink_path}", flush=True)
+    return n
+
+
+def planned_invites_from_session(session: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    planned: dict[str, dict[str, Any]] = {}
+    for row in session.get("queue") or []:
+        if not isinstance(row, dict):
+            continue
+        canon = lis.canonical_profile_url(row.get("profile_url") or "")
+        if not canon:
+            continue
+        planned[canon] = {
+            "note": row.get("note_live_full") or "",
+            "cv_variant": row.get("variant_slug_best")
+            or row.get("search_variant_slug")
+            or "",
+            "variant_slug": row.get("variant_slug_best") or "",
+            "persona": row.get("persona") or "",
+            "rank_score": row.get("rank_score") or row.get("primary_score") or "",
+            "profile_confidence": row.get("profile_confidence") or "",
+            "safety_decision": row.get("safety_decision") or "approved",
+            "note_reason": row.get("note_reason") or "",
+        }
+    return planned
+
+
 def scout_sink_factory(path: Path) -> Callable[[dict[str, Any]], None]:
     def _sink(record: dict[str, Any]) -> None:
         append_jsonl(path, record)
@@ -142,7 +207,9 @@ def cmd_preflight(config_path: Path, *, browse_status: bool) -> int:
     lock_before = describe_profile_lock(PROFILE_DIR)
     print(f"Profile lock: {lock_before}")
     if release_stale_chrome_profile_lock(PROFILE_DIR):
-        print(f"Profile lock: cleared stale lock (now {describe_profile_lock(PROFILE_DIR)})")
+        print(
+            f"Profile lock: cleared stale lock (now {describe_profile_lock(PROFILE_DIR)})"
+        )
     cookies = PROFILE_DIR / "Default" / "Cookies"
     if cookies.is_file():
         print(f"Saved session cookies: yes ({cookies.stat().st_size // 1024} KB)")
@@ -278,9 +345,19 @@ def build_session_queue_payload(
     return out_rows, skipped
 
 
-def cmd_plan(cfg_path: Path, *, tier_filter: str | None, retries_first: bool) -> int:
+def cmd_plan(
+    cfg_path: Path,
+    *,
+    tier_filter: str | None,
+    retries_first: bool,
+    mcp_source: Path | None = None,
+) -> int:
+    if mcp_source is not None:
+        merge_mcp_stubs_into_action_plan(mcp_source)
     cfg = load_yaml_config(cfg_path)
-    payload, skips = build_session_queue_payload(cfg, tier_filter=tier_filter, retries_first=retries_first)
+    payload, skips = build_session_queue_payload(
+        cfg, tier_filter=tier_filter, retries_first=retries_first
+    )
 
     doc = {
         "schema": "recruiter_session_state_v1",
@@ -292,7 +369,9 @@ def cmd_plan(cfg_path: Path, *, tier_filter: str | None, retries_first: bool) ->
         "blocked_reason": "",
     }
     SESSION_STATE_JSON.parent.mkdir(parents=True, exist_ok=True)
-    SESSION_STATE_JSON.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    SESSION_STATE_JSON.write_text(
+        json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
 
     print(
         f"Wrote {SESSION_STATE_JSON} with {len(payload)} dispatchable entr(y/ies); "
@@ -306,7 +385,9 @@ def cmd_plan(cfg_path: Path, *, tier_filter: str | None, retries_first: bool) ->
         for row in payload[:preview_n]:
             nt = row.get("note_preview_trim") or ""
             hl = row.get("headline") or ""
-            print(f"  - {row.get('tier')} score={row.get('primary_score')} {row.get('profile_url')}")
+            print(
+                f"  - {row.get('tier')} score={row.get('primary_score')} {row.get('profile_url')}"
+            )
             print(f"      {hl[:140]} → {nt[:120]}...")
     return 0
 
@@ -328,6 +409,7 @@ def cmd_dispatch(
         )
 
     session = json.loads(session_path.read_text(encoding="utf-8"))
+    planned_invites = planned_invites_from_session(session)
     queue_objs = session.get("queue") or []
     tuples: list[tuple[str, str]] = []
 
@@ -342,7 +424,9 @@ def cmd_dispatch(
             continue
 
         canon = lis.canonical_profile_url(row.get("profile_url") or "")
-        slug = (row.get("search_variant_slug") or row.get("variant_slug_best") or "").strip()
+        slug = (
+            row.get("search_variant_slug") or row.get("variant_slug_best") or ""
+        ).strip()
 
         if not canon or not slug:
             continue
@@ -368,6 +452,7 @@ def cmd_dispatch(
         cfg,
         queued_override=tuples,
         skip_discovery=True,
+        planned_invites=planned_invites,
     )
 
 
@@ -388,7 +473,9 @@ def cmd_report() -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    ap = argparse.ArgumentParser(description="Recruiter scout/plan/dispatch orchestrator.")
+    ap = argparse.ArgumentParser(
+        description="Recruiter scout/plan/dispatch orchestrator."
+    )
     ap.add_argument(
         "--config",
         type=Path,
@@ -407,7 +494,11 @@ def build_parser() -> argparse.ArgumentParser:
     shared.add_argument("--browser-channel", default=None)
 
     pf = sub.add_parser("preflight", help="Validate CV paths + show caps.")
-    pf.add_argument("--browse-status", action="store_true", help="Probe Chrome debugger / browse_ws port.")
+    pf.add_argument(
+        "--browse-status",
+        action="store_true",
+        help="Probe Chrome debugger / browse_ws port.",
+    )
 
     scout = sub.add_parser("scout", parents=[shared])
     scout.add_argument("--variant", default=None)
@@ -430,6 +521,12 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Do not prepend skipped_no_connect retry URLs.",
     )
+    pl.add_argument(
+        "--source",
+        type=Path,
+        default=None,
+        help="Merge MCP discovery JSONL into action plan before planning (e.g. pipeline/mcp_discovery_batch.jsonl).",
+    )
 
     dsp = sub.add_parser("dispatch", parents=[shared])
     dsp.add_argument("--dry-run", action="store_true")
@@ -448,6 +545,12 @@ def build_parser() -> argparse.ArgumentParser:
     daily.add_argument("--dispatch-tier", dest="tier_dispatch", default=None)
     daily.add_argument("--max-dispatch", type=int, default=None)
     daily.add_argument("--variant", default=None)
+    daily.add_argument(
+        "--mode",
+        choices=("tier", "hiring_network"),
+        default="tier",
+        help="tier = scout/plan/dispatch tiers; hiring_network = delegate to hiring_network_workflow daily.",
+    )
 
     fu = sub.add_parser("followup", parents=[shared])
     rp = sub.add_parser("report")
@@ -474,7 +577,12 @@ def main(argv: list[str] | None = None) -> int:
 
     if parsed.cmd == "plan":
         retries_first = not parsed.no_retries_first
-        return cmd_plan(cfg_path, tier_filter=parsed.tier_filter, retries_first=retries_first)
+        return cmd_plan(
+            cfg_path,
+            tier_filter=parsed.tier_filter,
+            retries_first=retries_first,
+            mcp_source=parsed.source,
+        )
 
     if parsed.cmd == "dispatch":
         return cmd_dispatch(
@@ -494,6 +602,25 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_report()
 
     if parsed.cmd == "daily":
+        if getattr(parsed, "mode", "tier") == "hiring_network":
+            cli = [
+                sys.executable,
+                str(TOOLS_DIR / "hiring_network_workflow.py"),
+                "--config",
+                str(cfg_path),
+                "daily",
+                "--headed" if parsed.headed else "--no-headed",
+            ]
+            if parsed.dry_run:
+                cli.append("--dry-run")
+            elif parsed.max_dispatch:
+                cli.extend(["--auto-send", "--max", str(parsed.max_dispatch)])
+            if parsed.variant:
+                cli.extend(["--variant", parsed.variant])
+            if parsed.browser_channel:
+                cli.extend(["--browser-channel", parsed.browser_channel])
+            return subprocess.call(cli)
+
         rc = cmd_scout(
             config_path=cfg_path,
             headed=parsed.headed,

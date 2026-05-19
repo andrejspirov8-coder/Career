@@ -10,17 +10,16 @@ from __future__ import annotations
 
 import argparse
 import csv
-
 import math
 import random
 import re
 import sys
 import time
+from collections.abc import Callable
 from datetime import date
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote_plus
-from collections.abc import Callable
 
 try:
     import yaml
@@ -30,37 +29,48 @@ except ModuleNotFoundError as exc:
 else:
     yaml_import_exc = None
 
-from playwright.sync_api import sync_playwright
-
 import linkedin_selectors as lis
-from linkedin_browser import LinkedInAutomatorBase, PlaywrightLinkedInAutomator, backend_from_cfg, start_browse_ws_session
-from matching_lib import TOOLS_DIR
+from linkedin_browser import (
+    LinkedInAutomatorBase,
+    PlaywrightLinkedInAutomator,
+    backend_from_cfg,
+    start_browse_ws_session,
+)
 from linkedin_profile_lock import (
     describe_profile_lock,
     is_profile_in_use_error,
     release_stale_chrome_profile_lock,
 )
+from matching_lib import TOOLS_DIR
+from playwright.sync_api import sync_playwright
 from recruiter_linkedin_paths import (
     DEFAULT_LINKEDIN_CONFIG,
     PROFILE_DIR,
     RECRUITERS_CSV,
     RUN_LOGS_DIR,
 )
-from recruiter_log import CSV_HEADER, append_recruiter_row, blank_recruiter_row, ensure_recruiter_csv_schema, recruiter_row_partial
+from recruiter_log import (
+    append_recruiter_row,
+    ensure_recruiter_csv_schema,
+    recruiter_row_partial,
+)
 from recruiter_match import (
     assign_best_tier,
     gate_terms_from_recruiter_cfg,
-    matched_hiring_gate_terms,
     match_recruiter_profile,
+    matched_hiring_gate_terms,
     prepare_outreach_note_bundle,
     should_send_recruiter_connection,
 )
+from recruiter_search import merged_queries_for_variant
 
 JOB_ROOT = TOOLS_DIR.parent
 DEFAULT_CONFIG = DEFAULT_LINKEDIN_CONFIG
 
 # Playwright channel names that map to browsers installed on the machine.
-SUPPORTED_BROWSER_CHANNELS = frozenset({"chrome", "chrome-beta", "msedge", "msedge-beta", "msedge-dev"})
+SUPPORTED_BROWSER_CHANNELS = frozenset(
+    {"chrome", "chrome-beta", "msedge", "msedge-beta", "msedge-dev"}
+)
 
 
 def load_config(config_path: Path) -> dict[str, Any]:
@@ -113,7 +123,9 @@ def accept_rate_from_csv(csv_path: Path) -> float | None:
     return accepted / sent
 
 
-def effective_daily_invite_cap(limits: dict[str, Any], csv_path: Path = RECRUITERS_CSV) -> int:
+def effective_daily_invite_cap(
+    limits: dict[str, Any], csv_path: Path = RECRUITERS_CSV
+) -> int:
     """
     Use the conservative cap until we have enough sent rows and a strong accept rate.
 
@@ -178,7 +190,9 @@ def idle_feed_browse(page: Any, *, base_url: str, limits: dict[str, Any]) -> Non
     jitter_sleep(2.0, 5.5)
 
 
-def resolve_browser_channel(raw_cfg: dict[str, Any], cli_override: str | None) -> str | None:
+def resolve_browser_channel(
+    raw_cfg: dict[str, Any], cli_override: str | None
+) -> str | None:
     """
     Return a Playwright channel (e.g. chrome) or None for bundled Chromium.
 
@@ -239,13 +253,17 @@ def launch_linkedin_browser_context(
     try:
         return _launch()
     except Exception as exc:
-        if is_profile_in_use_error(exc) and release_stale_chrome_profile_lock(PROFILE_DIR):
+        if is_profile_in_use_error(exc) and release_stale_chrome_profile_lock(
+            PROFILE_DIR
+        ):
             try:
                 return _launch()
             except Exception as retry_exc:
                 exc = retry_exc
         if is_profile_in_use_error(exc) or channel == "chrome":
-            raise SystemExit(_profile_in_use_exit_message(channel=channel, exc=exc)) from exc
+            raise SystemExit(
+                _profile_in_use_exit_message(channel=channel, exc=exc)
+            ) from exc
         raise SystemExit(f"Could not start browser ({label}): {exc}") from exc
 
 
@@ -326,7 +344,9 @@ def count_status_today(csv_path: Path, status: str = "sent") -> int:
     with csv_path.open(encoding="utf-8", newline="") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            if (row.get("date_iso") or "") == today and (row.get("status") or "") == status:
+            if (row.get("date_iso") or "") == today and (
+                row.get("status") or ""
+            ) == status:
                 n += 1
     return n
 
@@ -344,7 +364,9 @@ def planned_invite_for_url(
     return dict(planned_invites.get(canon) or {})
 
 
-def sample_automation_html(automation: LinkedInAutomatorBase, cap: int = 170_000) -> str:
+def sample_automation_html(
+    automation: LinkedInAutomatorBase, cap: int = 170_000
+) -> str:
     try:
         return automation.html_sample(cap)
     except Exception:
@@ -361,7 +383,9 @@ def sample_html(page: Any, cap: int = 170_000) -> str:
 def assert_not_blocked(page: Any, *, scan_html: bool = True) -> str | None:
     """Playwright-page helper retained for callers that still hold a raw page."""
     return assert_blocked_automation(
-        PlaywrightLinkedInAutomator(page, limits={}), scan_login_locators=True, scan_html=scan_html
+        PlaywrightLinkedInAutomator(page, limits={}),
+        scan_login_locators=True,
+        scan_html=scan_html,
     )
 
 
@@ -373,7 +397,9 @@ def assert_blocked_automation(
 ) -> str | None:
     blocker = lis.detect_blockers(
         url=automation.current_url(),
-        html_sample=sample_automation_html(automation, cap=380_000 if scan_html else 12_000),
+        html_sample=sample_automation_html(
+            automation, cap=380_000 if scan_html else 12_000
+        ),
         scan_html=scan_html,
     )
     if blocker:
@@ -393,10 +419,22 @@ def assert_blocked_automation(
             pass
         return None
     try:
-        pwd = int(automation.evaluate("document.querySelectorAll('input[type=password]').length") or 0)
-        email = int(automation.evaluate("document.querySelectorAll('input[type=email]').length") or 0)
+        pwd = int(
+            automation.evaluate(
+                "document.querySelectorAll('input[type=password]').length"
+            )
+            or 0
+        )
+        email = int(
+            automation.evaluate("document.querySelectorAll('input[type=email]').length")
+            or 0
+        )
         text_login = automation.html_sample(500_000).lower()
-        if pwd > 0 or email > 3 or ('sign in' in text_login and 'password' in text_login):
+        if (
+            pwd > 0
+            or email > 3
+            or ("sign in" in text_login and "password" in text_login)
+        ):
             return "login_wall_visible"
     except Exception:
         return None
@@ -507,7 +545,9 @@ def harvest_profile_urls(
             automation.mouse_wheel(scroll_px)
         except Exception:
             try:
-                automation.evaluate(f"(function(){{window.scrollBy(0, {int(scroll_px)});}})()")
+                automation.evaluate(
+                    f"(function(){{window.scrollBy(0, {int(scroll_px)});}})()"
+                )
             except Exception:
                 pass
         jitter_sleep(1.6, 2.8)
@@ -567,7 +607,9 @@ def automation_goto_or_closed(automation: LinkedInAutomatorBase, url: str) -> bo
         raise
 
 
-def automation_evaluate_or_closed(automation: LinkedInAutomatorBase, js_expression: str) -> Any | None:
+def automation_evaluate_or_closed(
+    automation: LinkedInAutomatorBase, js_expression: str
+) -> Any | None:
     """Run page JS; return None if Chrome was closed (one retry on transient TargetClosedError)."""
     last_exc: BaseException | None = None
     for attempt in range(2):
@@ -622,7 +664,9 @@ def automation_try_invite_or_closed(
     return False, "invite_failed_unknown", ""
 
 
-def idle_feed_automation(automation: LinkedInAutomatorBase, *, base_url: str, limits: dict[str, Any]) -> None:
+def idle_feed_automation(
+    automation: LinkedInAutomatorBase, *, base_url: str, limits: dict[str, Any]
+) -> None:
     lo = float(limits.get("idle_browse_seconds_min", 60))
     hi = float(limits.get("idle_browse_seconds_max", 120))
     feed = f"{base_url.rstrip('/')}/feed/"
@@ -659,8 +703,9 @@ def looks_pending_connection(page: Any) -> bool:
     return looks_pending_automation(PlaywrightLinkedInAutomator(page, limits={}))
 
 
-
-def try_send_invitation(page: Any, *, note_text: str, run_logs_dir: Path, profile_tag: str) -> tuple[bool, str, str]:
+def try_send_invitation(
+    page: Any, *, note_text: str, run_logs_dir: Path, profile_tag: str
+) -> tuple[bool, str, str]:
     """Delegate to playwright connect flow with shared jitter pacing."""
     from linkedin_connect_flow import playwright_try_send_invitation
 
@@ -689,7 +734,9 @@ def _warmup_and_maybe_login(
     block = assert_blocked_automation(automation, scan_html=False)
 
     if block and block in LOGIN_BLOCKERS:
-        if not wait_for_manual_login_automation(automation, base_url=base_url, headed=headed):
+        if not wait_for_manual_login_automation(
+            automation, base_url=base_url, headed=headed
+        ):
             append_recruiter_row(
                 recruiter_row_partial(
                     date_iso=date.today().isoformat(),
@@ -720,6 +767,13 @@ def _warmup_and_maybe_login(
     return None
 
 
+def _unpack_queue_item(item: tuple[str, ...]) -> tuple[str, str, str]:
+    """(profile_url, variant_slug, search_intent)."""
+    if len(item) >= 3:
+        return item[0], item[1], item[2]
+    return item[0], item[1], ""
+
+
 def collect_discovery_queue_for_session(
     automation: LinkedInAutomatorBase,
     *,
@@ -731,30 +785,33 @@ def collect_discovery_queue_for_session(
     base_url: str,
     shutdown_browser: Callable[[], None],
     seen_profiles: set[str],
-) -> list[tuple[str, str]] | None:
+) -> list[tuple[str, str, str]] | None:
     """Harvest People-search URLs (+ retry queue ordering). ``None`` = fatal blocker."""
     queries_map = search.get("queries_by_variant") or {}
     if not isinstance(queries_map, dict) or not queries_map:
         return []
 
-    queued: list[tuple[str, str]] = []
+    queued: list[tuple[str, str, str]] = []
     local_seen = set(seen_profiles)
     variants = list(queries_map.keys())
 
     if args.variant_filter:
         if args.variant_filter not in variants:
-            print(f"Unknown variant slug {args.variant_filter!r}; known: {variants}", file=sys.stderr)
+            print(
+                f"Unknown variant slug {args.variant_filter!r}; known: {variants}",
+                file=sys.stderr,
+            )
             return []
         variants = [args.variant_filter]
 
     for slug in variants:
-        queries = queries_map.get(slug)
-        if not isinstance(queries, list):
+        merged = merged_queries_for_variant(raw_cfg, slug)
+        if not merged:
             continue
         need = scoring_cap - len(queued)
         if need <= 0:
             break
-        for qline in queries:
+        for qline, search_intent in merged:
             need_inner = scoring_cap - len(queued)
             if need_inner <= 0:
                 break
@@ -796,7 +853,7 @@ def collect_discovery_queue_for_session(
             for u in new_urls:
                 if len(queued) >= scoring_cap:
                     break
-                queued.append((u, slug))
+                queued.append((u, slug, search_intent))
                 local_seen.add(u)
 
     retry_first = read_retry_connect_queue(RECRUITERS_CSV)
@@ -804,14 +861,18 @@ def collect_discovery_queue_for_session(
 
     if retry_first:
         retry_urls = {u for u, _ in retry_first}
-        queued = retry_first + [(u, v) for u, v in queued if u not in retry_urls]
-        print(f"Retrying {len(retry_first)} profile(s) with prior Connect failures first.", flush=True)
+        retry_triples = [(u, v, "") for u, v in retry_first]
+        queued = retry_triples + [
+            (u, v, i) for u, v, i in queued if u not in retry_urls
+        ]
+        print(
+            f"Retrying {len(retry_first)} profile(s) with prior Connect failures first.",
+            flush=True,
+        )
     elif pilot_mode and not getattr(args, "dry_run", False):
         queued = queued[: min(len(queued), 8)]
 
     return queued
-
-
 
 
 def run_recruiter_campaign(
@@ -829,7 +890,9 @@ def run_recruiter_campaign(
     RUN_LOGS_DIR.mkdir(parents=True, exist_ok=True)
     PROFILE_DIR.mkdir(parents=True, exist_ok=True)
 
-    base_url = (raw_cfg.get("linkedin_base_url") or "https://www.linkedin.com").rstrip("/")
+    base_url = (raw_cfg.get("linkedin_base_url") or "https://www.linkedin.com").rstrip(
+        "/"
+    )
     limits = cfg_limits(raw_cfg)
     matcher = cfg_matching(raw_cfg)
     search = cfg_search(raw_cfg)
@@ -890,7 +953,7 @@ def run_recruiter_campaign(
         return 3
 
     if skip_discovery:
-        queued = list(queued_override or [])
+        queued = [_unpack_queue_item(t) for t in (queued_override or [])]
     else:
         qres = collect_discovery_queue_for_session(
             automation,
@@ -912,8 +975,14 @@ def run_recruiter_campaign(
     today_iso = date.today().isoformat()
     idle_stride = random.randint(4, 5)
 
-    for profile_idx, (canonical_url, search_variant_slug) in enumerate(queued):
-        if not args.dry_run and invites_sent_this_session + sent_logged_today >= max_connect_daily:
+    for profile_idx, queue_item in enumerate(queued):
+        canonical_url, search_variant_slug, search_intent = _unpack_queue_item(
+            queue_item
+        )
+        if (
+            not args.dry_run
+            and invites_sent_this_session + sent_logged_today >= max_connect_daily
+        ):
             print("Stopped: daily invitation budget exhausted.", flush=True)
             break
 
@@ -949,11 +1018,33 @@ def run_recruiter_campaign(
             print(f"Halted visiting profile ({block3}).", flush=True)
             return 3
 
-        scraped_payload = automation_evaluate_or_closed(automation, lis.PROFILE_SCRAPER_JS)
+        scraped_payload = automation_evaluate_or_closed(
+            automation, lis.PROFILE_SCRAPER_JS
+        )
         if scraped_payload is None:
             shutdown_browser()
             return 4
         scraped_payload = scraped_payload or {}
+
+        if lis.profile_page_load_failed(
+            sample_automation_html(automation, cap=120_000)
+        ):
+            append_recruiter_row(
+                recruiter_row_partial(
+                    date_iso=today_iso,
+                    profile_url=canonical_url,
+                    name="",
+                    headline="",
+                    variant_slug=search_variant_slug,
+                    status="skipped_profile_load_error",
+                    skip_reason="linkedin_profile_page_load_error",
+                )
+            )
+            print(
+                f"Skipped (LinkedIn profile error): {canonical_url}",
+                flush=True,
+            )
+            continue
 
         display_name = (scraped_payload.get("name") or "").strip()
         headline = (scraped_payload.get("headline") or "").strip()
@@ -978,47 +1069,90 @@ def run_recruiter_campaign(
             )
             continue
 
-        try:
-            scoring_result = match_recruiter_profile(
-                headline=headline_for_match,
-                name=display_name,
-                profile_url=canonical_url,
-                company=company_guess_str,
-                about=about,
-                role_text=roles_txt,
-                location=location_txt,
-                recruiter_cfg=raw_cfg,
-            )
+        planned_invite = planned_invite_for_url(planned_invites, canonical_url)
+        use_frozen_plan = bool(planned_invite.get("note")) and not bool(
+            getattr(args, "revalidate", False)
+        )
 
-        except ValueError:
-            salvage = "\n\n".join(
-                chunk for chunk in (about[:12000], roles_txt[:14000]) if (chunk or "").strip()
-            ) or "."
+        if use_frozen_plan:
+            frozen_variant = str(
+                planned_invite.get("cv_variant")
+                or planned_invite.get("variant_slug")
+                or search_variant_slug
+            )
+            scoring_result = {
+                "recommendation": {
+                    "variant_slug": frozen_variant,
+                    "primary_score": planned_invite.get("rank_score") or 0,
+                    "margin_over_second": 4.0,
+                    "confidence": "clear_winner",
+                    "cv_primary_score": 12.0,
+                },
+                "recruiter_meta": {
+                    "recruiter_gate_ok": True,
+                    "sales_only_no_hiring": False,
+                    "top_signals": "",
+                    "sector_slug": frozen_variant,
+                    "sector_top_score": 6.0,
+                    "profile_blob_excerpt": "\n".join(
+                        x
+                        for x in (
+                            headline_for_match,
+                            company_guess_str,
+                            about[:600],
+                            roles_txt[:400],
+                            location_txt,
+                        )
+                        if (x or "").strip()
+                    )[:600],
+                },
+                "runner_up": {},
+            }
+        else:
             try:
                 scoring_result = match_recruiter_profile(
                     headline=headline_for_match,
                     name=display_name,
                     profile_url=canonical_url,
                     company=company_guess_str,
-                    about=salvage,
+                    about=about,
                     role_text=roles_txt,
                     location=location_txt,
                     recruiter_cfg=raw_cfg,
                 )
-
-            except Exception as exc_vf:
-                append_recruiter_row(
-                    recruiter_row_partial(
-                        date_iso=today_iso,
-                        profile_url=canonical_url,
-                        name=display_name,
-                        headline=headline,
-                        variant_slug=search_variant_slug,
-                        status="error_match",
-                        skip_reason=f"matching_failed:{exc_vf}",
+            except ValueError:
+                salvage = (
+                    "\n\n".join(
+                        chunk
+                        for chunk in (about[:12000], roles_txt[:14000])
+                        if (chunk or "").strip()
                     )
+                    or "."
                 )
-                continue
+                try:
+                    scoring_result = match_recruiter_profile(
+                        headline=headline_for_match,
+                        name=display_name,
+                        profile_url=canonical_url,
+                        company=company_guess_str,
+                        about=salvage,
+                        role_text=roles_txt,
+                        location=location_txt,
+                        recruiter_cfg=raw_cfg,
+                    )
+                except Exception as exc_vf:
+                    append_recruiter_row(
+                        recruiter_row_partial(
+                            date_iso=today_iso,
+                            profile_url=canonical_url,
+                            name=display_name,
+                            headline=headline,
+                            variant_slug=search_variant_slug,
+                            status="error_match",
+                            skip_reason=f"matching_failed:{exc_vf}",
+                        )
+                    )
+                    continue
 
         recommendation = scoring_result.get("recommendation") or {}
         meta = scoring_result.get("recruiter_meta") or {}
@@ -1027,7 +1161,12 @@ def run_recruiter_campaign(
         if meta.get("recruiter_gate_ok"):
             blob_for_gate = "\n".join(
                 x
-                for x in (headline_for_match, about[:2000], roles_txt[:1200], company_guess_str)
+                for x in (
+                    headline_for_match,
+                    about[:2000],
+                    roles_txt[:1200],
+                    company_guess_str,
+                )
                 if (x or "").strip()
             ).lower()
             gate_hits = matched_hiring_gate_terms(
@@ -1041,13 +1180,19 @@ def run_recruiter_campaign(
                     flush=True,
                 )
 
-        best_variant = str(recommendation.get("variant_slug") or search_variant_slug or "")
+        best_variant = str(
+            recommendation.get("variant_slug") or search_variant_slug or ""
+        )
 
         primary_score_disp = recommendation.get("primary_score", "")
         confidence = str(recommendation.get("confidence") or "")
         margin_disp = recommendation.get("margin_over_second", "")
-        runner_up_slug = str(recommendation.get("runner_up_slug") or runner.get("variant_slug") or "")
-        runner_up_score = str(recommendation.get("runner_up_score") or runner.get("primary_score") or "")
+        runner_up_slug = str(
+            recommendation.get("runner_up_slug") or runner.get("variant_slug") or ""
+        )
+        runner_up_score = str(
+            recommendation.get("runner_up_score") or runner.get("primary_score") or ""
+        )
 
         top_sig = str(meta.get("top_signals") or "")
 
@@ -1066,7 +1211,11 @@ def run_recruiter_campaign(
             min_margin_over_second=min_margin,
             require_clear_winner=require_clear,
             require_recruiter_gate=require_gate,
+            full_cfg=raw_cfg,
         )
+        if use_frozen_plan:
+            okay = True
+            refusal = ""
 
         nb = prepare_outreach_note_bundle(
             match_result=scoring_result,
@@ -1084,7 +1233,6 @@ def run_recruiter_campaign(
         drafted_note_preview = nb.get("preview_with_fallback") or ""
         note_preview_trim = nb.get("note_preview_trim") or ""
         template_literal = nb.get("template_used") or ""
-        planned_invite = planned_invite_for_url(planned_invites, canonical_url)
         if planned_invite.get("note"):
             drafted_note_live = str(planned_invite.get("note") or "")[:280]
             drafted_note_preview = drafted_note_live
@@ -1098,6 +1246,7 @@ def run_recruiter_campaign(
                     "date_iso": today_iso,
                     "profile_url": canonical_url,
                     "search_variant_slug": search_variant_slug,
+                    "search_intent": search_intent,
                     "tier": tier_slug,
                     "tier_refusal": tier_refusal,
                     "name": display_name,
@@ -1159,7 +1308,9 @@ def run_recruiter_campaign(
             elif not okay:
                 dry_status = "dry_run_would_skip"
             else:
-                preview_snip_exp = nb.get("preview_excerpt_logged") or (drafted_note_preview[:220])
+                preview_snip_exp = (
+                    nb.get("preview_excerpt_logged") or (drafted_note_preview[:220])
+                )
 
             append_recruiter_row(
                 {
@@ -1245,7 +1396,9 @@ def run_recruiter_campaign(
                     **row_out,
                     "status": "skipped_no_connect",
                     "skip_reason": invitation_msg or "invite_failed_unknown",
-                    "note_preview": (drafted_note_live[:90] if drafted_note_live else ""),
+                    "note_preview": (
+                        drafted_note_live[:90] if drafted_note_live else ""
+                    ),
                 }
             )
 
@@ -1258,7 +1411,7 @@ def run_linked_in_campaign_backend(
     args: argparse.Namespace,
     raw_cfg: dict[str, Any],
     *,
-    queued_override: list[tuple[str, str]] | None = None,
+    queued_override: list[tuple[str, str]] | list[tuple[str, str, str]] | None = None,
     skip_discovery: bool = False,
     action_plan_sink: Callable[[dict[str, Any]], None] | None = None,
     planned_invites: dict[str, dict[str, Any]] | None = None,
@@ -1349,11 +1502,16 @@ def build_arg_parser() -> argparse.ArgumentParser:
         default=True,
         action=argparse.BooleanOptionalAction,
         help="Show browser (--no-headed enables headless mode).",
-
     )
 
-
-    ap.add_argument("--dry-run", action="store_true", help="Score only; never send invites.")
+    ap.add_argument(
+        "--dry-run", action="store_true", help="Score only; never send invites."
+    )
+    ap.add_argument(
+        "--revalidate",
+        action="store_true",
+        help="Re-score profiles even when a planned note exists in the dispatch queue.",
+    )
     ap.add_argument(
         "--config",
         type=Path,
@@ -1361,16 +1519,13 @@ def build_arg_parser() -> argparse.ArgumentParser:
         help=f"YAML config (default {DEFAULT_CONFIG})",
     )
 
-
     ap.add_argument(
         "--max",
         dest="max_connections_override",
         type=int,
         default=None,
-
         help="Override max_connections_per_day for today",
     )
-
 
     ap.add_argument(
         "--variant",
@@ -1399,7 +1554,6 @@ def build_arg_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
-
 
     parsed = build_arg_parser().parse_args(argv)
 

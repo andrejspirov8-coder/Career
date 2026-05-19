@@ -70,6 +70,59 @@ def analyse_note_previews(rows: list[dict[str, str]]) -> list[dict[str, Any]]:
     return out
 
 
+def analyse_by_persona(rows: list[dict[str, str]]) -> dict[str, dict[str, Any]]:
+    """Aggregate sent / accepted / reply per hiring-network persona column."""
+    stats: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
+
+    for row in rows:
+        persona = (row.get("persona") or "").strip() or "(no persona)"
+        if persona.startswith("__meta__"):
+            continue
+        status = (row.get("status") or "").strip()
+        stats[persona]["rows"] += 1
+        if status == "sent":
+            stats[persona]["sent"] += 1
+        if (row.get("accepted_at") or "").strip():
+            stats[persona]["accepted"] += 1
+        if (row.get("reply_at") or "").strip():
+            stats[persona]["reply"] += 1
+
+    out: dict[str, dict[str, Any]] = {}
+    for persona, counts in sorted(stats.items()):
+        sent = int(counts.get("sent", 0))
+        accepted = int(counts.get("accepted", 0))
+        reply = int(counts.get("reply", 0))
+        out[persona] = {
+            "profiles_logged": int(counts.get("rows", 0)),
+            "sent": sent,
+            "accepted": accepted,
+            "reply": reply,
+            "accept_rate": (accepted / sent) if sent else 0.0,
+            "reply_rate": (reply / sent) if sent else 0.0,
+        }
+    return out
+
+
+def print_persona_table(results: dict[str, dict[str, Any]]) -> None:
+    if not results:
+        return
+    print("\n" + "=" * 88)
+    print("LINKEDIN RECRUITER FUNNEL BY PERSONA")
+    print("=" * 88)
+    print(f"{'Persona':<28} {'Rows':>6} {'Sent':>6} {'Acc%':>7} {'Rep%':>7}")
+    print("-" * 88)
+    for persona in sorted(results.keys()):
+        d = results[persona]
+        print(
+            f"{persona:<28} "
+            f"{d['profiles_logged']:>6} "
+            f"{d['sent']:>6} "
+            f"{d['accept_rate']:>6.1%} "
+            f"{d['reply_rate']:>6.1%}"
+        )
+    print()
+
+
 def analyse_by_variant(rows: list[dict[str, str]]) -> dict[str, dict[str, Any]]:
     """Aggregate sent / accepted / reply / interview per variant_slug."""
     stats: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
@@ -135,7 +188,7 @@ def print_csv_notes(rollup: list[dict[str, Any]]) -> None:
         nl = (row["note_first_line"] or "").replace('"', '""')
         print(
             f'"{nl}",{row["sent"]},{row["accepted"]},{row["reply"]},'
-            f'{row["accept_rate"]:.4f},{row["reply_rate"]:.4f}'
+            f"{row['accept_rate']:.4f},{row['reply_rate']:.4f}"
         )
 
 
@@ -175,14 +228,46 @@ def print_csv(results: dict[str, dict[str, Any]]) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Analyse LinkedIn recruiter CSV funnel.")
-    parser.add_argument("--csv", action="store_true", help="Machine-readable CSV output")
+    parser = argparse.ArgumentParser(
+        description="Analyse LinkedIn recruiter CSV funnel."
+    )
+    parser.add_argument(
+        "--csv", action="store_true", help="Machine-readable CSV output"
+    )
     parser.add_argument(
         "--notes-csv",
         action="store_true",
         help="With --csv, output note_preview rollup instead of variant rollup",
     )
+    parser.add_argument(
+        "--by-persona",
+        action="store_true",
+        help="Show accept/reply rates grouped by persona column",
+    )
+    parser.add_argument(
+        "--persona-stats",
+        action="store_true",
+        help="Write pipeline/persona_stats.json and print accept-rate table",
+    )
     args = parser.parse_args()
+
+    if args.persona_stats:
+        from recruiter_persona_stats import write_persona_stats
+
+        stats = write_persona_stats()
+        print("Wrote pipeline/persona_stats.json")
+        if not stats:
+            print("  (no recruiter rows yet)")
+            return
+        print(f"{'Persona':<28} {'Sent':>6} {'Acc':>6} {'Rate':>7}")
+        print("-" * 52)
+        for persona in sorted(stats.keys()):
+            block = stats[persona]
+            print(
+                f"{persona:<28} {block.get('sent', 0):>6} "
+                f"{block.get('accepted', 0):>6} {block.get('rate', 0.0):>6.1%}"
+            )
+        return
 
     rows = load_recruiters()
     if not rows:
@@ -194,11 +279,26 @@ def main() -> None:
         print_csv_notes(rollup)
         return
 
+    if args.by_persona:
+        persona_results = analyse_by_persona(rows)
+        if args.csv:
+            print("persona,profiles_logged,sent,accepted,reply,accept_rate,reply_rate")
+            for persona in sorted(persona_results.keys()):
+                d = persona_results[persona]
+                print(
+                    f"{persona},{d['profiles_logged']},{d['sent']},{d['accepted']},"
+                    f"{d['reply']},{d['accept_rate']:.4f},{d['reply_rate']:.4f}"
+                )
+        else:
+            print_persona_table(persona_results)
+        return
+
     results = analyse_by_variant(rows)
     if args.csv:
         print_csv(results)
     else:
         print_table(results)
+        print_persona_table(analyse_by_persona(rows))
         print_note_preview_table(analyse_note_previews(rows))
 
 

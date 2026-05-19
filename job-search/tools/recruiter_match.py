@@ -168,7 +168,9 @@ def build_parsed_job_from_profile(
 ) -> dict[str, Any]:
     h = headline.strip()
     n = name.strip()
-    headline_for_title = h or (n.split("\n")[0].strip() if n else "") or "LinkedIn profile"
+    headline_for_title = (
+        h or (n.split("\n")[0].strip() if n else "") or "LinkedIn profile"
+    )
     body_parts = [about, role_text, location]
     body = "\n".join(p for p in body_parts if (p or "").strip()).strip()
     title_boost = " ".join(x for x in (h, n) if x).lower()
@@ -219,7 +221,11 @@ def _recruiter_matching_section(cfg: dict[str, Any] | None) -> dict[str, Any]:
         return inner
     if any(
         k in cfg
-        for k in ("recruiter_gate_terms", "sector_keywords", "sector_beats_cv_min_score")
+        for k in (
+            "recruiter_gate_terms",
+            "sector_keywords",
+            "sector_beats_cv_min_score",
+        )
     ):
         return cfg
     return {}
@@ -244,7 +250,9 @@ def _gate_terms(yaml_cfg: dict[str, Any] | None) -> frozenset[str]:
     return DEFAULT_GATE_TERMS
 
 
-def gate_terms_from_recruiter_cfg(recruiter_cfg: dict[str, Any] | None) -> frozenset[str]:
+def gate_terms_from_recruiter_cfg(
+    recruiter_cfg: dict[str, Any] | None,
+) -> frozenset[str]:
     """Public helper for logging / orchestrator (full config or recruiter_matching block)."""
     return _gate_terms(_recruiter_matching_section(recruiter_cfg))
 
@@ -254,6 +262,125 @@ def _exclude_terms(yaml_cfg: dict[str, Any] | None) -> frozenset[str]:
     if isinstance(raw, list) and raw:
         return frozenset(str(x).lower().strip() for x in raw if str(x).strip())
     return SALES_ONLY_EXCLUDE_TERMS
+
+
+def _outreach_exclude_terms(full_cfg: dict[str, Any] | None) -> frozenset[str]:
+    """Sector outreach excludes from recruiter_matching or hiring_network."""
+    if not full_cfg:
+        return frozenset()
+    rm = _recruiter_matching_section(full_cfg)
+    raw = rm.get("outreach_exclude_terms")
+    if isinstance(raw, list) and raw:
+        return frozenset(str(x).lower().strip() for x in raw if str(x).strip())
+    hn = full_cfg.get("hiring_network") or {}
+    raw2 = hn.get("outreach_exclude_terms") if isinstance(hn, dict) else None
+    if isinstance(raw2, list) and raw2:
+        return frozenset(str(x).lower().strip() for x in raw2 if str(x).strip())
+    return frozenset()
+
+
+def _track_aligned_terms(full_cfg: dict[str, Any] | None) -> list[str]:
+    if not full_cfg:
+        return []
+    rm = _recruiter_matching_section(full_cfg)
+    raw = rm.get("track_aligned_company_terms")
+    if isinstance(raw, list) and raw:
+        return [str(x).lower().strip() for x in raw if str(x).strip()]
+    hn = full_cfg.get("hiring_network") or {}
+    raw2 = hn.get("track_aligned_company_terms") if isinstance(hn, dict) else None
+    if isinstance(raw2, list) and raw2:
+        return [str(x).lower().strip() for x in raw2 if str(x).strip()]
+    return []
+
+
+def profile_has_outreach_exclude(
+    blob_lower: str, full_cfg: dict[str, Any] | None
+) -> bool:
+    excludes = _outreach_exclude_terms(full_cfg)
+    return bool(excludes) and any(t in blob_lower for t in excludes)
+
+
+def profile_has_track_industry(
+    blob_lower: str,
+    *,
+    variant_slug: str,
+    full_cfg: dict[str, Any] | None,
+) -> bool:
+    """True when profile shows a track-aligned industry/sector signal."""
+    if any(t in blob_lower for t in _track_aligned_terms(full_cfg)):
+        return True
+    sector_map = _merged_sector_map(_recruiter_matching_section(full_cfg))
+    phrases = sector_map.get(variant_slug) or []
+    return any(p.lower().strip() in blob_lower for p in phrases if len(p) >= 3)
+
+
+def profile_negative_hits(
+    blob_lower: str,
+    variant_slug: str,
+    profiles_path: Path | None = None,
+) -> list[str]:
+    """Negative keywords from variant_profiles.yaml that appear in profile text."""
+    try:
+        variants = load_profiles(profiles_path)
+    except (FileNotFoundError, ValueError):
+        return []
+    block = variants.get(variant_slug) or {}
+    negs = block.get("negative_keywords") or []
+    hits: list[str] = []
+    for neg in negs:
+        n = str(neg).lower().strip()
+        if len(n) < 3:
+            continue
+        if " " in n or "-" in n:
+            ok = n in blob_lower
+        else:
+            ok = bool(re.search(rf"\b{re.escape(n)}\b", blob_lower))
+        if ok:
+            hits.append(n)
+    return hits
+
+
+def passes_track_relevance_gate(
+    result: dict[str, Any],
+    *,
+    full_cfg: dict[str, Any] | None,
+    matcher: dict[str, Any] | None = None,
+) -> tuple[bool, str]:
+    """Optional stricter gate: industry + CV floor + profile negatives."""
+    matcher = matcher or (full_cfg or {}).get("matching") or {}
+    if not bool(matcher.get("require_sector_and_cv_agreement", False)):
+        return True, ""
+
+    meta = result.get("recruiter_meta") or {}
+    rec = result.get("recommendation") or {}
+    variant = str(rec.get("variant_slug") or "")
+    blob = str(meta.get("profile_blob_excerpt") or "").lower()
+    if not blob:
+        return True, ""
+
+    if profile_has_outreach_exclude(blob, full_cfg):
+        return False, "skipped_outreach_exclude_term"
+
+    cv_primary = float(rec.get("cv_primary_score") or 0.0)
+    cv_mins = matcher.get("cv_min_scores") or {}
+    min_cv = float(cv_mins.get(variant, 8.0)) if isinstance(cv_mins, dict) else 8.0
+    if cv_primary < min_cv:
+        return False, f"skipped_low_cv_fit:{cv_primary:.2f}<min:{min_cv}"
+
+    neg_hits = profile_negative_hits(blob, variant)
+    sector_top = float(meta.get("sector_top_score") or 0.0)
+    if neg_hits and sector_top < 6.0:
+        return False, f"skipped_profile_negative:{','.join(neg_hits[:3])}"
+
+    if not profile_has_track_industry(blob, variant_slug=variant, full_cfg=full_cfg):
+        company_priority = []
+        if full_cfg:
+            hn = full_cfg.get("hiring_network") or {}
+            company_priority = hn.get("company_priority_terms") or []
+        if not any(str(t).lower() in blob for t in company_priority if str(t).strip()):
+            return False, "skipped_no_track_industry_signal"
+
+    return True, ""
 
 
 def _gate_term_matches(blob_lower: str, term: str) -> bool:
@@ -281,7 +408,9 @@ def profile_has_hiring_gate(blob_lower: str, gate_terms: frozenset[str]) -> bool
     return bool(matched_hiring_gate_terms(blob_lower, gate_terms))
 
 
-def is_sales_only_without_hiring_signal(blob_lower: str, yaml_cfg: dict[str, Any] | None) -> bool:
+def is_sales_only_without_hiring_signal(
+    blob_lower: str, yaml_cfg: dict[str, Any] | None
+) -> bool:
     """Block pure sales/BD profiles that lack recruiter/HR/hiring/leadership hiring cues."""
     gate_terms = _gate_terms(yaml_cfg)
     if profile_has_hiring_gate(blob_lower, gate_terms):
@@ -290,7 +419,9 @@ def is_sales_only_without_hiring_signal(blob_lower: str, yaml_cfg: dict[str, Any
     return any(t in blob_lower for t in exclude)
 
 
-def _score_sectors(blob_lower: str, sector_map: dict[str, list[str]]) -> tuple[dict[str, float], list[str]]:
+def _score_sectors(
+    blob_lower: str, sector_map: dict[str, list[str]]
+) -> tuple[dict[str, float], list[str]]:
     scores: dict[str, float] = {slug: 0.0 for slug in sector_map}
     signals: list[str] = []
     for slug, phrases in sector_map.items():
@@ -340,10 +471,14 @@ def match_recruiter_profile(
     """
     sector_cfg = _recruiter_matching_section(recruiter_cfg)
     gate_terms = _gate_terms(sector_cfg if isinstance(sector_cfg, dict) else None)
-    sector_map = _merged_sector_map(sector_cfg if isinstance(sector_cfg, dict) else None)
+    sector_map = _merged_sector_map(
+        sector_cfg if isinstance(sector_cfg, dict) else None
+    )
 
     blob = "\n".join(
-        x for x in (headline, about, role_text, location, name) if (x or "").strip()
+        x
+        for x in (headline, company, about, role_text, location, name)
+        if (x or "").strip()
     )
     blob_lower = blob.lower()
 
@@ -351,7 +486,9 @@ def match_recruiter_profile(
     sales_only_no_hiring = is_sales_only_without_hiring_signal(blob_lower, sector_cfg)
 
     sector_scores, top_signals = _score_sectors(blob_lower, sector_map)
-    sector_slug, sector_top, sector_margin = _pick_sector_variant(sector_scores, sector_cfg)
+    sector_slug, sector_top, sector_margin = _pick_sector_variant(
+        sector_scores, sector_cfg
+    )
 
     cv_result = match_profile(
         headline=headline,
@@ -371,7 +508,9 @@ def match_recruiter_profile(
     cv_margin = float(cv_rec.get("margin_over_second") or 0.0)
 
     # Resolve final variant: strong sector beats CV; LT language nudges luxury → luxury-retail-lt
-    if sector_slug and sector_top >= float(sector_cfg.get("sector_beats_cv_min_score", 6.0)):
+    if sector_slug and sector_top >= float(
+        sector_cfg.get("sector_beats_cv_min_score", 6.0)
+    ):
         chosen = sector_slug
         if chosen == "luxury-retail" and LT_MARKERS.search(blob):
             if "luxury-retail-lt" in sector_scores:
@@ -386,7 +525,9 @@ def match_recruiter_profile(
     runner = cv_result.get("runner_up") or {}
     rec_out = {
         "variant_slug": chosen,
-        "confidence": cv_conf if chosen == cv_slug else ("clear_winner" if sector_top >= 9 else "tie_review"),
+        "confidence": cv_conf
+        if chosen == cv_slug
+        else ("clear_winner" if sector_top >= 9 else "tie_review"),
         "primary_score": round(unified, 4),
         "tie_break_score": float(cv_rec.get("tie_break_score") or 0),
         "margin_over_second": margin_use,
@@ -420,6 +561,7 @@ def should_send_recruiter_connection(
     min_margin_over_second: float,
     require_clear_winner: bool,
     require_recruiter_gate: bool,
+    full_cfg: dict[str, Any] | None = None,
 ) -> tuple[bool, str]:
     meta = result.get("recruiter_meta") or {}
     if meta.get("sales_only_no_hiring"):
@@ -440,6 +582,13 @@ def should_send_recruiter_connection(
 
     if require_clear_winner and confidence != "clear_winner":
         return False, f"skipped_ambiguous:confidence:{confidence}"
+
+    matcher = (full_cfg or {}).get("matching") or {}
+    ok_track, track_refusal = passes_track_relevance_gate(
+        result, full_cfg=full_cfg, matcher=matcher
+    )
+    if not ok_track:
+        return False, track_refusal
 
     return True, ""
 
@@ -467,6 +616,47 @@ def first_name_from_display(name: str) -> str:
         return "there"
     first = n.split()[0].strip(".,;:()[]\"'")
     return first[:40] if first else "there"
+
+
+def evidence_phrase_for_outreach(
+    *,
+    headline: str,
+    company: str,
+    about: str,
+    signals_csv: str,
+    persona_evidence: str = "",
+) -> str:
+    """Prefer headline/company over generic persona labels like 'recruiter'."""
+    generic = frozenset(
+        {
+            "recruiter",
+            "hiring",
+            "hr",
+            "human resources",
+            "talent acquisition",
+            "hiring and leadership",
+        }
+    )
+    pe = (persona_evidence or "").strip()
+    if pe and pe.lower() not in generic and 2 < len(pe) <= 44:
+        return pe
+
+    hl = re.sub(r"\s+", " ", (headline or "").strip(" .,:;"))
+    if hl and hl.lower() not in generic and len(hl) >= 8:
+        return hl[:44]
+
+    co = (company or "").strip()
+    if co and hl:
+        combo = f"{hl} at {co}"
+        return combo[:44]
+
+    phrase = extract_profile_phrase_for_note(headline, about, signals_csv)
+    if phrase:
+        return phrase[:44]
+
+    if co:
+        return co[:44]
+    return "your field"
 
 
 def extract_profile_phrase_for_note(
@@ -531,7 +721,11 @@ def confidence_passes_for_tier(
     tier_rule: dict[str, Any],
 ) -> bool:
     conf = str(confidence or "").strip().lower().replace("-", "_")
-    require_clear = bool(tier_rule.get("require_clear_winner", matcher.get("require_clear_winner", False)))
+    require_clear = bool(
+        tier_rule.get(
+            "require_clear_winner", matcher.get("require_clear_winner", False)
+        )
+    )
     allow_tie = bool(tier_rule.get("allow_tie_review", False))
 
     if conf == "clear_winner":
@@ -551,14 +745,24 @@ def meets_tier_scorebar(
 ) -> tuple[bool, str]:
     meta = result.get("recruiter_meta") or {}
     rec = result.get("recommendation") or {}
-    need_gate = bool(tier_rule.get("require_recruiter_gate", matcher.get("require_recruiter_gate", True)))
+    need_gate = bool(
+        tier_rule.get(
+            "require_recruiter_gate", matcher.get("require_recruiter_gate", True)
+        )
+    )
     if meta.get("sales_only_no_hiring"):
         return False, "skipped_sales_only_no_hiring_signal"
     if need_gate and not meta.get("recruiter_gate_ok"):
         return False, "skipped_not_hiring_ecosystem_profile"
 
-    min_score = float(tier_rule.get("min_primary_score", matcher.get("min_primary_score", 12)))
-    min_margin = float(tier_rule.get("min_margin_over_second", matcher.get("min_margin_over_second", 4.0)))
+    min_score = float(
+        tier_rule.get("min_primary_score", matcher.get("min_primary_score", 12))
+    )
+    min_margin = float(
+        tier_rule.get(
+            "min_margin_over_second", matcher.get("min_margin_over_second", 4.0)
+        )
+    )
     primary = float(rec.get("primary_score") or 0.0)
     margin = float(rec.get("margin_over_second") or 0.0)
     confidence = str(rec.get("confidence") or "")
@@ -572,12 +776,9 @@ def meets_tier_scorebar(
     return True, ""
 
 
-
 def tier_matches_signals(tier_rule: dict[str, Any], company_blob_lower: str) -> bool:
 
-
     signals = tier_rule.get("company_signals_any")
-
 
     if isinstance(signals, list) and signals:
         blob = company_blob_lower or ""
@@ -589,303 +790,128 @@ def tier_matches_signals(tier_rule: dict[str, Any], company_blob_lower: str) -> 
             if str(signal).strip()
         )
 
-
     return True
-
 
 
 def sorted_tier_keys(cfg: dict[str, Any]) -> list[str]:
 
-
     block = cfg.get("tiers") or {}
 
-
     if not isinstance(block, dict):
-
-
         return []
-
-
-
 
     keys = [k for k in block.keys() if isinstance(k, str) and k.startswith("tier_")]
 
-
-
-
     def sort_key(token: str) -> tuple[int, str]:
-
-
-
 
         parts = token.split("_", maxsplit=1)
 
-
         suf = parts[1] if len(parts) == 2 else ""
-
 
         digits = "".join(ch for ch in suf if ch.isdigit())
 
-
         return (int(digits or "999"), suf)
-
-
-
 
     return sorted(keys, key=sort_key)
 
 
-
-
 def assign_best_tier(
-
-
     *,
-
-
     result: dict[str, Any],
-
-
     cfg: dict[str, Any],
-
-
     company_blob_lower: str,
-
-
 ) -> tuple[str, str]:
     matcher = cfg.get("matching") or {}
 
-
-
-
     for tk in sorted_tier_keys(cfg):
-
-
         tblock = cfg.get("tiers") or {}
-
 
         rule = (tblock or {}).get(tk) if isinstance(tblock, dict) else {}
 
-
-
-
         if not isinstance(rule, dict):
-
-
             continue
 
-
-
-
-        ok_gate, refusal = meets_tier_scorebar(result, matcher=matcher, tier_rule={**matcher, **rule})
-
+        ok_gate, refusal = meets_tier_scorebar(
+            result, matcher=matcher, tier_rule={**matcher, **rule}
+        )
 
         if not ok_gate:
-
-
             continue
-
-
-
 
         if not tier_matches_signals({**matcher, **rule}, company_blob_lower.lower()):
-
-
             continue
 
-
-
-
         return tk, ""
-
-
-
 
     return "tier_rest", "no_matching_tier_rule"
 
 
-
-
 def prepare_outreach_note_bundle(
-
-
-
-
     *,
     match_result: dict[str, Any],
-
-
     headline: str,
-
-
     about: str,
-
-
     location_txt: str,
-
-
-
-
     display_name: str,
-
-
     search_variant_slug: str,
-
-
     meta_signals_csv: str,
-
-
     note_templates_raw: dict[str, Any],
-
-
     matching_cfg: dict[str, Any],
-
-
-
-
     profiles_path: Path | None = None,
-
-
-
-
 ) -> dict[str, str]:
     fname = first_name_from_display(display_name)
 
-
     lt_blob = f"{headline} {location_txt} {about}".lower()
-
 
     prefer_lt = bool(LT_MARKERS.search(lt_blob))
 
-
     recommendation = match_result.get("recommendation") or {}
-
 
     best_variant = str(recommendation.get("variant_slug") or search_variant_slug or "")
 
-
     template_literal = pick_template_for_profile(
         best_variant, note_templates=note_templates_raw, prefer_lt=prefer_lt
-
-
     )
 
-
-
-
     if not template_literal:
-
-
         bk = note_templates_raw.get(search_variant_slug)
 
-
         if isinstance(bk, str) and bk.strip():
-
-
             template_literal = bk.strip()
-
-
-
 
     phrase = extract_profile_phrase_for_note(headline, about, meta_signals_csv)
 
-
     anchor = variant_anchor_line(best_variant, profiles_path)
-
 
     note_max_chars = int(matching_cfg.get("note_max_chars", 280))
 
-
-    FALLBACK_PREVIEW = (
-        "Hi {first_name}, I'd like to connect regarding relevant openings in Lithuania — thank you."
-    )
-
+    FALLBACK_PREVIEW = "Hi {first_name}, I'd like to connect regarding relevant openings in Lithuania — thank you."
 
     preview_tmpl = template_literal or FALLBACK_PREVIEW
 
-
-
-
     drafted_preview = build_personalized_connection_note(
-
-
         preview_tmpl,
-
-
-
-
         first_name=fname,
-
-
-
-
         profile_phrase=phrase,
-
-
-
-
         max_chars=note_max_chars,
-
-
-
-
     )
-
-
-
 
     base_live_template = template_literal
 
-
-
-
     drafted_live_raw = ""
 
-
-
-
     if base_live_template:
-
-
         drafted_live_raw = build_personalized_connection_note(
-
-
             base_live_template,
-
-
-
-
             first_name=fname,
-
-
-
-
             profile_phrase=phrase,
-
-
-
-
             max_chars=note_max_chars,
-
-
-
-
         )
-
-
-
-
 
     appended = drafted_live_raw
 
-
     if appended and anchor:
-
-
         appended = _append_suffix_if_room(appended, anchor, note_max_chars)
-
-
-
 
     if bool(matching_cfg.get("append_top_keyword_hit_to_note_if_fits_chars", False)):
         kw = top_keyword_hit(match_result)
@@ -901,64 +927,18 @@ def prepare_outreach_note_bundle(
 
     drafted_live_final = appended or drafted_preview
 
-
-
-
     preview_snip_exp = ""
 
-
-
-
     if base_live_template:
-
-
-
-
         preview_snip_exp = drafted_preview[:220]
 
-
-
-
-
-
     return {
-
-
-
-
         "template_used": template_literal or "",
-
-
-
-
         "note_preview_trim": drafted_live_final[:220],
-
-
-
-
         "note_live_full": drafted_live_final,
-
-
-
-
-
         "preview_with_fallback": drafted_preview,
-
-
-
-
         "preview_excerpt_logged": preview_snip_exp,
-
-
-
-
-
     }
-
-
-
-
-
 
 
 def prepare_outreach_note(**kwargs: Any) -> dict[str, str]:
@@ -972,8 +952,10 @@ def pick_template_for_profile(
     note_templates: dict[str, str],
     prefer_lt: bool,
 ) -> str:
-    if prefer_lt and variant_slug == "luxury-retail" and isinstance(
-        note_templates.get("luxury-retail-lt"), str
+    if (
+        prefer_lt
+        and variant_slug == "luxury-retail"
+        and isinstance(note_templates.get("luxury-retail-lt"), str)
     ):
         return str(note_templates["luxury-retail-lt"])
     t = note_templates.get(variant_slug)

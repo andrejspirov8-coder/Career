@@ -11,6 +11,9 @@ _Last trimmed to match repository reality (`job-search` LinkedIn recruiter stack
 | Note builder (templates + headline/about phrase + CV anchor + keyword suffix) | `prepare_outreach_note` / `_bundle` | `note_live_full` (≤ chars from config) |
 | Browser backends | **`playwright`** (default) vs **`browse_ws`** (Chrome + `browse --ws`) | Shares `linkedin/.browser-profile/` |
 | Session planner for MCP / dispatch queues | `recruiter_orchestrate.py plan` | `pipeline/recruiter_session_state.json` |
+| Three-agent LangGraph pipeline | `hiring_network_workflow.py graph run` | discovery CSV → validated CSV → ranked JSONL → dispatch |
+| Web-first discovery | `recruiter_web_discover.py` | `pipeline/candidates_discovery.csv` |
+| Company validation | `recruiter_company_validate.py` | `pipeline/candidates_validated.csv` |
 | Dispatch from session (re-score + CSV log) | `recruiter_orchestrate.py dispatch` | CSV rows incl. dry-run previews |
 | Daily chain | `recruiter_orchestrate.py daily` | scout JSONL → plan JSON → headed dispatch |
 

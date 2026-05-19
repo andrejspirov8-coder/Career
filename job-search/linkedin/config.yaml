@@ -17,13 +17,13 @@ browser:
   browse_headless: false
 
 limits:
-  # Research-backed daily cap (2026): ~15–20 invites/day safe for established accounts;
-  # weekly ~100 is the practical ceiling. Pacemaker stays on 12 until accept rate ≥ 40%.
-  max_connections_per_day: 15
-  max_connections_per_day_low_accept: 12
+  # Operator override: 50/day (aggressive — LinkedIn may throttle or checkpoint).
+  # Pacemaker still uses low_cap until accept rate ≥ 40%; both set to 50 per request.
+  max_connections_per_day: 50
+  max_connections_per_day_low_accept: 50
   min_accept_rate_for_full_cap: 0.4
   min_sent_for_accept_rate: 5
-  max_profiles_scored_per_run: 55
+  max_profiles_scored_per_run: 75
   scroll_result_pages_max: 6
   scroll_step_px: 900
   # Legacy wide band; pacing between profiles now uses lognormal + idle feed (below).
@@ -47,8 +47,15 @@ matching:
   min_margin_over_second: 4.0
   # Must show hiring-ecosystem signal (recruiter, HR, hiring manager, area/store director, etc.)
   require_recruiter_gate: true
+  # When true, profile must show track industry + minimum CV score for chosen variant.
+  require_sector_and_cv_agreement: true
   append_top_keyword_hit_to_note_if_fits_chars: true
   note_max_chars: 280
+  cv_min_scores:
+    luxury-retail: 8.0
+    luxury-retail-lt: 8.0
+    operations-management: 8.0
+    it-business: 10.0
 
 # Priority buckets for recruiter_orchestrate (session planning).
 # company_signals_any: if non-empty, at least one substring must match profile/company text (lowercased).
@@ -82,6 +89,31 @@ tiers:
 # recruiter_gate_terms: if set, replaces Python defaults in tools/recruiter_match.py
 recruiter_matching:
   sector_beats_cv_min_score: 6
+  outreach_exclude_terms:
+    - "staffing agency"
+    - "staffing"
+    - "universal recruitment"
+    - "b2b saas"
+    - "pharma"
+    - "pharmaceutical"
+    - "banking"
+    - "investment banking"
+    - "insurance sales"
+    - "real estate agent"
+  track_aligned_company_terms:
+    - "luxury"
+    - "premium"
+    - "fashion"
+    - "boutique"
+    - "retail"
+    - "mažmen"
+    - "prabang"
+    - "multi-site"
+    - "multi site"
+    - "it support"
+    - "service desk"
+    - "service delivery"
+    - "business analyst"
   sector_keywords:
     luxury-retail:
       - "store director"
@@ -113,8 +145,8 @@ recruiter_matching:
       - "service delivery manager"
 
 search:
-  # Used in keyword URL only; geo filters on LinkedIn may still need confirmation in headed mode.
-  default_geo_keyword: ""
+  # Appended to scout queries when not already present; also use MCP People-search location filter.
+  default_geo_keyword: "Lithuania"
   queries_by_variant:
     luxury-retail:
       - "recruiter luxury retail Vilnius"
@@ -129,6 +161,10 @@ search:
       - "hiring manager premium retail Lithuania"
       - "Head of People Vilnius retail"
       - "Head of HR luxury retail Baltics"
+      - "store manager hiring luxury fashion Vilnius"
+      - "boutique manager premium retail Lithuania"
+      - "country manager retail fashion Baltics Lithuania"
+      - "district manager fashion retail Lithuania"
     luxury-retail-lt:
       - "personalas prabangos prekyba Vilnius recruiter"
       - "personalo vadovė mažmeninė prekyba Vilnius"
@@ -143,6 +179,9 @@ search:
       - "area manager luxury retail Vilnius"
       - "retail director premium Lithuania"
       - "Head of People Vilnius retail"
+      - "parduotuvės vadovas prabangos prekyba Vilnius"
+      - "regiono vadovė prekyba Lietuva"
+      - "mažmeninės prekybos vadovas Vilnius"
     operations-management:
       - "recruiter operations retail Lithuania"
       - "talent acquisition area manager Lithuania"
@@ -157,6 +196,9 @@ search:
       - "Head of People retail operations Lithuania"
       - "hiring manager operations Lithuania"
       - "store operations director Lithuania"
+      - "director of operations retail Lithuania"
+      - "country manager retail operations Lithuania"
+      - "cluster manager retail Lithuania"
     it-business:
       - "recruiter IT support Lithuania"
       - "technical recruiter business analyst Lithuania"
@@ -167,9 +209,308 @@ search:
       - "people operations IT Vilnius"
       - "IT operations manager Lithuania"
       - "service desk manager Vilnius"
+      - "service delivery manager Lithuania"
+      - "business analyst lead Lithuania"
+      - "technical support manager Vilnius"
 
 connection_notes:
   luxury-retail: "Hi {first_name}, I'm exploring premium retail leadership in Vilnius — would value connecting, especially if you're involved in hiring or growing teams."
   luxury-retail-lt: "Sveika, {first_name}, ieškau vadovaujančių pareigų prabangos/prekybos srityje Vilniuje — norėčiau prisijungti, ypač jei dalyvaujate įdarbinime ar komandos augime."
   operations-management: "Hi {first_name}, I'm pursuing multi-site / operations leadership in Lithuania — happy to connect if you hire or lead ops teams."
   it-business: "Hi {first_name}, I'm exploring IT support / business-analysis roles locally — would appreciate connecting if you're involved in hiring for those areas."
+
+hiring_network:
+  auto_send_threshold: 76
+  queue_review_threshold: 58
+  geo_required: soft
+  outreach_exclude_terms:
+    - "staffing agency"
+    - "staffing"
+    - "universal recruitment"
+    - "b2b saas"
+    - "pharma"
+    - "banking"
+  track_aligned_company_terms:
+    - "luxury"
+    - "premium"
+    - "fashion"
+    - "boutique"
+    - "retail"
+    - "mažmen"
+    - "prabang"
+    - "multi-site"
+    - "it support"
+    - "service desk"
+    - "service delivery"
+    - "business analyst"
+  weights:
+    cv_fit: 0.35
+    hiring_authority: 0.25
+    company_sector: 0.20
+    geography: 0.10
+    personalization: 0.05
+    history: 0.05
+  persona_weights:
+    recruiter_hr: 82
+    executive_search: 90
+    hiring_manager: 85
+    retail_area_leader: 96
+    store_director: 90
+    operations_leader: 86
+    it_business_leader: 84
+    low_relevance: 0
+  company_priority_terms:
+    - "michael kors"
+    - "michael page"
+    - "premium"
+    - "luxury"
+    - "fashion"
+    - "retail"
+    - "boutique"
+    - "baltics"
+    - "lithuania"
+  geography_terms:
+    - "vilnius"
+    - "lithuania"
+    - "lietuva"
+    - "baltics"
+    - "kaunas"
+  persona_terms:
+    recruiter_hr:
+      - "recruiter"
+      - "talent acquisition"
+      - "talent manager"
+      - "talent growth"
+      - "emerging talent"
+      - "headhunter"
+      - "human resources"
+      - "hr manager"
+      - "hr business partner"
+      - "hr generalist"
+      - "people partner"
+      - "people & culture"
+      - "people operations"
+      - "people ops"
+      - "head of people"
+      - "head of talent"
+      - "senior recruiter"
+      - "in-house recruiter"
+      - "personalo"
+      - "įdarbinim"
+      - "įdarbinimo specialistas"
+      - "talento pritraukimas"
+    retail_area_leader:
+      - "area manager"
+      - "regional manager"
+      - "district manager"
+      - "cluster manager"
+      - "head of retail"
+      - "retail director"
+      - "regiono vadov"
+    store_director:
+      - "store director"
+      - "store manager"
+      - "boutique manager"
+      - "flagship manager"
+      - "parduotuvės direktor"
+    operations_leader:
+      - "operations director"
+      - "director of operations"
+      - "operations manager"
+      - "general manager"
+      - "multi-site"
+      - "multi site"
+    it_business_leader:
+      - "it support manager"
+      - "service delivery manager"
+      - "service desk manager"
+      - "business analyst lead"
+      - "it operations manager"
+      - "technical support manager"
+    executive_search:
+      - "executive search"
+      - "retained search"
+      - "search consultant"
+      - "leadership advisory"
+    hiring_manager:
+      - "hiring manager"
+      - "head of retail hiring"
+      - "head of stores hiring"
+      - "country manager retail"
+      - "country manager fashion"
+      - "director of retail"
+      - "director of stores"
+      - "retail hiring manager"
+  persona_note_templates:
+    recruiter_hr: "Hi {first_name}, I am actively exploring {cv_focus} roles around {geo}. Would value connecting given your work in {evidence}."
+    recruiter_hr_cross_sector: "Hi {first_name}, I am exploring leadership roles around {geo} and would value connecting with you as someone in talent and hiring locally."
+    executive_search: "Hi {first_name}, I am exploring {cv_focus} roles around {geo}. Your {evidence} work in search looked relevant — would value connecting."
+    hiring_manager: "Hi {first_name}, I am exploring {cv_focus} roles around {geo}. Your {evidence} background looked relevant, and I would value connecting."
+    retail_area_leader: "Hi {first_name}, I am exploring {cv_focus} roles around {geo}. Your {evidence} work stood out, and I would value connecting."
+    store_director: "Hi {first_name}, I am exploring {cv_focus} roles around {geo}. Your {evidence} experience looked relevant, and I would value connecting."
+    operations_leader: "Hi {first_name}, I am exploring {cv_focus} roles around {geo}. Your {evidence} work looked relevant, and I would value connecting."
+    it_business_leader: "Hi {first_name}, I am exploring {cv_focus} roles around {geo}. Your {evidence} work looked relevant, and I would value connecting."
+  persona_search_queries:
+    luxury-retail:
+      - "area manager luxury retail Lithuania"
+      - "store director premium fashion Vilnius"
+      - "retail director Baltics fashion"
+      - "boutique manager hiring Vilnius"
+    luxury-retail-lt:
+      - "regiono vadovas prabangos prekyba Lietuva"
+      - "parduotuvės direktorius Vilnius prabanga"
+      - "personalo vadovas prekyba Vilnius"
+    operations-management:
+      - "operations director Lithuania retail"
+      - "regional manager operations Lithuania"
+      - "multi site manager retail Vilnius"
+    it-business:
+      - "IT support manager Lithuania"
+      - "service delivery manager Vilnius"
+      - "business analyst lead Lithuania"
+
+web_discovery:
+  backend: auto
+  max_results_per_query: 8
+  discovery_max_rows_per_run: 40
+  cache_enabled: true
+  cache_ttl_hours: 24
+  geo_scope: vilnius
+  geo_scope_fallback: lithuania
+  require_geo_match: true
+  query_geo_suffix: "Vilnius Lithuania"
+  queries_by_variant:
+    luxury-retail:
+      - "HR manager talent acquisition Vilnius retail"
+      - "hiring manager premium fashion Vilnius LinkedIn"
+      - "personalo vadovas Vilnius prekyba"
+      - "personalo vadovė Vilnius prekyba"
+      - "įdarbinimo specialistas Vilnius retail"
+      - "head of people Vilnius retail"
+      - "talent acquisition manager Vilnius"
+      - "luxury retail area manager hiring Vilnius"
+      - "regional manager Baltics retail"
+      - "cluster manager stores Lithuania"
+      - "store director premium fashion Vilnius"
+      - "boutique manager luxury Vilnius"
+      - "Apranga Group HR manager Vilnius"
+      - "LPP HR manager Vilnius"
+      - "Reserved HR manager Vilnius"
+      - "H&M Lithuania HR manager Vilnius"
+      - "IKEA Lietuva HR manager Vilnius"
+      - "Akropolis premium retail manager Vilnius"
+    luxury-retail-lt:
+      - "personalo vadovas Vilnius prekyba"
+      - "įdarbinimo vadovas Vilnius retail"
+      - "prabangos prekybos vadovas Vilnius"
+      - "regiono vadovas mažmeninė prekyba Vilnius"
+      - "parduotuvės direktorius Vilnius prabanga"
+      - "Apranga personalo vadovas Vilnius"
+    operations-management:
+      - "HR business partner retail Vilnius"
+      - "talent acquisition manager Vilnius"
+      - "retail operations director Vilnius hiring"
+      - "operations director retail Vilnius"
+      - "general manager multi-site Lithuania retail"
+      - "area manager retail Vilnius"
+      - "Maxima HR manager Vilnius"
+    it-business:
+      - "IT recruiter talent partner Vilnius"
+      - "HR IT service delivery manager Vilnius"
+      - "IT support manager Vilnius hiring LinkedIn"
+
+company_validation:
+  backend: auto
+  approve_threshold: 60
+  review_threshold: 40
+  llm_blend_weight: 0.4
+  # HR / talent acquisition / executive search / hiring managers work across
+  # sectors. Without this bump they get auto-rejected for "weak sector
+  # alignment" even when they are clearly in our geo and persona target.
+  # Boost is suppressed when a hard-reject flag is present (staffing_only,
+  # wrong_sector, outreach_exclude_term).
+  persona_cross_sector_boost: 25
+
+profile_enrichment:
+  enabled: true
+  backend: exa
+  mode: exa
+  max_profiles_per_run: 10
+  max_characters: 3000
+  min_enriched_chars: 180
+  only_statuses:
+    - approved
+    - review
+
+llm:
+  enabled: true
+  provider: ollama
+  base_url: http://127.0.0.1:11434
+  temperature: 0.2
+  timeout_seconds: 120
+  keep_alive: 30m
+  reasoning: false
+  verbose: false
+  trace: false
+  trace_path: pipeline/llm_trace.jsonl
+  fallback_to_rules: true
+  default_chat_model: qwen3.5:35b-a3b-fast
+  profile: balanced
+  profiles:
+    balanced: qwen3.5:35b-a3b-fast
+    quality: gemma4:latest
+    speed: qwen3.6:9b
+  retry_enabled: true
+  circuit_breaker_threshold: 3
+  agents:
+    discovery:
+      model: qwen3.5:35b-a3b-fast
+      enabled: true
+      batch_hits: true
+      regex_first: true
+    company_analyst:
+      model: qwen3.5:35b-a3b-fast
+      enabled: true
+    outreach_writer:
+      model: qwen3.5:35b-a3b-fast
+      enabled: true
+      use_tools: false
+      tools:
+        - count_chars
+        - lookup_candidate_evidence
+        - get_cv_blurb
+      max_tool_turns: 3
+    supervisor:
+      model: qwen3.5:35b-a3b-fast
+      enabled: true
+      only_on_review: true
+      heavy_model: qwen3.6:latest
+      use_tools: false
+      tools:
+        - lookup_company_history
+        - lookup_persona_stats
+      max_tool_turns: 3
+  embed:
+    model: nomic-embed-text:latest
+    enabled: true
+    cv_blend_weight: 0.3
+
+# Full end-to-end automation (discovery → validate → rank → live send).
+# Use: python3 tools/hiring_network_workflow.py graph run --full-auto --headed
+automation:
+  max_dispatch: 5
+  require_llm_note: true
+  include_queue_review: false
+  use_persona_stats: true
+  only_new: false
+  use_validation_boost: true
+  validation_boost_approved: 8
+  validation_boost_review: 4
+  validation_soften_hiring_min_score: 60
+  preserve_discovery_persona: true
+  preserve_discovery_personas:
+    - recruiter_hr
+    - executive_search
+    - hiring_manager
+  preserve_requires_geo: true
+  recruiter_hr_queue_review_threshold: 55

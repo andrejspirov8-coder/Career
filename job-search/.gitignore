@@ -1,5 +1,9 @@
 __pycache__/
 *.pyc
+.venv/
+.env
+.env.*
+!.env.example
 .DS_Store
 output/
 tmp/
@@ -8,6 +12,17 @@ packs/*/
 !packs/README.md
 pipeline/applications.csv
 pipeline/recruiters.csv
+pipeline/web_search_cache.sqlite
+pipeline/persona_stats.json
+pipeline/*.log
+pipeline/candidates_discovery.csv
+pipeline/candidates_validated.csv
+pipeline/hiring_network_action_plan.jsonl
+pipeline/hiring_network_run_state.json
+pipeline/llm_trace.jsonl
+pipeline/recruiter_action_plan.jsonl
+pipeline/*.bak*
+linkedin/.browser-profile.bak*/
 linkedin/.browser-profile/
 linkedin/run_logs/
 *.pdf

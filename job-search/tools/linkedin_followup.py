@@ -28,8 +28,6 @@ except ModuleNotFoundError as exc:
 else:
     _yaml_exc = None
 
-from playwright.sync_api import sync_playwright
-
 import linkedin_selectors as lis
 from linkedin_recruiter_bot import (
     LOGIN_BLOCKERS,
@@ -40,7 +38,12 @@ from linkedin_recruiter_bot import (
     resolve_browser_channel,
     wait_for_manual_login,
 )
-from recruiter_linkedin_paths import DEFAULT_LINKEDIN_CONFIG, PROFILE_DIR, RECRUITERS_CSV
+from playwright.sync_api import sync_playwright
+from recruiter_linkedin_paths import (
+    DEFAULT_LINKEDIN_CONFIG,
+    PROFILE_DIR,
+    RECRUITERS_CSV,
+)
 from recruiter_log import CSV_HEADER, ensure_recruiter_csv_schema
 
 JOB_ROOT = Path(__file__).resolve().parents[1]
@@ -131,7 +134,9 @@ def run_followup(args: argparse.Namespace, raw_cfg: dict[str, Any]) -> int:
 
     ensure_recruiter_csv_schema(RECRUITERS_CSV)
 
-    base_url = (raw_cfg.get("linkedin_base_url") or "https://www.linkedin.com").rstrip("/")
+    base_url = (raw_cfg.get("linkedin_base_url") or "https://www.linkedin.com").rstrip(
+        "/"
+    )
     limits = raw_cfg.get("limits") or {}
     sent_url = f"{base_url}/mynetwork/invitation-manager/sent/"
     msg_url = f"{base_url}/messaging/"
@@ -145,7 +150,9 @@ def run_followup(args: argparse.Namespace, raw_cfg: dict[str, Any]) -> int:
     PROFILE_DIR.mkdir(parents=True, exist_ok=True)
 
     with sync_playwright() as pw:
-        ctx = launch_linkedin_browser_context(pw, headed=args.headed, channel=browser_channel)
+        ctx = launch_linkedin_browser_context(
+            pw, headed=args.headed, channel=browser_channel
+        )
         page = ctx.pages[0] if ctx.pages else ctx.new_page()
         page.goto(f"{base_url}/feed/", wait_until="domcontentloaded")
         dwell_navigation(limits)
@@ -185,7 +192,9 @@ def run_followup(args: argparse.Namespace, raw_cfg: dict[str, Any]) -> int:
             for row in rows:
                 if (row.get("status") or "").strip() != "sent":
                     continue
-                canon = lis.canonical_profile_url((row.get("profile_url") or "").strip())
+                canon = lis.canonical_profile_url(
+                    (row.get("profile_url") or "").strip()
+                )
                 if not canon:
                     continue
                 st = by_url.get(canon)
@@ -230,7 +239,9 @@ def run_followup(args: argparse.Namespace, raw_cfg: dict[str, Any]) -> int:
             today = date.today().isoformat()
             rupd = 0
             for row in rows:
-                canon = lis.canonical_profile_url((row.get("profile_url") or "").strip())
+                canon = lis.canonical_profile_url(
+                    (row.get("profile_url") or "").strip()
+                )
                 if not canon:
                     continue
                 st = (row.get("status") or "").strip()
@@ -247,20 +258,32 @@ def run_followup(args: argparse.Namespace, raw_cfg: dict[str, Any]) -> int:
                 excerpt = re.sub(r"\s+", " ", prev).strip()[:80]
                 row["reply_excerpt"] = excerpt
                 rupd += 1
-            print(f"Messaging: marked reply_at on {rupd} row(s) (heuristic).", flush=True)
+            print(
+                f"Messaging: marked reply_at on {rupd} row(s) (heuristic).", flush=True
+            )
 
         ctx.close()
 
     write_all_rows(RECRUITERS_CSV, rows)
+    try:
+        from recruiter_persona_stats import write_persona_stats
+
+        write_persona_stats()
+    except Exception:
+        pass
     print("Wrote pipeline/recruiters.csv", flush=True)
     return 0
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
-    ap = argparse.ArgumentParser(description="Update recruiters.csv from LinkedIn sent invites + messaging")
+    ap = argparse.ArgumentParser(
+        description="Update recruiters.csv from LinkedIn sent invites + messaging"
+    )
     ap.add_argument("--headed", default=True, action=argparse.BooleanOptionalAction)
     ap.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
-    ap.add_argument("--accepts-only", action="store_true", help="Only scan invitation-manager/sent/")
+    ap.add_argument(
+        "--accepts-only", action="store_true", help="Only scan invitation-manager/sent/"
+    )
     ap.add_argument("--replies-only", action="store_true", help="Only scan /messaging/")
     ap.add_argument("--browser-channel", default=None)
     return ap

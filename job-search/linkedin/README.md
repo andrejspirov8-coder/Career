@@ -18,10 +18,133 @@ python3 tools/recruiter_orchestrate.py followup --headed   # wrappers around lin
 python3 tools/recruiter_orchestrate.py report              # wraps recruiter_performance.py
 ```
 
+### Agentic hiring-network workflow
+
+`tools/hiring_network_workflow.py` ranks recruiters plus hiring managers, area managers,
+regional managers, store directors, operations directors, HR leaders, and IT/business
+leaders before dispatch. It writes a separate ranked plan and reuses the same Playwright
+sender only after the safety governor approves a record.
+
+```bash
+cd job-search
+source .venv/bin/activate
+python tools/hiring_network_workflow.py preflight
+python tools/hiring_network_workflow.py daily --headed --dry-run
+python tools/hiring_network_workflow.py daily --headed --auto-send
+python tools/hiring_network_workflow.py dispatch --dry-run --tier auto_send --max 3
+python tools/hiring_network_workflow.py dispatch --tier auto_send --max 3
+python tools/hiring_network_workflow.py report
+```
+
+The workflow uses Pydantic schemas for strict profile/persona/CV/ranking outputs and
+a **LangGraph three-agent pipeline** when `langgraph` is installed. Agents classify and rank;
+only the deterministic Playwright dispatcher clicks LinkedIn controls. Blocker screens
+(login, checkpoint, CAPTCHA, unusual activity) remain hard stops.
+
+### Three-agent pipeline (web-first → validate → send)
+
+| Agent | Tool | Output |
+|-------|------|--------|
+| 1 Discovery | `recruiter_web_discover.py` (+ Ollama scout) | `pipeline/candidates_discovery.csv` |
+| 2 Company validate | `recruiter_company_validate.py` (+ Ollama analyst) | `pipeline/candidates_validated.csv` |
+| 2b Supervisor | `recruiter_graph_workflow.py` (Ollama, review rows) | updates `candidates_validated.csv` |
+| 3 Rank + dispatch | `hiring_network_workflow.py` (+ Ollama note writer) | `hiring_network_action_plan.jsonl` → `recruiters.csv` |
+
+```bash
+cd job-search
+source .venv/bin/activate
+
+# Full graph (dispatch dry-run by default)
+python3 tools/hiring_network_workflow.py graph run --dry-run
+
+# Rules-only (skip Ollama)
+python3 tools/hiring_network_workflow.py graph run --dry-run --no-llm
+
+# Full automation — LLM notes + live LinkedIn sends (Playwright clicks Connect)
+python3 tools/hiring_network_workflow.py graph run --full-auto --headed --max 3
+
+# Stage by stage
+python3 tools/hiring_network_workflow.py graph run --stage discovery
+python3 tools/recruiter_company_validate.py
+python3 tools/hiring_network_workflow.py graph run --stage rank
+python3 tools/hiring_network_workflow.py graph run --stage dispatch --dry-run --max 3
+
+# Bridge validated CSV manually
+python3 tools/hiring_network_workflow.py bridge --write-action-plan
+python3 tools/hiring_network_workflow.py rank
+python3 tools/hiring_network_workflow.py dispatch --dry-run
+```
+
+Web research backends: `EXA_API_KEY` (Exa API) or `firecrawl` CLI. Config blocks: `web_discovery`, `company_validation` in [`config.yaml`](config.yaml). Discovery defaults to **Vilnius-only** (`geo_scope: vilnius`, `require_geo_match: true`). Offline/tests: `--backend offline`.
+
+Human gates: review `candidates_discovery.csv` when rows have `needs_linkedin_url=true`; review `candidates_validated.csv` before rank unless `--auto-approve-review`.
+
+### Ollama multi-agent layer (local LLM)
+
+When `llm.enabled: true` in [`config.yaml`](config.yaml), four **local Ollama agents** enrich discovery, company validation, outreach notes, and borderline supervisor review. **Rules and Playwright dispatch stay in control** — the LLM proposes; keyword thresholds and caps decide.
+
+**Prerequisites:**
+
+```bash
+ollama serve   # if not already running
+ollama pull qwen3.5:35b-a3b-fast
+ollama pull nomic-embed-text:latest
+python3 tools/recruiter_ollama_client.py --health
+```
+
+| Agent | Model (default) | Role |
+|-------|-----------------|------|
+| Discovery scout | `qwen3.5:35b-a3b-fast` | Extract names/URLs/notes from web hits (regex first) |
+| Company analyst | `qwen3.5:35b-a3b-fast` | Plain-English company rationale + score blend |
+| Outreach writer | `qwen3.5:35b-a3b-fast` | Polish connection notes (≤280 chars) |
+| Supervisor | `qwen3.5:35b-a3b-fast` | Resolve `review` rows only (`qwen3.6:latest` for ≤5 hard cases) |
+| CV embedder | `nomic-embed-text:latest` | Optional embedding blend in CV match |
+
+Disable LLM for one run: `python3 tools/hiring_network_workflow.py graph run --no-llm --dry-run` or set `llm.enabled: false`. If Ollama is down, `fallback_to_rules: true` keeps the pipeline running on rules alone.
+
+**Agent tracing:** add `--verbose-llm` to print each agent's input/output to the terminal, or set `llm.verbose: true` / `llm.trace: true` in config. Trace file: `pipeline/llm_trace.jsonl` (one JSON object per agent call).
+
+**Full auto (`--full-auto`):** runs the whole pipeline and sends real invites. Ollama writes each note; Playwright fills the note box and clicks Connect. Cap per run: `automation.max_dispatch` (default 5). Skips stub/offline URLs and already-sent profiles (`--only-new`, on by default for full-auto). Stop on login wall or CAPTCHA.
+
+**Robustness flags (graph run):**
+
+| Flag | What it does |
+|------|----------------|
+| `--no-cache` | Force fresh web search (skip `pipeline/web_search_cache.sqlite`) |
+| `--no-merge-mcp` | Skip stale rows from `pipeline/mcp_discovery_batch.jsonl` |
+| `--fresh-run` / `--no-fresh-run` | Clear action-plan JSONL before run (default **on** for `--full-auto`) |
+| `--no-enrich` | Skip Exa/browser profile enrichment before rank |
+| `--enrich-browser` | Scrape profiles with Playwright (logged-in Chrome) instead of Exa-only |
+| `--only-new` / `--no-only-new` | Skip profiles already in `recruiters.csv` with status sent/pending/accepted |
+| `--verbose-llm` | Log each agent call to stderr + `pipeline/llm_trace.jsonl` |
+
+**Vilnius discovery:** `web_discovery.geo_scope: vilnius` with `geo_scope_fallback: lithuania` when a query returns hits filtered out by strict Vilnius match. `max_results_per_query: 8`, `discovery_max_rows_per_run: 40`, and expanded HR/area-manager/store-director queries in [`config.yaml`](config.yaml).
+
+**Validation → rank:** `automation.use_validation_boost` adds score when company validation is `approved`/`review`. **Rank persona preserve:** `automation.preserve_discovery_persona` keeps discovery CSV personas (e.g. `recruiter_hr` at a software company) when the rank classifier would drop to `low_relevance`; also softens `low_cv_fit` for cross-sector HR. **`discovery_persona`** is passed through the bridge into rank.
+
+**Profile enrichment:** after validation, Exa (or `--enrich-browser`) fills `enriched_about` / `enriched_role_text` before the supervisor agent runs.
+
+**Daily volume (recommended):** harvest 15–25 profiles via LinkedIn People search into `pipeline/mcp_discovery_batch.jsonl`, then run graph discovery **without** `--no-merge-mcp`, plus Exa web discovery in the same run.
+
+**Learning loop:** after `linkedin_followup.py` runs, `pipeline/persona_stats.json` is refreshed. When `automation.use_persona_stats: true`, ranking boosts personas with higher accept rates. View stats:
+
+```bash
+python3 tools/recruiter_performance.py --persona-stats
+python3 tools/hiring_network_workflow.py report --persona-stats
+```
+
+`dispatch --dry-run` is local-only: it previews the approved queue and final notes without
+opening Chrome or visiting LinkedIn. `daily --headed --dry-run` may still open Chrome for
+scouting because it needs current profile/search data, but it will not send invitations.
+
 Artifacts:
 
+- `pipeline/candidates_discovery.csv` — web-first discovery with profile URLs and draft rank scores.
+- `pipeline/candidates_validated.csv` — company relevance pass (`validation_status`, rationale).
 - `pipeline/recruiter_action_plan.jsonl` — latest scout payloads (tier, recruiter gate flags, templated notes).
 - `pipeline/recruiter_session_state.json` — filtered queue Cursor agents / dispatch consume.
+- `pipeline/hiring_network_action_plan.jsonl` — ranked hiring-network plan with persona, CV variant, rank score, and final note.
+- `pipeline/hiring_network_run_state.json` — latest workflow state snapshot.
 - `pipeline/recruiters.csv` — append-only CSV audit log (still the ground truth for accept/reply stats).
 
 ## Browser: real Chrome, not “Chrome for Testing”
@@ -56,7 +179,9 @@ Keeps **`linkedin/.browser-profile/`** in sync with Playwright launches a dedica
 From the `job-search` folder:
 
 ```bash
-python3 -m pip install -r requirements.txt
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
 ```
 
 Install **Google Chrome** if it is not already installed: https://www.google.com/chrome/
@@ -102,12 +227,48 @@ python3 tools/recruiter_orchestrate.py preflight
 
 Look for `Saved session cookies: yes` and `Profile lock: unlocked`.
 
-## Daily workflow
+## Browser modes
 
-Always **dry-run** after changing queries or thresholds:
+| Mode | How | Best for |
+|------|-----|----------|
+| **Playwright** (default) | `browser.backend: playwright` in config | Unattended scout + dispatch |
+| **browse_ws** | `browser.backend: browse_ws` | Same automation via Chrome debug port + `browse` CLI |
+| **MCP agent** | Cursor `browser_navigate` / `browser_snapshot` / `browser_fill` | Filtered People search + manual cull + send from ranked queue |
+| **Browserbase** (optional) | Browse plugin `.env` with API keys | Cloud Chrome when local checkpoints persist |
+
+MCP/Glass browser and `linkedin/.browser-profile/` are **different logins**. Sign in where you send, or use `browse_ws` so MCP and the bot share one profile.
+
+### MCP relevance pass (recommended before live sends)
 
 ```bash
 cd job-search
+python3 tools/hiring_network_workflow.py rank
+# MCP: filtered People search → pipeline/mcp_discovery_batch.jsonl
+python3 tools/mcp_harvest_score.py pipeline/mcp_discovery_batch.jsonl --write-action-plan
+python3 tools/hiring_network_workflow.py rank
+python3 tools/hiring_network_workflow.py dispatch --tier queue_review --max 3 --dry-run
+```
+
+Dispatch approved rows from `pipeline/hiring_network_action_plan.jsonl` using the frozen `note` field (≤280 chars).
+
+## Daily workflow (hiring network — recommended)
+
+```bash
+cd job-search
+python3 tools/recruiter_orchestrate.py preflight
+python3 tools/hiring_network_workflow.py daily --headed --dry-run
+python3 tools/hiring_network_workflow.py dispatch --tier queue_review --max 3 --dry-run
+```
+
+Or one command:
+
+```bash
+python3 tools/recruiter_orchestrate.py daily --mode hiring_network --headed --dry-run
+```
+
+Legacy tier-only path (`scout → plan → dispatch`) still works:
+
+```bash
 python3 tools/linkedin_recruiter_bot.py --headed --dry-run
 ```
 
@@ -155,6 +316,8 @@ Weekly funnel summary:
 
 ```bash
 python3 tools/recruiter_performance.py
+python3 tools/recruiter_performance.py --by-persona
+python3 tools/hiring_network_workflow.py report
 ```
 
 ### Pacing and caps
