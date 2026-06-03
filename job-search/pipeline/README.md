@@ -1,5 +1,7 @@
 # Application pipeline log
 
+Current source of truth: use `/Users/andrejspirov/Career/Career-main/job-search/pipeline/applications.csv` for new applications and outcomes.
+
 Append one row per submission to **`applications.csv`** (open in Excel, LibreOffice, or Sheets).
 
 Columns:

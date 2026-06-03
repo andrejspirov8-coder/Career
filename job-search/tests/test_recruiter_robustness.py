@@ -414,6 +414,31 @@ class TestVilniusGeoFilter(unittest.TestCase):
             )
         )
 
+    def test_passes_europe_scope(self) -> None:
+        from recruiter_web_discover import passes_geo_filter
+
+        self.assertTrue(
+            passes_geo_filter(
+                "London, United Kingdom",
+                "Hiring luxury retail leaders across Europe",
+                scope="europe",
+            )
+        )
+        self.assertTrue(
+            passes_geo_filter(
+                "",
+                "Remote Europe service delivery manager hiring",
+                scope="europe",
+            )
+        )
+        self.assertFalse(
+            passes_geo_filter(
+                "Las Vegas Metropolitan Area (US)",
+                "Michael Kors luxury retail",
+                scope="europe",
+            )
+        )
+
     def test_hit_to_discovery_row_skips_abroad_when_geo_required(self) -> None:
         from recruiter_web_discover import hit_to_discovery_row
         from recruiter_web_research import WebSearchHit

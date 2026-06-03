@@ -352,8 +352,26 @@ def default_hiring_network_config() -> dict[str, Any]:
             "boutique",
             "baltics",
             "lithuania",
+            "europe",
+            "emea",
+            "remote",
         ],
-        "geography_terms": ["vilnius", "lithuania", "lietuva", "baltics", "kaunas"],
+        "geography_terms": [
+            "vilnius",
+            "lithuania",
+            "lietuva",
+            "baltics",
+            "kaunas",
+            "europe",
+            "emea",
+            "remote",
+            "hybrid",
+            "uk",
+            "london",
+            "poland",
+            "germany",
+            "netherlands",
+        ],
         "persona_terms": {
             "recruiter_hr": [
                 "recruiter",
@@ -909,7 +927,19 @@ def geo_label(candidate: ProfileCandidate) -> str:
         return "Lithuania"
     if "baltic" in blob:
         return "the Baltics"
-    return "Lithuania"
+    if "remote" in blob and ("europe" in blob or "emea" in blob):
+        return "remote Europe"
+    if "europe" in blob or "emea" in blob:
+        return "Europe"
+    if "united kingdom" in blob or " london" in blob or " uk" in blob:
+        return "the UK"
+    if "poland" in blob or "warsaw" in blob:
+        return "Poland"
+    if "germany" in blob or "berlin" in blob:
+        return "Germany"
+    if "netherlands" in blob or "amsterdam" in blob:
+        return "the Netherlands"
+    return "international/remote"
 
 
 def compact_evidence(

@@ -75,7 +75,7 @@ python3 tools/hiring_network_workflow.py rank
 python3 tools/hiring_network_workflow.py dispatch --dry-run
 ```
 
-Web research backends: `EXA_API_KEY` (Exa API) or `firecrawl` CLI. Config blocks: `web_discovery`, `company_validation` in [`config.yaml`](config.yaml). Discovery defaults to **Vilnius-only** (`geo_scope: vilnius`, `require_geo_match: true`). Offline/tests: `--backend offline`.
+Web research backends: `EXA_API_KEY` (Exa API) or `firecrawl` CLI. Config blocks: `web_discovery`, `company_validation` in [`config.yaml`](config.yaml). Discovery now defaults to a **Europe / remote-friendly** scope (`geo_scope: europe`, `require_geo_match: true`) while keeping Vilnius, Lithuania, and the Baltics as strong ranking signals. Offline/tests: `--backend offline`.
 
 Human gates: review `candidates_discovery.csv` when rows have `needs_linkedin_url=true`; review `candidates_validated.csv` before rank unless `--auto-approve-review`.
 
@@ -118,7 +118,7 @@ Disable LLM for one run: `python3 tools/hiring_network_workflow.py graph run --n
 | `--only-new` / `--no-only-new` | Skip profiles already in `recruiters.csv` with status sent/pending/accepted |
 | `--verbose-llm` | Log each agent call to stderr + `pipeline/llm_trace.jsonl` |
 
-**Vilnius discovery:** `web_discovery.geo_scope: vilnius` with `geo_scope_fallback: lithuania` when a query returns hits filtered out by strict Vilnius match. `max_results_per_query: 8`, `discovery_max_rows_per_run: 40`, and expanded HR/area-manager/store-director queries in [`config.yaml`](config.yaml).
+**International discovery:** `web_discovery.geo_scope: europe` allows Europe, EMEA, UK, Baltics, Nordics, and remote-friendly hits. `geo_scope_fallback: none` only opens the gate when a query would otherwise return zero usable rows. `max_results_per_query: 10`, `discovery_max_rows_per_run: 60`, and expanded HR/area-manager/store-director queries live in [`config.yaml`](config.yaml).
 
 **Validation → rank:** `automation.use_validation_boost` adds score when company validation is `approved`/`review`. **Rank persona preserve:** `automation.preserve_discovery_persona` keeps discovery CSV personas (e.g. `recruiter_hr` at a software company) when the rank classifier would drop to `low_relevance`; also softens `low_cv_fit` for cross-sector HR. **`discovery_persona`** is passed through the bridge into rank.
 

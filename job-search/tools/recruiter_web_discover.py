@@ -79,15 +79,33 @@ def location_is_abroad(location: str) -> bool:
 
 
 def passes_geo_filter(location: str, snippet: str, *, scope: str) -> bool:
-    if location_is_abroad(location):
-        return False
+    scope = (scope or "").strip().lower()
     blob = f"{location} {snippet}".lower()
     if scope in ("none", "off", ""):
         return True
+    if location_is_abroad(location) and scope in ("vilnius", "lithuania"):
+        return False
     if scope == "lithuania":
         return bool(
             re.search(
                 r"\b(vilnius|vilniaus|kaunas|klaip[eė]da|lithuania|lietuva)\b",
+                blob,
+                re.I,
+            )
+        )
+    if scope in ("europe", "emea", "international", "remote"):
+        return bool(
+            re.search(
+                r"\b("
+                r"remote|hybrid|europe|emea|baltics?|nordics?|"
+                r"vilnius|vilniaus|kaunas|klaip[eė]da|lithuania|lietuva|"
+                r"latvia|riga|estonia|tallinn|finland|helsinki|"
+                r"sweden|stockholm|denmark|copenhagen|norway|oslo|"
+                r"united kingdom|uk|london|ireland|dublin|"
+                r"poland|warsaw|germany|berlin|netherlands|amsterdam|"
+                r"france|paris|spain|madrid|portugal|lisbon|"
+                r"italy|milan|czechia|prague|austria|vienna"
+                r")\b",
                 blob,
                 re.I,
             )

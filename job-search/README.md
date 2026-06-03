@@ -1,5 +1,7 @@
 # Career job-search workspace
 
+> Current source of truth: use `/Users/andrejspirov/Career/Career-main/job-search` for CV edits, matching, packs, and application tracking. This duplicate folder is kept for reference unless you intentionally choose to migrate it back.
+
 This folder keeps CV source files, finished PDFs, job adverts, matching results, and application tracking in one place.
 
 The daily workflow starts in Raycast. Raycast is the macOS command launcher opened with a keyboard shortcut.
