@@ -43,6 +43,8 @@ agents:
         output: '{"note": "Hi Tatyana, I am exploring leadership roles around Vilnius and would value connecting given your talent acquisition work at Softeq.", "evidence_cited": "Talent Acquisition at Softeq"}'
       - input: "Draft: Hi there, your profile looks interesting."
         output: null
+      - input: "Draft: Sveika Lina, ieškau vadovaujančių pareigų prabangos prekybos srityje. Jūsų personalo vadovo darbas Aprangoje atrodė aktualus."
+        output: '{"note": "Sveika Lina, ieškau vadovaujančių pareigų prabangos prekybos srityje Vilniuje. Jūsų personalo vadovo patirtis Aprangoje atrodė aktuali – norėčiau prisijungti.", "evidence_cited": "Personalo vadovė Aprangoje"}'
 
   supervisor:
     system: |

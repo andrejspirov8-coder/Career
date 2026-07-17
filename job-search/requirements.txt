@@ -1,7 +1,0 @@
-reportlab>=4.0
-playwright>=1.40,<2
-PyYAML>=6.0,<7
-pydantic>=2.13,<3
-langgraph>=1.0,<2
-langchain-ollama>=1.0,<2
-langchain-core>=1.4,<2

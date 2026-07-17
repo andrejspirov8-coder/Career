@@ -1,0 +1,166 @@
+opportunities:
+  geography:
+    default_regions:
+      - Vilnius
+      - Lithuania
+      - Remote EU
+  scoring:
+    priority_regions:
+      - Vilnius
+      - Lithuania
+      - Lietuva
+      - Remote EU
+    role_tracks:
+      - name: business_process_operations
+        weight: 1.0
+        keywords:
+          - business process
+          - process improvement
+          - operations analyst
+          - process mapping
+          - workflow documentation
+          - implementation
+          - requirements gathering
+      - name: customer_operations
+        weight: 1.3
+        keywords:
+          - customer operations
+          - customer support
+          - member support
+          - partner support
+          - SLA
+          - quality
+          - escalation
+      - name: implementation_support
+        weight: 0.9
+        keywords:
+          - implementation manager
+          - onboarding
+          - customer success operations
+          - enablement
+          - launch
+          - vendor
+      - name: retail_operations
+        weight: 1.3
+        keywords:
+          - retail operations
+          - store operations
+          - stock control
+          - inventory
+          - KPI
+          - area manager
+          - field operations
+      - name: luxury_retail_leadership
+        weight: 1.35
+        keywords:
+          - luxury
+          - boutique
+          - clienteling
+          - premium retail
+          - visual merchandising
+          - high jewelry
+  liveness:
+    max_page_checks: 12
+    network_timeout_seconds: 6
+  sources:
+    inbox:
+      enabled: true
+      path: inbox/jobs
+      exclude_name_patterns:
+        - smoke
+        - test
+    company_watchlist:
+      enabled: true
+      companies:
+        - name: Celine / LVMH
+          careers_url: https://www.lvmh.com/en/join-us/our-job-offers
+        - name: Richemont
+          careers_url: https://careers.richemont.com/en/jobs/
+        - name: Kering
+          careers_url: https://www.kering.com/en/talent/job-offers/
+        - name: Vinted
+          careers_url: https://careers.vinted.com/jobs
+        - name: Holafly
+          careers_url: https://careers.holafly.com/jobs
+        - name: Spreetail
+          careers_url: https://jobs.lever.co/spreetail
+        - name: Deel
+          careers_url: https://jobs.ashbyhq.com/deel
+        - name: Airalo
+          careers_url: https://jobs.lever.co/airalo
+        - name: Enode
+          careers_url: https://jobs.ashbyhq.com/enode
+        - name: Hightouch
+          careers_url: https://boards.greenhouse.io/hightouch
+        - name: n8n
+          careers_url: https://n8n.io/careers/
+        - name: Wolt
+          careers_url: https://careers.wolt.com/en/jobs
+        - name: Bolt
+          careers_url: https://bolt.eu/en/careers/positions/
+        - name: Zalando
+          careers_url: https://jobs.zalando.com/en/jobs
+    ats:
+      enabled: true
+      network_timeout_seconds: 20
+      providers:
+        - provider: greenhouse
+          company: Hightouch
+          board_token: hightouch
+          max_posts: 12
+        - provider: lever
+          company: Spreetail
+          company_slug: spreetail
+          max_posts: 12
+        - provider: lever
+          company: Airalo
+          company_slug: airalo
+          max_posts: 8
+        - provider: ashby
+          company: Deel
+          job_board_name: deel
+          max_posts: 50
+        - provider: ashby
+          company: Enode
+          job_board_name: enode
+          max_posts: 50
+        - provider: smartrecruiters
+          company: Example SmartRecruiters Company
+          company_identifier: smartrecruiters
+          enabled: false
+          max_posts: 25
+      fixtures: []
+    linkedin:
+      enabled: true
+      # The scheduled automation uses the user's authenticated Chrome session
+      # and imports structured read-only observations with `import-browser`.
+      # Set mode to local_profile only for the standalone Playwright scraper.
+      mode: connected_chrome
+      base_url: https://www.linkedin.com
+      location: Vilnius, Lithuania
+      posted_within_hours: 72
+      max_queries: 6
+      max_results_per_query: 10
+      max_jobs: 40
+      pages: 1
+      max_detail_pages: 8
+      timeout_ms: 20000
+      settle_ms: 1000
+      browser_channel: chrome
+      headed: false
+      profile_dir: linkedin/.jobs-browser-profile
+      # Read-only job search seeds. CV matching still scores every returned job
+      # against all variants after discovery.
+      queries:
+        - business process
+        - operations manager
+        - customer operations
+        - implementation manager
+        - retail operations
+        - store manager
+    job_board:
+      enabled: false
+      links: []
+    web_search:
+      enabled: false
+      links: []

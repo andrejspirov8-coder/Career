@@ -1,7 +1,5 @@
 # Application pipeline log
 
-Current source of truth: use `/Users/andrejspirov/Career/Career-main/job-search/pipeline/applications.csv` for new applications and outcomes.
-
 Append one row per submission to **`applications.csv`** (open in Excel, LibreOffice, or Sheets).
 
 Columns:
@@ -11,13 +9,42 @@ Columns:
 | `date_iso` | YYYY-MM-DD you clicked submit or sent the CV |
 | `company` | Employer; match `COMPANY` in inbox files when you can |
 | `title` | Advertised role |
-| `variant_slug` | `luxury-retail` \| `luxury-retail-lt` \| `operations-management` \| `it-business` |
+| `variant_slug` | `luxury-retail` \| `luxury-retail-lt` \| `operations-management` \| `operations-management-lt` \| `business-process-operations` \| `it-business` |
 | `source` | e.g. `company_site`, `linkedin`, `cvbank` |
 | `outcome` | `applied`, `rejected`, `screening`, `interview`, `offer`, `withdrawn` |
 | `deadline_date` | Optional YYYY-MM-DD closing date for the advert |
+| `match_score` | Optional score copied from the generated `MATCH.json` |
+| `match_confidence` | Optional `clear_winner` or `tie_review` from `MATCH.json` |
+| `salary_range` | Gross salary range from the advert, if shown |
+| `tailored_cv` | `yes` if the CV was adjusted for the role; otherwise `no` |
+| `response_date` | YYYY-MM-DD when the first employer/recruiter response arrived |
+| `opportunity_id` | Optional ID from the opportunity dashboard, e.g. `opp_123` |
+| `pack_dir` | Optional local folder path for the generated application pack |
+| `application_url` | Optional final page where you submitted or will submit manually |
 | `notes` | Interviewers, links, salary, lessons learned |
 
-Review monthly which **variant_slug** leads to funnel progress.
+Use `business-process-operations` as the default for Vilnius business analyst, process analyst, operations analyst, customer operations, and implementation support roles.
+
+Review weekly which **variant_slug**, source, match score, and tailoring choice leads to funnel progress. Wait for at least 10 applications per lane before treating the signal as reliable.
+
+---
+
+## Opportunity intelligence state
+
+The broader opportunity workflow stores local SQLite state under
+`state/opportunities.sqlite3` and keeps generated application packs under
+`packs/`. Both locations are intentionally gitignored.
+
+Start with:
+
+```bash
+uv run python tools/opportunity_orchestrate.py --config config/opportunities.example.yaml discover --dry-run
+uv run python tools/opportunity_orchestrate.py --config config/opportunities.example.yaml discover
+uv run python tools/opportunity_orchestrate.py match
+```
+
+Then review `/opportunities` in the local dashboard. The workflow can generate a
+local pack and track manual outcomes, but it does not auto-apply.
 
 ---
 

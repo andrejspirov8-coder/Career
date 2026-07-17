@@ -1,0 +1,64 @@
+/* Private notification inbox */
+.notificationUnreadCount { min-width: 92px; display: grid; justify-items: end; gap: 3px; border-left: 2px solid var(--border); padding-left: 18px; }
+.notificationUnreadCount strong { color: var(--muted); font-size: 30px; line-height: 1; }
+.notificationUnreadCount span { color: var(--muted-2); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; }
+.notificationUnreadCount.hasUnread { border-color: var(--accent); }
+.notificationUnreadCount.hasUnread strong { color: var(--accent); }
+.notificationStatusStrip { display: grid; grid-template-columns: repeat(4, minmax(110px, 1fr)) auto; align-items: stretch; margin: 0 0 22px; border-top: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft); }
+.notificationStatusStrip > div:not(.notificationStatusActions) { display: grid; gap: 5px; border-right: 1px solid var(--border-soft); padding: 15px 16px; }
+.notificationStatusStrip span { color: var(--muted); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; }
+.notificationStatusStrip strong { font-size: 18px; }
+.notificationStatusActions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding: 12px 8px 12px 18px; }
+.notificationStatusActions button:disabled { cursor: not-allowed; opacity: 0.45; }
+.notificationWorkspace { display: grid; grid-template-columns: minmax(380px, 0.9fr) minmax(420px, 1.1fr); gap: 18px; align-items: start; }
+.notificationQueue { overflow: hidden; padding: 0; }
+.notificationQueueTools { min-height: 64px; display: flex; justify-content: space-between; gap: 16px; align-items: center; border-bottom: 1px solid var(--border-soft); padding: 12px 14px; }
+.notificationTabs { display: flex; gap: 3px; }
+.notificationTabs button { display: flex; gap: 6px; align-items: center; border: 0; border-radius: 7px; background: transparent; color: var(--muted); padding: 7px 9px; cursor: pointer; font-size: 10px; }
+.notificationTabs button:hover, .notificationTabs button.active { background: rgba(94,227,194,0.08); color: var(--text); }
+.notificationTabs button span { color: var(--accent); font-size: 8px; }
+.notificationQueueTools label { display: flex; align-items: center; gap: 7px; color: var(--muted-2); font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; }
+.notificationQueueTools select { max-width: 150px; border: 1px solid var(--border); border-radius: 7px; background: #0b100e; color: var(--text); padding: 7px 8px; font-size: 10px; }
+.notificationRows { max-height: 620px; overflow: auto; }
+.notificationRows > button { width: 100%; display: grid; grid-template-columns: 4px minmax(0,1fr) 8px; gap: 12px; align-items: stretch; border: 0; border-bottom: 1px solid var(--border-soft); background: transparent; color: var(--text); padding: 15px 16px; cursor: pointer; text-align: left; transition: background 150ms ease; }
+.notificationRows > button:last-child { border-bottom: 0; }
+.notificationRows > button:hover { background: rgba(255,255,255,0.025); }
+.notificationRows > button.selected { background: rgba(94,227,194,0.055); }
+.notificationRows > button.unread strong { color: var(--accent-strong); }
+.notificationPriority { width: 3px; min-height: 54px; align-self: center; border-radius: 999px; background: var(--muted-2); }
+.notificationPriority.priority-urgent { background: var(--danger); }
+.notificationPriority.priority-attention { background: var(--warning); }
+.notificationPriority.priority-info { background: var(--accent); }
+.notificationRowCopy { min-width: 0; display: grid; gap: 5px; }
+.notificationRowCopy > span:first-child { display: flex; justify-content: space-between; gap: 12px; }
+.notificationRowCopy em { color: var(--muted-2); font-size: 8px; font-style: normal; letter-spacing: 0.09em; text-transform: uppercase; }
+.notificationRowCopy small { color: var(--muted-2); font-size: 8px; }
+.notificationRowCopy strong { overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.notificationRowCopy > span:last-child { display: -webkit-box; overflow: hidden; color: var(--muted); font-size: 9px; line-height: 1.45; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.notificationUnreadDot { width: 6px; height: 6px; align-self: center; border-radius: 50%; background: var(--accent); }
+.notificationEmpty { min-height: 280px; align-content: center; justify-items: center; gap: 6px; }
+.notificationEmpty span { color: var(--muted); font-size: 10px; }
+.notificationDetail { position: sticky; top: 24px; min-height: 410px; }
+.notificationDetailHeading { display: flex; justify-content: space-between; gap: 18px; align-items: center; margin-bottom: 24px; }
+.notificationDetailHeading > span:last-child { color: var(--muted-2); font-size: 9px; }
+.priorityLabel { border: 1px solid var(--border); border-radius: 999px; padding: 4px 8px; color: var(--muted); font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; }
+.priorityLabel.priority-urgent { border-color: rgba(255,143,143,0.35); color: var(--danger); }
+.priorityLabel.priority-attention { border-color: rgba(243,201,105,0.35); color: var(--warning); }
+.priorityLabel.priority-info { border-color: rgba(94,227,194,0.3); color: var(--accent); }
+.notificationDetail h2 { max-width: 620px; margin: 0; font-size: clamp(23px, 3vw, 34px); letter-spacing: -0.035em; line-height: 1.08; }
+.notificationDetail > p { max-width: 660px; margin: 18px 0 28px; color: var(--muted); font-size: 13px; line-height: 1.65; }
+.notificationSnoozeNote, .notificationResolvedNote { margin: -10px 0 22px; border-left: 2px solid var(--warning); background: rgba(243,201,105,0.05); color: var(--warning); padding: 9px 10px; font-size: 10px; }
+.notificationResolvedNote { border-color: var(--muted-2); background: rgba(255,255,255,0.025); color: var(--muted); }
+.notificationPrimaryActions { display: flex; flex-wrap: wrap; gap: 9px; align-items: center; }
+.notificationSecondaryActions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 28px; border-top: 1px solid var(--border-soft); padding-top: 14px; }
+.notificationSecondaryActions button { border: 0; background: transparent; color: var(--muted); padding: 6px 8px; cursor: pointer; font-size: 10px; }
+.notificationSecondaryActions button:hover { color: var(--accent); }
+.notificationSecondaryActions button:last-child:hover { color: var(--danger); }
+.notificationSecondaryActions button:disabled { cursor: not-allowed; opacity: 0.45; }
+.notificationDetailEmpty { min-height: 360px; align-content: center; justify-items: center; gap: 7px; }
+.notificationDetailEmpty span { color: var(--muted); font-size: 10px; }
+.desktopAlertSettings { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 32px; align-items: center; margin-top: 22px; border-top: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft); padding: 22px 4px; }
+.desktopAlertSettings h2 { margin: 0; font-size: 18px; }
+.desktopAlertSettings p { max-width: 700px; margin: 8px 0 0; color: var(--muted); font-size: 10px; line-height: 1.55; }
+.desktopAlertSettings > div:last-child { display: grid; justify-items: end; gap: 9px; }
+.desktopAlertSettings > div:last-child span { color: var(--muted); font-size: 9px; }

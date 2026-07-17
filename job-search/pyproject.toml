@@ -1,0 +1,47 @@
+[project]
+name = "career-job-search"
+version = "0.1.0"
+description = "Local-first CV, recruiter review, and job-search automation workspace."
+requires-python = ">=3.11,<3.14"
+dependencies = [
+  "cryptography>=48.0.1,<49",
+  "reportlab>=4.0",
+  "playwright>=1.40,<2",
+  "PyYAML>=6.0,<7",
+  "pydantic>=2.13,<3",
+  "langgraph>=1.0,<2",
+  "langchain-ollama>=1.0,<2",
+  "langchain-core>=1.4,<2",
+]
+
+[build-system]
+requires = ["uv_build>=0.11.29,<0.12.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+  "black==26.3.1",
+  "pypdf>=5.0,<7",
+  "ruff==0.4.2",
+  "pytest==9.0.3",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "tools", "cv"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+src = ["src", "tools", "cv", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = [
+  "E501",  # line-length handled by formatter/readability review
+]
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]

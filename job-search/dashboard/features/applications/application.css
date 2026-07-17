@@ -1,0 +1,71 @@
+/* Application workspace */
+.applicationStats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 1px; overflow: hidden; border: 1px solid var(--border-soft); border-radius: 12px; background: var(--border-soft); }
+.applicationStats > div { display: grid; gap: 8px; background: var(--panel); padding: 16px; }
+.applicationStats span { color: var(--muted); font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; }
+.applicationStats strong { font-size: 24px; }
+.applicationStats .attention strong { color: var(--warning); }
+.applicationLayout { display: grid; grid-template-columns: minmax(270px, 0.72fr) minmax(0, 1.28fr); gap: 18px; align-items: start; margin-top: 20px; }
+.applicationList { display: grid; gap: 8px; }
+.applicationListHeading { display: flex; justify-content: space-between; align-items: center; padding: 0 3px 8px; }
+.applicationListHeading small { color: var(--muted); }
+.applicationListItem { display: grid; gap: 5px; width: 100%; border: 1px solid var(--border); border-radius: 9px; background: rgba(255,255,255,0.025); color: var(--text); padding: 13px; text-align: left; cursor: pointer; }
+.applicationListItem:hover, .applicationListItem.selected { border-color: rgba(94,227,194,0.55); background: rgba(94,227,194,0.07); }
+.applicationListItem > span { color: var(--accent); font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; }
+.applicationListItem > small { color: var(--muted); }
+.applicationListItem > div { display: flex; flex-wrap: wrap; gap: 7px; padding-top: 4px; }
+.applicationListItem em { color: var(--warning); font-size: 9px; font-style: normal; }
+.applicationDetailPanel { position: sticky; top: 18px; display: grid; gap: 20px; }
+.applicationDetailHeading { display: flex; justify-content: space-between; gap: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--border-soft); }
+.applicationDetailHeading p { margin: 5px 0 0; color: var(--muted); }
+.applicationMaterials { display: grid; gap: 12px; border: 1px solid var(--border); border-radius: 9px; padding: 14px; }
+.applicationMaterials > div:first-child { display: grid; gap: 5px; }
+.applicationMaterials span { color: var(--muted); font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; }
+.materialLinks { display: flex; flex-wrap: wrap; gap: 8px; }
+.materialLinks a { border: 1px solid var(--border); border-radius: 7px; padding: 7px 9px; color: var(--accent-strong); text-decoration: none; font-size: 10px; }
+.applicationPlanForm { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; }
+.applicationPlanForm > label, .applicationDateFields label { display: grid; gap: 6px; color: var(--muted); font-size: 10px; }
+.applicationPlanForm input, .applicationPlanForm select, .applicationPlanForm textarea { width: 100%; border: 1px solid var(--border); border-radius: 8px; background: #0c110f; color: var(--text); padding: 9px 10px; }
+.applicationPlanForm textarea { min-height: 100px; resize: vertical; }
+.applicationPlanForm > label:last-of-type, .applicationPlanForm > .button { grid-column: 1 / -1; }
+.applicationPlanForm > .button { justify-self: start; }
+.applicationDraftField, .localDraftWorkspace { grid-column: 1 / -1; }
+.applicationDraftField small { justify-self: end; color: var(--muted-2); font-size: 8px; }
+.applicationPlanForm textarea.longDraft { min-height: 260px; }
+.localDraftWorkspace { display: grid; gap: 13px; border: 1px solid rgba(94,227,194,0.25); border-radius: 10px; background: rgba(94,227,194,0.035); padding: 15px; }
+.localDraftWorkspace h3 { margin: 0; font-size: 14px; }
+.localDraftWorkspace p { margin: 5px 0 0; color: var(--muted); font-size: 9px; line-height: 1.45; }
+.localDraftWorkspace .eyebrow { margin-bottom: 6px; font-size: 8px; }
+.localDraftWorkspace > label { display: grid; gap: 6px; color: var(--muted); font-size: 9px; }
+.applicationDateFields { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; }
+.emptyApplicationWorkspace { display: grid; justify-items: start; gap: 10px; max-width: 680px; }
+.emptyApplicationWorkspace p { color: var(--muted); line-height: 1.55; }
+.detailHeader { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
+.detailHeader h2, .queueHeader h2 { overflow-wrap: anywhere; }
+.detailHeader a, .queueActions a { color: var(--accent); text-decoration: none; }
+.detailSection { display: grid; gap: 10px; }
+.detailSection h3 { margin: 0; font-size: 14px; color: var(--muted); text-transform: uppercase; }
+.detailGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.detailItem {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  background: rgba(0,0,0,0.12);
+}
+.detailItem span { color: var(--muted); font-size: 12px; }
+.detailItem strong { font-size: 13px; overflow-wrap: anywhere; }
+.historyList { display: grid; gap: 8px; }
+.historyItem {
+  display: grid;
+  gap: 3px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  background: rgba(0,0,0,0.12);
+}

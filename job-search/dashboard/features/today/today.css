@@ -1,0 +1,52 @@
+/* Today */
+.todayHeading { margin-bottom: 36px; }
+.todayHeadingStatus { display: flex; align-items: stretch; gap: 8px; }
+.todayNotificationShortcut { min-width: 112px; display: grid; align-content: center; justify-items: end; gap: 2px; border: 1px solid var(--border); border-radius: 10px; padding: 8px 11px; text-decoration: none; }
+.todayNotificationShortcut strong { color: var(--muted); font-size: 18px; }
+.todayNotificationShortcut span { color: var(--muted-2); font-size: 8px; letter-spacing: 0.06em; text-transform: uppercase; }
+.todayNotificationShortcut.hasUnread { border-color: rgba(94,227,194,0.32); background: rgba(94,227,194,0.045); }
+.todayNotificationShortcut.hasUnread strong { color: var(--accent); }
+.briefingHero { display: grid; grid-template-columns: minmax(0,1fr) minmax(220px, 320px); gap: 28px; align-items: center; min-height: 190px; padding: 30px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.briefingHero h2 { max-width: 760px; margin: 0; font-size: clamp(28px, 4vw, 46px); line-height: 1.04; letter-spacing: -0.045em; }
+.briefingHero p { max-width: 680px; margin: 13px 0 0; color: var(--muted); line-height: 1.55; }
+.dailyProgress { max-width: 420px; display: grid; gap: 8px; margin-top: 24px; }
+.dailyProgress > div:first-child { display: flex; justify-content: space-between; gap: 14px; color: var(--muted); font-size: 10px; }
+.dailyProgress strong { color: var(--text); }
+.dailyProgressTrack { height: 5px; overflow: hidden; border-radius: 999px; background: var(--panel-3); }
+.dailyProgressTrack span { display: block; height: 100%; border-radius: inherit; background: var(--accent); transition: width 240ms ease; }
+.briefingPrimaryAction { min-height: 92px; display: flex; justify-content: space-between; align-items: center; gap: 18px; background: var(--accent); color: #06110e; padding: 20px; text-decoration: none; font-size: 14px; font-weight: 750; transition: background 160ms ease, transform 160ms ease; }
+.briefingPrimaryAction:hover { background: var(--accent-strong); transform: translateY(-2px); }
+.briefingPrimaryAction span { font-size: 20px; }
+.firstRunGuide { display: grid; grid-template-columns: minmax(240px,0.7fr) minmax(0,1.3fr); gap: 28px; margin: 24px 0; border: 1px solid var(--border); border-left: 3px solid var(--accent); padding: 20px; }
+.firstRunGuide h2 { margin: 0; font-size: 20px; }
+.firstRunGuide ol { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 0; padding: 0; list-style: none; }
+.firstRunGuide li { display: flex; gap: 10px; align-items: flex-start; }
+.firstRunGuide li > span { width: 22px; height: 22px; flex: 0 0 22px; display: grid; place-items: center; border-radius: 50%; background: rgba(94,227,194,0.12); color: var(--accent); font-size: 10px; }
+.firstRunGuide li > div { display: grid; gap: 4px; }
+.firstRunGuide strong { font-size: 11px; }
+.firstRunGuide small { color: var(--muted); font-size: 10px; line-height: 1.4; }
+.briefingChecklist { display: grid; grid-template-columns: repeat(4, 1fr); margin: 28px 0; border-top: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft); }
+.briefingChecklist > a { min-width: 0; display: grid; grid-template-columns: 8px minmax(0,1fr); gap: 10px; align-items: start; padding: 17px 14px; border-right: 1px solid var(--border-soft); text-decoration: none; }
+.briefingChecklist > a:last-child { border-right: 0; }
+.briefingChecklist > a:hover { background: rgba(94,227,194,0.035); }
+.briefingChecklist > a > span:last-child { min-width: 0; display: grid; gap: 4px; }
+.briefingChecklist small { color: var(--muted); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; }
+.briefingChecklist strong { overflow: hidden; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+.briefingChecklist em { overflow: hidden; color: var(--muted); font-size: 10px; font-style: normal; text-overflow: ellipsis; white-space: nowrap; }
+.status-attention { color: var(--warning) !important; }
+.statusDot.status-attention { background: var(--warning); }
+.briefingGrid { display: grid; grid-template-columns: minmax(0,1.25fr) minmax(300px,0.75fr); gap: 18px; }
+.briefingRoleList { display: grid; }
+.briefingRoleList a { display: flex; justify-content: space-between; gap: 18px; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border-soft); text-decoration: none; }
+.briefingRoleList a:last-child { border-bottom: 0; }
+.briefingRoleList a:hover strong { color: var(--accent); }
+.briefingRoleList a > span:first-child { display: grid; gap: 4px; }
+.briefingRoleList strong { font-size: 12px; transition: color 150ms ease; }
+.briefingRoleList small { color: var(--muted); font-size: 10px; }
+.briefingRoleScore { color: var(--accent); font-size: 18px; font-weight: 700; }
+.briefingSafety { display: flex; flex-direction: column; }
+.safetyList { display: grid; padding: 8px 0 18px; }
+.safetyList div { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--border-soft); }
+.safetyList span { color: var(--muted); font-size: 10px; }
+.safetyList strong { font-size: 10px; text-align: right; }
+.briefingSafety .buttonLink { margin-top: auto; align-self: flex-start; }

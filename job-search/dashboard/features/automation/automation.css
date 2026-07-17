@@ -1,0 +1,39 @@
+/* Automation */
+.operationsLayout { display: grid; grid-template-columns: minmax(300px, 0.78fr) minmax(420px, 1.22fr); gap: 18px; align-items: start; }
+.runTimeline, .runInspector { min-height: 390px; }
+.runList { display: grid; margin: 5px -7px 0; }
+.runListItem { width: 100%; display: grid; grid-template-columns: 8px minmax(0,1fr) auto; gap: 12px; align-items: center; border: 0; border-bottom: 1px solid var(--border-soft); background: transparent; color: var(--text); padding: 14px 8px; text-align: left; cursor: pointer; transition: background 150ms ease, padding 150ms ease; }
+.runListItem:hover, .runListItem.selected { background: rgba(94,227,194,0.045); padding-left: 12px; }
+.runListMain { display: grid; gap: 4px; min-width: 0; }
+.runListMain strong { font-size: 12px; }
+.runListMain small, .statusText { color: var(--muted); font-size: 10px; }
+.runInspector { position: sticky; top: 22px; }
+.progressTrack { height: 3px; margin: 20px 0; overflow: hidden; border-radius: 3px; background: var(--border-soft); }
+.progressTrack span { display: block; height: 100%; border-radius: inherit; background: var(--accent); transition: width 350ms ease; }
+.runFacts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border-soft); border: 1px solid var(--border-soft); }
+.runFacts div { min-height: 70px; display: grid; align-content: center; gap: 6px; padding: 12px; background: var(--panel); }
+.runFacts strong { font-size: 12px; text-transform: capitalize; }
+.inlineWarning { margin: 16px 0; padding: 11px 12px; border-left: 2px solid var(--warning); background: rgba(243,201,105,0.06); color: #f6d98d; font-size: 12px; line-height: 1.45; }
+.runInspector .buttonRow { margin-top: 18px; }
+.resultSection, .schedulePanel { margin-top: 18px; }
+.resultTable { display: grid; }
+.resultRow { display: grid; grid-template-columns: minmax(0,1.5fr) minmax(170px,0.55fr) 90px; gap: 16px; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border-soft); }
+.resultRow:last-child { border-bottom: 0; }
+.resultRow > div:first-child { display: grid; gap: 5px; }
+.resultRow strong { font-size: 13px; }
+.resultRow span { color: var(--muted); font-size: 11px; }
+.resultRow a { color: var(--accent); font-size: 11px; text-decoration: none; text-align: right; }
+.resultMeta { display: flex; justify-content: space-between; gap: 12px; }
+.schedulePanel { display: grid; grid-template-columns: minmax(280px,0.8fr) minmax(430px,1.2fr); gap: 34px; align-items: center; }
+.schedulePanel h2 { margin: 0; font-size: 20px; }
+.schedulePanel p { line-height: 1.55; }
+.notificationButton { margin-top: 8px; padding-left: 0; }
+.notificationButton:disabled { cursor: not-allowed; opacity: 0.5; }
+.scheduleForm { display: grid; grid-template-columns: 1.2fr 0.75fr 1fr auto; gap: 12px; align-items: end; }
+.scheduleForm label { display: grid; gap: 6px; color: var(--muted); font-size: 10px; }
+.scheduleForm input[type="time"] { width: 100%; border: 1px solid var(--border); border-radius: 8px; background: #0c110f; color: var(--text); padding: 9px; }
+.toggleLabel { min-height: 38px; display: flex !important; grid-template-columns: auto 1fr; align-items: center; gap: 9px !important; color: var(--text) !important; font-size: 12px !important; }
+.toggleLabel input { width: 16px; height: 16px; accent-color: var(--accent); }
+.scheduleTimezone { min-height: 38px; display: grid; align-content: center; gap: 3px; }
+.scheduleTimezone span { color: var(--muted); font-size: 10px; }
+.scheduleTimezone strong { font-size: 11px; }

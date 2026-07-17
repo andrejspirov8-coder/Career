@@ -1,6 +1,6 @@
 # Andrej Spirov
 
-andrejspirov8@gmail.com | +370 617 03954 | Vilnius, Lithuania
+andrejspirov8@gmail.com | +370 617 03954 | Vilnius, Lietuva
 
 ---
 
@@ -12,19 +12,27 @@ lt
 
 ## Target Title
 
-Prabangios ir premium prekybos parduotuvės vadovas
+Prabangos ir premium segmento parduotuvės vadovas
 
 ---
 
 ## Professional Summary
 
-Prabangios ir premium mažmeninės prekybos vadovas, turintis 8 metų patirtį Londone su APM Monaco, Officine Generale, Givenchy, Prada ir Versace. APM Monaco valdė 5 parduotuves, 5 parduotuvių vadovus ir apie 30 darbuotojų, atidarė 2 lokacijas ir mokė vadovus POS, KPI, komandos valdymo bei atsargų disciplinos. Vėliau JK sukūrė savarankišką prabangos prekių perpardavimo veiklą. Profesionaliai dirba lietuvių kalba, laisvai anglų ir rusų.
+Prabangos ir premium segmento mažmeninės prekybos vadovas, turintis 8 metų patirtį Londone su APM Monaco, Officine Generale, Givenchy, Prada ir Versace. APM Monaco valdė 5 parduotuves, 5 vadovus, apie 30 darbuotojų ir atidarė 2 naujas parduotuves; mokė vadovus naudotis POS, rengti KPI ataskaitas, planuoti darbo grafikus, laikytis aptarnavimo standartų, kontroliuoti atsargas ir valdyti eskalacijas. Stiprus klientų ryšių, vizualinių standartų, komercinių ataskaitų ir bendradarbiavimo su HQ bei partneriais srityse. Profesionaliai vartoja lietuvių kalbą, laisvai kalba angliškai ir rusiškai.
+
+---
+
+## Selected Achievements
+
+- Valdė 5 APM Monaco parduotuves Londone, 5 vadovus, apie 30 darbuotojų ir atidarė 2 naujas parduotuves.
+- Standartizavo KPI peržiūras ir mokė visus 5 vadovus naudotis POS, planuoti darbo grafikus, laikytis aptarnavimo standartų, kontroliuoti atsargas, valdyti eskalacijas ir teikti veiklos grįžtamąjį ryšį.
+- Sukūrė tiesioginį prabangos prekių perpardavimo procesą: prekių paieška, būklės vertinimas, kainodara, skelbimai, derybos, užsakymų įvykdymas ir bendravimas po pardavimo.
 
 ---
 
 ## Recent Focus
 
-Gyvena Vilniuje ir orientuojasi į prabangios bei premium prekybos vadovavimo pareigas, kur vertinama kelių lokacijų kontrolė, klientų patirtis, parduotuvių atidarymai ir komandos ugdymas.
+Gyvena Vilniuje ir orientuojasi į prabangos bei premium segmento parduotuvių vadovavimo pareigas, kur vertinama kelių parduotuvių kontrolė, klientų patirtis, atidarymai ir komandos ugdymas.
 
 ---
 
@@ -32,10 +40,11 @@ Gyvena Vilniuje ir orientuojasi į prabangios bei premium prekybos vadovavimo pa
 
 - Vadovavimas: 5 parduotuvės, 5 parduotuvių vadovai, apie 30 darbuotojų, 2 atidarymai
 - Klientų patirtis: premium aptarnavimas, klientų ryšiai, produktų pristatymas
-- Komercija: pagrindiniai veiklos rodikliai (KPI), konversija, ATV, UPT
-- Operacijos: vizualinis prekių pateikimas (VM), atsargų disciplina, papildymas, kasa
-- Mokymai: pardavimo sistema (POS), darbo grafikai, komandos rutina, vadovų ugdymas
-- Perpardavimas: JK internetiniai aukcionai, skelbimai, kainodara, užsakymų įvykdymas
+- Komercija ir ataskaitos: KPI, Excel, konversija, ATV, UPT, veiksmų planai
+- Parduotuvės veikla: vizualinis prekių pateikimas (VM), atsargos, papildymas, kasa, grafikai, auditai
+- Mokymai: pardavimo sistema (POS), darbo grafikai, aptarnavimo procesai, vadovų ugdymas
+- Prekės ženklas ir partneriai: HQ, koncesijos, tiekėjai, parduotuvių atidarymai
+- Skaitmeninė prekyba: POS, internetiniai aukcionai, skelbimai, kainodara, užsakymų įvykdymas
 
 ---
 
@@ -56,8 +65,8 @@ Gyvena Vilniuje ir orientuojasi į prabangios bei premium prekybos vadovavimo pa
 
 ### Area Manager, APM Monaco - London, 2021 m. balandis - 2023 m. rugsėjis
 
-- Valdė 5 Londono parduotuves, 5 parduotuvių vadovus ir apie 30 darbuotojų; atidarė 2 lokacijas koordinuodamas pasiruošimą startui, darbuotojų planavimą, vizualinius standartus, atsargų/kasos procesus, eskalacijas ir komunikaciją su HQ bei partneriais.
-- Palaikė vienodą KPI peržiūrų ritmą ir mokė visus 5 parduotuvių vadovus POS naudojimo, darbo grafikų, komandos rutinų, atsargų disciplinos, nuostolių prevencijos ir veiklos grįžtamojo ryšio.
+- Valdė 5 Londono parduotuves, 5 vadovus ir apie 30 darbuotojų; atidarė 2 naujas parduotuves, koordinuodamas pasiruošimą, darbuotojų planavimą, vizualinius standartus, atsargų/kasos procesus, eskalacijas ir komunikaciją su HQ bei partneriais.
+- Standartizavo KPI peržiūras ir mokė visus 5 vadovus naudotis POS, planuoti darbo grafikus, taikyti aptarnavimo procesus, kontroliuoti atsargas, mažinti nuostolių riziką ir teikti veiklos grįžtamąjį ryšį.
 
 ### Store Manager, Officine Generale - Soho, London, 2020 m. balandis - 2021 m. kovas
 

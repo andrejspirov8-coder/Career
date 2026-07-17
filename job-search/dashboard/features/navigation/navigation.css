@@ -1,0 +1,41 @@
+/* Application shell */
+.appShell { min-height: 100vh; }
+.appNavigation {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 30;
+  width: 224px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 24px 18px;
+  background: #0e1311;
+  border-right: 1px solid var(--border-soft);
+}
+.appContent { min-height: 100vh; margin-left: 224px; }
+.appBrand { display: flex; align-items: center; gap: 11px; text-decoration: none; padding: 2px 5px; }
+.brandMark { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px; background: var(--accent); color: #07110e; font-weight: 800; }
+.appBrand > span:last-child { display: grid; gap: 2px; }
+.appBrand strong { letter-spacing: -0.02em; }
+.appBrand small, .navLinks a { color: var(--muted); font-size: 12px; }
+.navLinks { display: grid; gap: 18px; }
+.navGroup, .navGroupLinks { display: grid; gap: 4px; }
+.navGroupLabel { padding: 0 12px 3px; color: var(--muted-2); font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+.globalSearch { position: relative; display: grid; gap: 6px; }
+.globalSearch > label { color: var(--muted-2); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; }
+.globalSearch > input { width: 100%; border: 1px solid var(--border); border-radius: 8px; background: #090d0c; color: var(--text); padding: 9px 10px; font-size: 11px; }
+.globalSearchResults { position: absolute; z-index: 60; top: calc(100% + 7px); left: 0; width: min(360px, calc(100vw - 30px)); display: grid; max-height: 420px; overflow: auto; border: 1px solid var(--border); border-radius: 10px; background: #111715; box-shadow: 0 18px 45px rgba(0,0,0,0.42); padding: 7px; }
+.globalSearchResults > span { padding: 12px; color: var(--muted); font-size: 11px; }
+.globalSearchResults a { display: grid; gap: 3px; border-radius: 7px; padding: 9px; text-decoration: none; }
+.globalSearchResults a:hover { background: rgba(94,227,194,0.08); }
+.globalSearchResults small { color: var(--accent); font-size: 8px; letter-spacing: 0.08em; text-transform: uppercase; }
+.globalSearchResults strong { font-size: 11px; }
+.globalSearchResults a span { color: var(--muted); font-size: 9px; }
+.navLinks a { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: 9px; text-decoration: none; transition: color 160ms ease, background 160ms ease, transform 160ms ease; }
+.navLinks a > em { min-width: 20px; border-radius: 999px; background: var(--accent); color: #06110e; padding: 2px 6px; font-size: 9px; font-style: normal; font-weight: 800; line-height: 1.5; text-align: center; }
+.navLinks a:hover { color: var(--text); transform: translateX(2px); }
+.navLinks a.active { color: var(--accent-strong); background: rgba(94, 227, 194, 0.08); }
+.navLinks a.active::before { content: ""; position: absolute; left: 0; top: 50%; width: 2px; height: 16px; border-radius: 2px; background: var(--accent); transform: translateY(-50%); }
+.appNavigation > .navLockButton { margin-top: auto; }
+.navLockButton { width: 100%; border: 1px solid var(--border); border-radius: 9px; background: transparent; color: var(--muted); padding: 9px 12px; cursor: pointer; }
+.navLockButton:hover { color: var(--text); border-color: #40534b; }

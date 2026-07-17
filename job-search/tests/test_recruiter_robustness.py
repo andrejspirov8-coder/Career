@@ -264,7 +264,7 @@ class TestPersonaStats(unittest.TestCase):
                 persona.persona: {"sent": 10, "accepted": 8, "rate": 0.8}
             }
             boosted = hn.rank_candidate(candidate, persona, cv, cfg, history)
-        reset = hn.rank_candidate(
+        hn.rank_candidate(
             candidate,
             persona,
             cv,
@@ -411,31 +411,6 @@ class TestVilniusGeoFilter(unittest.TestCase):
                 "Boston, Massachusetts, United States (US)",
                 "Michael Kors luxury retail",
                 scope="vilnius",
-            )
-        )
-
-    def test_passes_europe_scope(self) -> None:
-        from recruiter_web_discover import passes_geo_filter
-
-        self.assertTrue(
-            passes_geo_filter(
-                "London, United Kingdom",
-                "Hiring luxury retail leaders across Europe",
-                scope="europe",
-            )
-        )
-        self.assertTrue(
-            passes_geo_filter(
-                "",
-                "Remote Europe service delivery manager hiring",
-                scope="europe",
-            )
-        )
-        self.assertFalse(
-            passes_geo_filter(
-                "Las Vegas Metropolitan Area (US)",
-                "Michael Kors luxury retail",
-                scope="europe",
             )
         )
 

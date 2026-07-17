@@ -268,6 +268,170 @@ class TestOrchestratorLatestJsonl(unittest.TestCase):
         self.assertIsNotNone(canon)
         self.assertEqual(m.get(canon or "")["tier"], "tier_1")
 
+    def test_daily_dry_run_defaults_to_bounded_scout_cap(self) -> None:
+        self.assertEqual(
+            orch.default_daily_scout_cap(
+                dry_run=True,
+                max_dispatch=1,
+                max_scout=None,
+            ),
+            1,
+        )
+        self.assertEqual(
+            orch.default_daily_scout_cap(
+                dry_run=True,
+                max_dispatch=None,
+                max_scout=None,
+            ),
+            5,
+        )
+        self.assertIsNone(
+            orch.default_daily_scout_cap(
+                dry_run=False,
+                max_dispatch=1,
+                max_scout=None,
+            )
+        )
+
+    def test_campaign_config_overrides_do_not_mutate_source(self) -> None:
+        source = {
+            "limits": {
+                "max_profiles_scored_per_run": 75,
+                "dwell_after_navigate_seconds_max": 6,
+            }
+        }
+
+        bounded = orch.campaign_config_with_overrides(
+            source,
+            max_profiles_scored=2,
+            login_timeout_seconds=15,
+            fast_dry_run=True,
+        )
+
+        self.assertEqual(source["limits"]["max_profiles_scored_per_run"], 75)
+        self.assertEqual(bounded["limits"]["max_profiles_scored_per_run"], 2)
+        self.assertEqual(bounded["limits"]["login_timeout_seconds"], 15)
+        self.assertLessEqual(bounded["limits"]["dwell_after_navigate_seconds_max"], 2)
+
+    def test_dry_run_dispatch_empty_queue_is_clean_noop(self) -> None:
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            cfg = root / "config.yaml"
+            cfg.write_text("limits: {}\n", encoding="utf-8")
+            session = root / "session.json"
+            session.write_text(
+                '{"schema":"recruiter_session_state_v1","queue":[]}\n',
+                encoding="utf-8",
+            )
+
+            rc = orch.cmd_dispatch(
+                cfg_path=cfg,
+                headed=False,
+                dry_run=True,
+                browser_channel=None,
+                tier_filter=None,
+                max_profiles=1,
+                session_path=session,
+            )
+
+        self.assertEqual(rc, 0)
+
+    def test_live_dispatch_rejects_missing_or_oversized_max_before_file_access(
+        self,
+    ) -> None:
+        for value, message in ((None, "explicit --max"), (4, "cannot exceed 3")):
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(SystemExit, message):
+                    orch.cmd_dispatch(
+                        cfg_path=Path("/definitely/missing/config.yaml"),
+                        headed=False,
+                        dry_run=False,
+                        browser_channel=None,
+                        tier_filter=None,
+                        max_profiles=value,
+                        session_path=Path("/definitely/missing/session.json"),
+                        allow_live_dispatch=True,
+                    )
+
+    def test_three_logged_sends_leave_zero_budget_for_a_later_run(self) -> None:
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            csv_path = root / "recruiters.csv"
+            state_db = root / "state.sqlite3"
+            for index in range(3):
+                rlog.append_recruiter_row(
+                    rlog.recruiter_row_partial(
+                        date_iso=bot.date.today().isoformat(),
+                        profile_url=f"https://www.linkedin.com/in/sent-{index}/",
+                        status="sent",
+                    ),
+                    csv_path=csv_path,
+                )
+
+            sent = bot.successful_sends_today(csv_path, state_db=state_db)
+
+        self.assertEqual(sent, 3)
+        self.assertEqual(
+            bot.live_dispatch_slots_remaining(sent, requested_max=3),
+            0,
+        )
+        self.assertEqual(
+            bot.effective_daily_invite_cap(
+                {
+                    "max_connections_per_day": 50,
+                    "max_connections_per_day_low_accept": 50,
+                },
+                csv_path=Path("/definitely/missing/recruiters.csv"),
+            ),
+            3,
+        )
+
+    def test_hiring_network_daily_forwards_live_dispatch_acknowledgement(self) -> None:
+        calls: list[list[str]] = []
+        original_call = orch.subprocess.call
+
+        def fake_call(cli: list[str]) -> int:
+            calls.append(cli)
+            return 0
+
+        try:
+            orch.subprocess.call = fake_call
+            rc = orch.main(
+                [
+                    "daily",
+                    "--mode",
+                    "hiring_network",
+                    "--no-headed",
+                    "--max-dispatch",
+                    "2",
+                    "--allow-live-dispatch",
+                ]
+            )
+        finally:
+            orch.subprocess.call = original_call
+
+        self.assertEqual(rc, 0)
+        self.assertEqual(len(calls), 1)
+        self.assertIn("--auto-send", calls[0])
+        self.assertIn("--allow-live-dispatch", calls[0])
+
+    def test_daily_live_mode_rejects_missing_max_before_scout_browser(self) -> None:
+        original_scout = orch.cmd_scout
+
+        def fail_if_scouted(**_kwargs: object) -> int:
+            raise AssertionError("browser-backed scout must not start")
+
+        try:
+            orch.cmd_scout = fail_if_scouted  # type: ignore[assignment]
+            with self.assertRaisesRegex(SystemExit, "explicit --max-dispatch"):
+                orch.main(["daily", "--no-headed"])
+        finally:
+            orch.cmd_scout = original_scout
+
     def test_prepare_outreach_note_keyword_suffix(self) -> None:
         res = rm.match_profile(
             headline="recruiter",

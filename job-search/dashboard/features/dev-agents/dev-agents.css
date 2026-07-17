@@ -1,0 +1,74 @@
+/* Local development agents */
+.devAgentHeading { margin-bottom: 22px; }
+.devAgentTopActions { margin: -10px 0 18px; }
+.devAgentSafetyBand { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 22px; border-top: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft); }
+.devAgentSafetyBand > div { min-width: 0; display: grid; align-content: center; gap: 5px; min-height: 78px; padding: 14px 16px; border-right: 1px solid var(--border-soft); }
+.devAgentSafetyBand > div:last-child { border-right: 0; }
+.devAgentSafetyBand span { color: var(--muted); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; }
+.devAgentSafetyBand strong { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.devAgentSafetyBand i { height: 3px; overflow: hidden; border-radius: 3px; background: var(--border-soft); }
+.devAgentSafetyBand em { display: block; height: 100%; background: var(--accent); transition: width 300ms ease; }
+.devAgentProposals { margin-bottom: 18px; }
+.devAgentProposalList { display: grid; gap: 1px; margin-top: 18px; overflow: hidden; border: 1px solid var(--border-soft); border-radius: 9px; background: var(--border-soft); }
+.devAgentProposalList article { display: flex; justify-content: space-between; gap: 24px; align-items: center; background: var(--panel); padding: 15px 16px; }
+.devAgentProposalList article > div:first-child { min-width: 0; }
+.devAgentProposalList article span, .devAgentModelStrip span { color: var(--accent); font-size: 9px; letter-spacing: 0.07em; text-transform: uppercase; }
+.devAgentProposalList h3 { margin: 5px 0 6px; font-size: 12px; line-height: 1.4; }
+.devAgentProposalList p { margin: 0 0 5px; color: var(--muted); font-size: 10px; line-height: 1.45; }
+.devAgentProposalList small, .devAgentModelStrip small { color: var(--muted-2); font-size: 9px; line-height: 1.4; }
+.devAgentModelStrip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; margin-bottom: 18px; padding: 0; overflow: hidden; background: var(--border-soft); }
+.devAgentModelStrip > div { display: grid; gap: 6px; align-content: start; min-width: 0; min-height: 90px; background: var(--panel); padding: 15px 16px; }
+.devAgentModelStrip strong { overflow-wrap: anywhere; font-size: 11px; }
+.devAgentWorkspace { display: grid; grid-template-columns: minmax(360px, 0.85fr) minmax(420px, 1.15fr); gap: 18px; align-items: start; }
+.devAgentLauncher, .devAgentQueue { min-height: 560px; }
+.devAgentForm { display: grid; gap: 16px; padding-top: 18px; }
+.devAgentForm > label { display: grid; gap: 7px; color: var(--muted); font-size: 10px; }
+.devAgentForm textarea, .devAgentForm select { width: 100%; border: 1px solid var(--border); border-radius: 8px; background: #0c110f; color: var(--text); padding: 10px; }
+.devAgentForm textarea { resize: vertical; line-height: 1.45; }
+.devAgentForm small { color: var(--muted-2); line-height: 1.4; }
+.devAgentForm fieldset { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin: 0; padding: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 9px; background: var(--border); }
+.devAgentForm legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+.devAgentForm fieldset label { min-height: 70px; display: flex; gap: 9px; align-items: center; background: var(--panel); padding: 12px; cursor: pointer; }
+.devAgentForm fieldset label.disabled { cursor: not-allowed; opacity: 0.48; }
+.devAgentForm fieldset input { width: 15px; height: 15px; accent-color: var(--accent); }
+.devAgentForm fieldset label span { display: grid; gap: 4px; }
+.devAgentForm fieldset strong { font-size: 11px; }
+.devAgentForm fieldset small { font-size: 9px; }
+.devAgentFormRow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(120px, 0.45fr); gap: 12px; }
+.devAgentFormRow label { display: grid; gap: 7px; color: var(--muted); font-size: 10px; }
+.devAgentForm details { border-top: 1px solid var(--border-soft); padding-top: 12px; }
+.devAgentForm details summary { color: var(--muted); cursor: pointer; font-size: 10px; }
+.devAgentForm details textarea { margin-top: 10px; }
+.devAgentForm > .button { justify-self: start; }
+.devAgentQueue .runListMain strong { overflow: hidden; max-width: 460px; text-overflow: ellipsis; white-space: nowrap; }
+.devAgentInspector { margin-top: 18px; }
+.devAgentInspectorGrid { display: grid; grid-template-columns: minmax(300px, 0.8fr) minmax(420px, 1.2fr); gap: 30px; padding-top: 22px; }
+.devAgentRunSummary { display: grid; align-content: start; }
+.devAgentRunSummary > div:not(.inlineWarning):not(.buttonRow):not(.devAgentApprovalNote) { display: flex; justify-content: space-between; gap: 18px; padding: 11px 0; border-bottom: 1px solid var(--border-soft); }
+.devAgentRunSummary > div > span { color: var(--muted); font-size: 9px; text-transform: uppercase; letter-spacing: 0.07em; }
+.devAgentRunSummary > div > strong { overflow-wrap: anywhere; font-size: 10px; text-align: right; }
+.devAgentRunSummary > p { margin: 18px 0 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+.devAgentRunSummary .buttonRow { margin-top: 18px; }
+.devAgentApprovalNote { margin-top: 16px; border-left: 2px solid var(--accent); background: rgba(94,227,194,0.05); color: var(--muted); padding: 11px 12px; font-size: 10px; line-height: 1.5; }
+.devAgentEvidence { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; border-left: 1px solid var(--border-soft); padding-left: 30px; }
+.devAgentEvidence h3 { margin: 0 0 14px; font-size: 12px; }
+.agentFinding { display: grid; gap: 5px; padding: 10px 0; border-bottom: 1px solid var(--border-soft); }
+.agentFinding > span { color: var(--muted); font-size: 8px; font-weight: 750; letter-spacing: 0.1em; text-transform: uppercase; }
+.agentFinding.severity-critical > span, .agentFinding.severity-major > span { color: var(--danger); }
+.agentFinding.severity-minor > span { color: var(--warning); }
+.agentFinding strong { font-size: 10px; }
+.agentFinding p { margin: 0; color: var(--muted); font-size: 9px; line-height: 1.5; }
+.agentCheckList { display: grid; }
+.agentCheckList > div { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border-soft); }
+.agentCheckList strong, .agentCheckList span { font-size: 9px; }
+.devAgentPatch { margin-top: 22px; border-top: 1px solid var(--border-soft); padding-top: 16px; }
+.devAgentPatch summary { color: var(--accent); cursor: pointer; font-size: 11px; }
+.devAgentPatch pre { max-height: 620px; overflow: auto; margin: 14px 0 0; border: 1px solid var(--border-soft); border-radius: 8px; background: #070a09; color: #cfe1da; padding: 16px; font: 10px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre; }
+.status-ready_for_codex_review, .status-approved, .status-applied { color: var(--success) !important; }
+.status-snapshotting, .status-local_review, .status-verifying { color: var(--accent) !important; }
+.status-blocked, .status-timed_out, .status-stale { color: var(--warning) !important; }
+.status-rejected { color: var(--danger) !important; }
+.statusDot.status-ready_for_codex_review, .statusDot.status-approved, .statusDot.status-applied { background: var(--success); }
+.statusDot.status-snapshotting, .statusDot.status-local_review, .statusDot.status-verifying { background: var(--accent); }
+.statusDot.status-blocked, .statusDot.status-timed_out, .statusDot.status-stale { background: var(--warning); }
+.statusDot.status-rejected { background: var(--danger); }

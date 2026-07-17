@@ -1,0 +1,86 @@
+/* Insights */
+.sampleIndicator { min-width: 220px; display: grid; gap: 4px; border-left: 2px solid var(--warning); padding-left: 14px; }
+.sampleIndicator.ready { border-color: var(--success); }
+.sampleIndicator strong { font-size: 12px; }
+.sampleIndicator small { color: var(--muted); font-size: 10px; }
+.insightRecommendations { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1px; margin-bottom: 18px; overflow: hidden; border: 1px solid var(--border-soft); border-radius: 12px; background: var(--border-soft); }
+.insightRecommendation { min-height: 112px; display: grid; align-content: start; gap: 7px; background: var(--panel); padding: 16px; }
+.insightRecommendation > span { color: var(--muted); font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; }
+.insightRecommendation.high > span { color: var(--danger); }
+.insightRecommendation.opportunity > span { color: var(--success); }
+.insightRecommendation strong { font-size: 12px; }
+.insightRecommendation p { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
+.funnelPanel { margin-bottom: 18px; }
+.funnelSteps { display: grid; gap: 10px; padding: 22px 0; }
+.funnelSteps > div { position: relative; min-height: 34px; display: grid; grid-template-columns: 70px 1fr; align-items: center; overflow: hidden; border-radius: 7px; background: rgba(255,255,255,0.02); }
+.funnelSteps > div > span { position: absolute; inset: 0 auto 0 0; min-width: 4%; background: linear-gradient(90deg, rgba(94,227,194,0.22), rgba(94,227,194,0.06)); }
+.funnelSteps strong, .funnelSteps small { position: relative; z-index: 1; padding-left: 12px; }
+.funnelSteps strong { font-size: 16px; }
+.funnelSteps small { color: var(--muted); font-size: 10px; }
+.insightMetricBand { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--border-soft); }
+.insightMetricBand > div, .recruiterInsightGrid > div { display: grid; gap: 6px; padding: 16px 12px; border-right: 1px solid var(--border-soft); }
+.insightMetricBand > div:last-child { border-right: 0; }
+.insightMetricBand span, .recruiterInsightGrid span, .insightQuality span { color: var(--muted); font-size: 9px; text-transform: uppercase; letter-spacing: 0.07em; }
+.insightMetricBand strong, .recruiterInsightGrid strong { font-size: 15px; }
+.insightsGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-bottom: 18px; }
+.performanceRows { display: grid; }
+.performanceRows > div { display: grid; grid-template-columns: minmax(0,1fr) 120px; gap: 14px; padding: 13px 0; border-bottom: 1px solid var(--border-soft); }
+.performanceRows > div > span { display: grid; gap: 4px; }
+.performanceRows > div > span:last-child { text-align: right; }
+.performanceRows strong { font-size: 11px; }
+.performanceRows small { color: var(--muted); font-size: 9px; }
+.weeklyBars { height: 210px; display: grid; grid-template-columns: repeat(8, 1fr); gap: 9px; align-items: end; padding-top: 20px; }
+.weeklyBars > div { height: 100%; display: grid; grid-template-rows: 1fr auto auto; gap: 5px; justify-items: center; }
+.weekBarTrack { position: relative; width: 100%; max-width: 36px; height: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 3px; border-bottom: 1px solid var(--border); }
+.weekBarTrack i, .weekBarTrack em { width: 42%; min-height: 0; display: block; background: var(--accent); }
+.weekBarTrack em { background: var(--warning); }
+.weeklyBars strong { font-size: 10px; }
+.weeklyBars small { color: var(--muted); font-size: 8px; }
+.chartLegend { display: flex; gap: 16px; margin-top: 12px; color: var(--muted); font-size: 9px; }
+.chartLegend span { display: flex; gap: 6px; align-items: center; }
+.chartLegend i, .chartLegend em { width: 8px; height: 8px; display: block; background: var(--accent); }
+.chartLegend em { background: var(--warning); }
+.recruiterInsightPanel { display: flex; flex-direction: column; }
+.recruiterInsightGrid { display: grid; grid-template-columns: 1fr 1fr; padding: 14px 0; }
+.recruiterInsightGrid > div:nth-child(even) { border-right: 0; }
+.recruiterInsightPanel .buttonLink { margin-top: auto; align-self: flex-start; }
+.sample-ready { color: var(--success); }
+.sample-early { color: var(--warning); }
+.insightQuality { display: grid; grid-template-columns: minmax(180px,0.3fr) minmax(0,0.7fr); gap: 28px; align-items: center; }
+.insightQuality > div { display: grid; gap: 6px; }
+.insightQuality > div > strong { font-size: 24px; }
+.insightQuality small { color: var(--muted); font-size: 9px; }
+.insightQuality p { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.55; }
+.homeActions { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.homeActions > a { display: grid; grid-template-columns: 42px minmax(0,1fr) auto; gap: 14px; align-items: center; min-height: 82px; padding: 14px 8px; border-bottom: 1px solid var(--border-soft); text-decoration: none; transition: padding 180ms ease, color 180ms ease; }
+.homeActions > a:last-child { border-bottom: 0; }
+.homeActions > a:hover { padding-left: 16px; color: var(--accent-strong); }
+.homeActions > a > span:nth-child(2) { display: grid; gap: 5px; }
+.homeActions strong { font-size: 16px; }
+.homeActions small { color: var(--muted); font-size: 11px; }
+.actionIndex { color: var(--muted-2); font: 11px ui-monospace, SFMono-Regular, Menlo, monospace; }
+.homePrimaryAction strong { color: var(--accent); }
+.statusBand { display: grid; grid-template-columns: repeat(4, 1fr); margin: 30px 0; border-top: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft); }
+.statusBand > div { display: grid; gap: 5px; padding: 18px 14px; border-right: 1px solid var(--border-soft); }
+.statusBand > div:last-child { border-right: 0; }
+.statusBand span, .runFacts span, .systemContext span, .dailyBriefBody span { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; }
+.statusBand strong { font-size: 26px; font-weight: 580; letter-spacing: -0.035em; }
+.homeWorkspaceGrid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr); gap: 18px; }
+.dailyBriefBody { min-height: 150px; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; gap: 20px; padding-top: 20px; }
+.dailyBriefBody > div { display: grid; gap: 8px; }
+.dailyBriefBody strong { max-width: 540px; line-height: 1.5; font-size: 15px; }
+.indexLinks { display: grid; }
+.indexLinks a { display: grid; gap: 4px; padding: 14px 0; border-bottom: 1px solid var(--border-soft); text-decoration: none; transition: color 150ms ease, transform 150ms ease; }
+.indexLinks a:last-child { border-bottom: 0; }
+.indexLinks a:hover { color: var(--accent); transform: translateX(3px); }
+.indexLinks span { font-size: 13px; font-weight: 650; }
+.indexLinks small { color: var(--muted); line-height: 1.4; }
+.systemPanel { margin-top: 18px; }
+.systemColumns { display: grid; grid-template-columns: minmax(0,1.35fr) minmax(280px,0.65fr); gap: 28px; padding-top: 18px; }
+.systemList { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1px 20px; }
+.systemList > div { display: flex; gap: 10px; align-items: flex-start; padding: 11px 0; border-bottom: 1px solid var(--border-soft); }
+.systemList > div > span:last-child { display: grid; gap: 3px; }
+.systemList strong { font-size: 12px; }
+.systemList small { color: var(--muted); font-size: 10px; }
+.systemContext { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.systemContext div { display: grid; gap: 6px; padding-left: 12px; border-left: 1px solid var(--border); }

@@ -1,0 +1,21 @@
+runtime:
+  mode: review_first
+  dry_run_default: true
+  require_live_dispatch_ack: true
+  require_approval_ledger: true
+
+paths:
+  recruiters_csv: pipeline/recruiters.csv
+  action_plan_jsonl: pipeline/recruiter_action_plan.jsonl
+  session_state_json: pipeline/recruiter_session_state.json
+  run_logs_dir: linkedin/run_logs
+
+limits:
+  max_live_dispatch_batch: 3
+  stop_on_captcha: true
+  stop_on_checkpoint: true
+  stop_on_unusual_activity: true
+
+state:
+  database_path: state/recruiter_state.sqlite3
+  export_csv: true

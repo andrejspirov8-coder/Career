@@ -1,0 +1,125 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    name: Python / lock, lint, tests, PDFs, audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Install Python
+        run: uv python install 3.13
+      - name: Verify lock and install
+        run: |
+          uv lock --check
+          uv sync --locked --all-groups
+      - name: Lint
+        run: uv run ruff check tools cv tests
+      - name: Test
+        run: uv run --group dev python -m pytest -q
+      - name: Verify all CV outputs
+        run: |
+          uv run python cv/build_cv_pdf.py --all
+          uv run --group dev python -m pytest -q tests/test_cv_build_validation.py
+      - name: Audit runtime dependencies
+        run: |
+          uv export --locked --no-dev --no-emit-project --format requirements-txt --output-file /tmp/runtime-requirements.txt > /dev/null
+          uvx pip-audit -r /tmp/runtime-requirements.txt
+
+  dashboard:
+    name: Dashboard / unit, build, browser, audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.2
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+      - name: Install Python helper environment
+        run: |
+          uv python install 3.13
+          uv sync --locked --all-groups
+      - name: Install dashboard dependencies
+        working-directory: dashboard
+        run: npm ci
+      - name: Unit tests
+        working-directory: dashboard
+        run: npm test
+      - name: Typecheck
+        working-directory: dashboard
+        run: npm run typecheck
+      - name: Production build
+        working-directory: dashboard
+        run: npm run build
+      - name: Install Chromium
+        working-directory: dashboard
+        run: npx playwright install --with-deps chromium
+      - name: Browser tests
+        working-directory: dashboard
+        env:
+          CAREER_DASHBOARD_TOKEN: ci-dashboard-token
+        run: npm run e2e
+      - name: High-severity dependency audit
+        working-directory: dashboard
+        run: npm audit --audit-level=high
+
+  raycast:
+    name: Raycast / typecheck, lint, tests, build, audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.2
+          cache: npm
+          cache-dependency-path: raycast-job-search-hub/package-lock.json
+      - name: Install dependencies
+        working-directory: raycast-job-search-hub
+        run: npm ci
+      - name: Typecheck
+        working-directory: raycast-job-search-hub
+        run: npm run typecheck
+      - name: Lint
+        working-directory: raycast-job-search-hub
+        run: |
+          npm run lint:ci
+          npm run lint
+      - name: Test
+        working-directory: raycast-job-search-hub
+        run: npm test
+      - name: Build
+        working-directory: raycast-job-search-hub
+        run: npm run build
+      - name: High-severity dependency audit
+        working-directory: raycast-job-search-hub
+        run: npm audit --audit-level=high
+
+  smoke:
+    name: Repository smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.2
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+      - name: Install dependencies
+        run: |
+          uv python install 3.13
+          uv sync --locked --all-groups
+          cd dashboard
+          npm ci
+      - name: Run smoke harness
+        run: make smoke

@@ -12,7 +12,15 @@ Luxury Retail / Premium Store Manager
 
 ## Professional Summary
 
-Luxury retail leader with 8 years across APM Monaco, Officine Generale, Givenchy, Prada, and Versace in London. Managed 5 APM Monaco stores, 5 store managers, and around 30 staff; opened 2 locations; and trained managers on point of sale (POS), key performance indicators (KPIs), team routines, and stock discipline. Now based in Vilnius after building a UK-based independent luxury resale activity. Professional Lithuanian, fluent English, and fluent Russian.
+Luxury retail leader with 8 years across APM Monaco, Officine Generale, Givenchy, Prada, and Versace in London. Managed 5 APM Monaco stores, 5 managers, around 30 staff, and 2 openings; trained managers on POS, KPI reporting, rotas, service standards, stock control, and escalations. Strong in clienteling, visual standards, commercial reporting, and HQ/partner coordination. Later built an independent UK luxury resale operation. Professional Lithuanian; fluent English and Russian.
+
+---
+
+## Selected Achievements
+
+- Managed 5 APM Monaco stores, 5 managers, around 30 staff, and 2 new openings in London.
+- Standardised KPI reviews and trained all 5 managers on POS use, rotas, service standards, stock discipline, controls, escalations, and performance follow-up.
+- Built a direct-to-client luxury resale workflow covering sourcing, condition checks, pricing judgement, listings, negotiation, fulfilment, and after-sale follow-up.
 
 ---
 
@@ -26,10 +34,11 @@ Targeting premium retail and luxury store leadership roles where clienteling, mu
 
 - Leadership: 5 stores, 5 store managers, around 30 staff, 2 openings
 - Clienteling: premium service, styling, private clients, service recovery
-- Commercial: key performance indicators (KPIs), conversion, average transaction value (ATV), units per transaction (UPT)
-- Operations: visual merchandising (VM), stock discipline, replenishment, cash control
+- Commercial reporting: KPIs, Excel, conversion, average transaction value (ATV), units per transaction (UPT), action planning
+- Store operations: visual merchandising (VM), stock, replenishment, cash, schedules, audits
 - Training: point of sale (POS), rota planning, team routines, manager coaching
-- Luxury resale: UK online auctions, listings, pricing judgement, fulfilment
+- Brand and partner coordination: HQ, concessions, suppliers, store openings
+- Digital retail: POS, e-commerce listings, online auction sourcing, sales tracking, fulfilment
 
 ---
 
@@ -50,8 +59,8 @@ Targeting premium retail and luxury store leadership roles where clienteling, mu
 
 ### Area Manager, APM Monaco - London, April 2021 - September 2023
 
-- Managed 5 London stores with 5 store managers and around 30 total staff; opened 2 locations by coordinating launch readiness, staffing, visual standards, stock/cash routines, escalations, and HQ/partner communication.
-- Ran a consistent KPI cadence across stores and trained all 5 managers on POS use, rotas, team routines, stock discipline, shrink-aware controls, escalations, and performance follow-up.
+- Managed 5 London stores with 5 managers and around 30 staff; opened 2 locations by coordinating launch readiness, staffing, visual standards, stock/cash routines, escalations, and HQ/partner communication.
+- Standardised KPI reviews across stores and trained all 5 managers on POS use, rotas, service routines, stock discipline, controls, escalations, and performance follow-up.
 
 ### Store Manager, Officine Generale - Soho, London, April 2020 - March 2021
 

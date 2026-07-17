@@ -6,31 +6,39 @@ andrejspirov8@gmail.com | +370 617 03954 | Vilnius, Lithuania
 
 ## Target Title
 
-Operations / Sales Management
+Operations & Commercial Manager
 
 ---
 
 ## Professional Summary
 
-Operations and sales manager with luxury retail leadership in London, including 5-store area management, 5 store managers, around 30 staff, and 2 location openings. Strong in rota planning, key performance indicator (KPI) reviews, manager coaching, point of sale (POS) training, stock/cash discipline, escalations, and HQ/partner communication. Also built a UK-based independent luxury resale activity with end-to-end sourcing, listing, pricing, and fulfilment ownership. Professional Lithuanian, fluent English, and fluent Russian.
+Operations and commercial manager with 8 years in London luxury retail, including responsibility for 5 stores, 5 managers, around 30 staff, and 2 openings. Strong in KPI analysis, Excel reporting, sales planning, manager coaching, POS training, stock/cash controls, operational readiness, service recovery, and HQ/supplier coordination. Built an independent luxury resale operation and now applies Python/Bash and AI-assisted workflow automation to practical process improvement. Professional Lithuanian; fluent English and Russian.
+
+---
+
+## Selected Achievements
+
+- Managed 5 London stores, 5 managers, around 30 staff, and 2 openings across staffing, operational readiness, KPI reporting, store standards, and partner communication.
+- Standardised manager routines and coached all 5 managers on rotas, KPI action planning, POS use, service consistency, stock accuracy, controls, and escalation follow-up.
+- Built a UK-based luxury resale operating flow from sourcing and product checks to listings, client communication, negotiation, fulfilment, and sales tracking.
 
 ---
 
 ## Recent Focus
 
-Based in Vilnius and targeting operations, sales management, customer experience, and premium service leadership roles where structured follow-up and service control matter.
+Targeting operations, commercial management, customer experience, program coordination, quality, and continuous-improvement roles in Vilnius.
 
 ---
 
 ## Core Skills
 
 - Leadership: 5 stores, 5 store managers, around 30 staff, 2 openings
-- Operations: launch readiness, rota planning, audits, standards control
-- Commercial: key performance indicators (KPIs), sales routines, conversion, daily reporting
-- Controls: stock discipline, replenishment, cash control, shrink-aware routines
-- Training: point of sale (POS), onboarding, team routines, performance follow-up
-- Stakeholders: HQ, concessions, suppliers, partners, escalations
-- Resale operations: UK auction sourcing, listings, pricing, fulfilment
+- Operations and change: readiness, checklists, rotas, audits, standards, implementation follow-up
+- Commercial: KPI analysis, Excel reporting, sales planning, conversion, pricing, daily reporting
+- Quality and controls: stock, replenishment, cash, shrink awareness, service recovery, corrective actions
+- Training: POS, onboarding, manager coaching, performance follow-up
+- Digital improvement: Python/Bash automation, AI-assisted workflows, process automation
+- Stakeholders: HQ, concessions, suppliers, buying/replenishment, partner escalations
 
 ---
 
@@ -44,10 +52,13 @@ Based in Vilnius and targeting operations, sales management, customer experience
 
 ## Experience
 
+### Independent Operations Automation Project - Vilnius, May 2026 - Present
+
+- Built a local-first workflow system using Python/Bash, dashboard reporting, structured data, automated checks, and human approval gates to centralise coordination and improve process visibility.
+
 ### Founder / Luxury Resale Operations, Self-employed - UK / Online, October 2023 - September 2025
 
-- Built and managed an independent resale activity buying luxury goods through UK online auctions, assessing condition and resale potential, setting prices, and selling online and to private clients.
-- Owned the operating flow from sourcing and product checks to listings, client communication, negotiation, fulfilment, follow-up, and basic sales tracking.
+- Built and managed an end-to-end resale operation covering auction sourcing, product checks, pricing, listings, private-client sales, negotiation, fulfilment, and sales tracking.
 
 ### Area Manager, APM Monaco - London, April 2021 - September 2023
 
@@ -56,8 +67,7 @@ Based in Vilnius and targeting operations, sales management, customer experience
 
 ### Store Manager, Officine Generale - Soho, London, April 2020 - March 2021
 
-- Managed standalone boutique operations, translating KPI priorities into rotas, replenishment, team coaching, cash discipline, customer issue resolution, and HQ communication.
-- Worked with HQ on buys, replenishment, and client follow-through, turning commercial priorities into practical store actions.
+- Managed standalone boutique operations, translating KPI and HQ priorities into rotas, replenishment, team coaching, cash discipline, customer issue resolution, and practical store actions.
 
 ### Supervisor, Givenchy - Harrods, London, April 2019 - March 2020
 

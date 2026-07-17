@@ -17,10 +17,9 @@ browser:
   browse_headless: false
 
 limits:
-  # Operator override: 50/day (aggressive — LinkedIn may throttle or checkpoint).
-  # Pacemaker still uses low_cap until accept rate ≥ 40%; both set to 50 per request.
-  max_connections_per_day: 50
-  max_connections_per_day_low_accept: 50
+  # Hard local safety ceiling. Live CLI commands must also provide --max 1..3.
+  max_connections_per_day: 3
+  max_connections_per_day_low_accept: 3
   min_accept_rate_for_full_cap: 0.4
   min_sent_for_accept_rate: 5
   max_profiles_scored_per_run: 75
@@ -67,18 +66,18 @@ tiers:
     require_clear_winner: true
     allow_tie_review: false
     company_signals_any:
-      - "michael kors"
-      - "michael page"
-      - "experis"
+      - \"michael kors\"
+      - \"michael page\"
+      - \"experis\"
   tier_2:
     min_primary_score: 12
     min_margin_over_second: 4.0
     require_recruiter_gate: true
-    require_clear_winner: true
-    allow_tie_review: false
+    require_clear_winner: true  # CHANGED: was false (per DC audit: tie_review=0% response)
+    allow_tie_review: false     # NEW: was missing (per DC audit)
     company_signals_any: []
   tier_3:
-    min_primary_score: 12
+    min_primary_score: 13       # RAISED from 12 (per DC audit: Tier 3 is noisy)
     min_margin_over_second: 4.0
     require_recruiter_gate: true
     require_clear_winner: false
@@ -116,14 +115,25 @@ recruiter_matching:
     - "business analyst"
   sector_keywords:
     luxury-retail:
-      - "store director"
-      - "retail director"
-      - "head of retail"
-      - "head of stores"
-      - "area manager"
-      - "regional manager"
-      - "operations director"
-      - "hiring manager"
+      - \"store director\"
+      - \"retail director\"
+      - \"head of retail\"
+      - \"head of stores\"
+      - \"area manager\"
+      - \"regional manager\"
+      - \"operations director\"
+      - \"hiring manager\"
+      # NEW: Staffing agency & recruitment specialist signals (added per DC audit)
+      - \"executive search\"
+      - \"retained search\"
+      - \"executive recruitment\"
+      - \"michael page\"
+      - \"korn ferry\"
+      - \"experis\"
+      - \"recruitment specialist\"
+      - \"recruitment consultant\"
+      - \"in-house recruiter\"
+      - \"in house recruiter\"
     luxury-retail-lt:
       - "parduotuvės direktor"
       - "mažmeninės prekybos vadov"
@@ -146,53 +156,36 @@ recruiter_matching:
 
 search:
   # Appended to scout queries when not already present; also use MCP People-search location filter.
-  # Broadened from Lithuania-only so LinkedIn People searches can surface international
-  # recruiters and hiring leaders while explicit local queries still keep Vilnius/LT visible.
-  default_geo_keyword: "Europe"
+  default_geo_keyword: "Lithuania"
   queries_by_variant:
     luxury-retail:
       - "recruiter luxury retail Vilnius"
       - "talent acquisition premium retail Lithuania"
-      - "recruiter luxury retail EMEA remote"
-      - "talent acquisition premium retail Europe"
-      - "headhunter luxury fashion Europe"
       - "area manager retail Vilnius"
       - "regional manager premium retail Lithuania"
-      - "regional manager luxury retail EMEA"
       - "store director luxury Lithuania"
-      - "store director luxury London relocation"
       - "retail director premium fashion Lithuania"
-      - "retail director premium fashion Europe"
       - "operations director retail Vilnius"
-      - "retail operations manager Europe remote"
       - "HR manager retail Vilnius"
       - "HR business partner retail Lithuania"
       - "hiring manager premium retail Lithuania"
-      - "hiring manager premium retail Europe remote"
       - "Head of People Vilnius retail"
       - "Head of HR luxury retail Baltics"
-      - "Head of HR luxury retail EMEA"
       - "store manager hiring luxury fashion Vilnius"
       - "boutique manager premium retail Lithuania"
-      - "boutique manager luxury retail Europe"
       - "country manager retail fashion Baltics Lithuania"
-      - "country manager fashion Baltics Poland"
       - "district manager fashion retail Lithuania"
-      - "district manager fashion retail Europe"
     luxury-retail-lt:
       - "personalas prabangos prekyba Vilnius recruiter"
       - "personalo vadovė mažmeninė prekyba Vilnius"
       - "personalo verslo partnerė prekyba Vilnius"
-      - "personalo vadovas Baltijos šalys mažmeninė prekyba"
       - "regiono vadovas mažmeninė prekyba Vilnius"
       - "parduotuvės direktorius prabanga Lietuva"
       - "mažmeninės prekybos direktorius Lietuva"
-      - "mažmeninės prekybos vadovas Baltijos šalys"
       - "personalo vadovas prekyba Vilnius"
       - "įdarbinimo vadovas Vilnius prekyba"
       - "įdarbinimo specialistas Vilnius prekyba"
       - "talento pritraukimas prabangos prekyba Lietuva"
-      - "talent acquisition luxury retail Baltics"
       - "area manager luxury retail Vilnius"
       - "retail director premium Lithuania"
       - "Head of People Vilnius retail"
@@ -201,57 +194,40 @@ search:
       - "mažmeninės prekybos vadovas Vilnius"
     operations-management:
       - "recruiter operations retail Lithuania"
-      - "recruiter operations manager Europe remote"
       - "talent acquisition area manager Lithuania"
-      - "talent acquisition operations EMEA"
       - "area manager operations Lithuania"
       - "regional manager retail Vilnius"
-      - "regional operations manager EMEA retail"
       - "operations director Lithuania"
-      - "operations director Europe retail remote"
       - "general manager multi-site retail Lithuania"
       - "store director operations Lithuania"
       - "retail director operations Baltics"
-      - "retail operations lead Europe"
       - "HR manager operations Lithuania"
       - "HR business partner retail Vilnius"
       - "Head of People retail operations Lithuania"
-      - "Head of People retail operations Europe"
       - "hiring manager operations Lithuania"
-      - "hiring manager operations remote Europe"
       - "store operations director Lithuania"
       - "director of operations retail Lithuania"
-      - "customer operations manager remote Europe"
       - "country manager retail operations Lithuania"
       - "cluster manager retail Lithuania"
-      - "cluster manager retail Europe"
     it-business:
       - "recruiter IT support Lithuania"
-      - "recruiter IT support remote Europe"
       - "technical recruiter business analyst Lithuania"
-      - "technical recruiter business analyst Europe remote"
       - "talent acquisition IT Lithuania"
-      - "talent acquisition IT EMEA"
       - "HR manager IT Lithuania"
       - "HR business partner IT Vilnius"
       - "hiring manager IT support Vilnius"
-      - "hiring manager IT support remote Europe"
       - "people operations IT Vilnius"
       - "IT operations manager Lithuania"
-      - "IT operations manager remote Europe"
       - "service desk manager Vilnius"
-      - "service desk manager Europe remote"
       - "service delivery manager Lithuania"
-      - "service delivery manager EMEA remote"
       - "business analyst lead Lithuania"
-      - "business analyst lead remote Europe"
       - "technical support manager Vilnius"
 
 connection_notes:
-  luxury-retail: "Hi {first_name}, I'm exploring premium retail leadership in Vilnius, the Baltics, and Europe — would value connecting if you hire or grow teams."
-  luxury-retail-lt: "Sveika, {first_name}, ieškau vadovaujančių pareigų prabangos/prekybos srityje Lietuvoje, Baltijos šalyse ar Europoje — norėčiau prisijungti."
-  operations-management: "Hi {first_name}, I'm pursuing multi-site / operations leadership in Lithuania, the Baltics, or remote Europe — happy to connect if you hire ops teams."
-  it-business: "Hi {first_name}, I'm exploring IT support / business-analysis roles locally or remote in Europe — would appreciate connecting if you hire in those areas."
+  luxury-retail: "Hi {first_name}, I'm exploring premium retail leadership in Vilnius — would value connecting, especially if you're involved in hiring or growing teams."
+  luxury-retail-lt: "Sveika, {first_name}, ieškau vadovaujančių pareigų prabangos/prekybos srityje Vilniuje — norėčiau prisijungti, ypač jei dalyvaujate įdarbinime ar komandos augime."
+  operations-management: "Hi {first_name}, I'm pursuing multi-site / operations leadership in Lithuania — happy to connect if you hire or lead ops teams."
+  it-business: "Hi {first_name}, I'm exploring IT support / business-analysis roles locally — would appreciate connecting if you're involved in hiring for those areas."
 
 hiring_network:
   auto_send_threshold: 76
@@ -303,46 +279,12 @@ hiring_network:
     - "boutique"
     - "baltics"
     - "lithuania"
-    - "europe"
-    - "emea"
-    - "remote"
-    - "nordics"
-    - "united kingdom"
-    - "uk"
-    - "london"
-    - "poland"
-    - "germany"
-    - "netherlands"
   geography_terms:
     - "vilnius"
     - "lithuania"
     - "lietuva"
     - "baltics"
     - "kaunas"
-    - "europe"
-    - "emea"
-    - "remote"
-    - "hybrid"
-    - "nordics"
-    - "united kingdom"
-    - "uk"
-    - "london"
-    - "poland"
-    - "warsaw"
-    - "germany"
-    - "berlin"
-    - "netherlands"
-    - "amsterdam"
-    - "latvia"
-    - "riga"
-    - "estonia"
-    - "tallinn"
-    - "finland"
-    - "helsinki"
-    - "sweden"
-    - "stockholm"
-    - "denmark"
-    - "copenhagen"
   persona_terms:
     recruiter_hr:
       - "recruiter"
@@ -421,66 +363,46 @@ hiring_network:
   persona_search_queries:
     luxury-retail:
       - "area manager luxury retail Lithuania"
-      - "area manager luxury retail Europe remote"
       - "store director premium fashion Vilnius"
-      - "store director premium fashion London relocation"
       - "retail director Baltics fashion"
-      - "retail director EMEA fashion"
       - "boutique manager hiring Vilnius"
-      - "boutique manager hiring Europe"
     luxury-retail-lt:
       - "regiono vadovas prabangos prekyba Lietuva"
       - "parduotuvės direktorius Vilnius prabanga"
       - "personalo vadovas prekyba Vilnius"
-      - "personalo vadovas prekyba Baltijos šalys"
     operations-management:
       - "operations director Lithuania retail"
-      - "operations director Europe retail remote"
       - "regional manager operations Lithuania"
-      - "regional manager operations EMEA"
       - "multi site manager retail Vilnius"
-      - "customer operations manager remote Europe"
     it-business:
       - "IT support manager Lithuania"
-      - "IT support manager remote Europe"
       - "service delivery manager Vilnius"
-      - "service delivery manager EMEA remote"
       - "business analyst lead Lithuania"
-      - "business analyst lead remote Europe"
 
 web_discovery:
   backend: auto
-  max_results_per_query: 10
-  discovery_max_rows_per_run: 60
+  max_results_per_query: 8
+  discovery_max_rows_per_run: 40
   cache_enabled: true
   cache_ttl_hours: 24
-  geo_scope: europe
-  geo_scope_fallback: none
+  geo_scope: vilnius
+  geo_scope_fallback: lithuania
   require_geo_match: true
-  query_geo_suffix: "Europe remote EMEA Baltics"
+  query_geo_suffix: "Vilnius Lithuania"
   queries_by_variant:
     luxury-retail:
       - "HR manager talent acquisition Vilnius retail"
       - "hiring manager premium fashion Vilnius LinkedIn"
-      - "HR manager talent acquisition luxury retail Europe LinkedIn"
-      - "recruiter premium fashion EMEA LinkedIn"
-      - "headhunter luxury retail Europe LinkedIn"
       - "personalo vadovas Vilnius prekyba"
       - "personalo vadovė Vilnius prekyba"
       - "įdarbinimo specialistas Vilnius retail"
       - "head of people Vilnius retail"
       - "talent acquisition manager Vilnius"
-      - "talent acquisition manager retail Europe remote"
       - "luxury retail area manager hiring Vilnius"
-      - "luxury retail area manager hiring Europe"
       - "regional manager Baltics retail"
-      - "regional manager EMEA retail"
       - "cluster manager stores Lithuania"
-      - "cluster manager stores Europe"
       - "store director premium fashion Vilnius"
-      - "store director premium fashion London relocation"
       - "boutique manager luxury Vilnius"
-      - "boutique manager luxury Europe"
       - "Apranga Group HR manager Vilnius"
       - "LPP HR manager Vilnius"
       - "Reserved HR manager Vilnius"
@@ -491,32 +413,21 @@ web_discovery:
       - "personalo vadovas Vilnius prekyba"
       - "įdarbinimo vadovas Vilnius retail"
       - "prabangos prekybos vadovas Vilnius"
-      - "personalo vadovas Baltijos šalys prekyba"
       - "regiono vadovas mažmeninė prekyba Vilnius"
-      - "regiono vadovas mažmeninė prekyba Baltijos šalys"
       - "parduotuvės direktorius Vilnius prabanga"
       - "Apranga personalo vadovas Vilnius"
     operations-management:
       - "HR business partner retail Vilnius"
       - "talent acquisition manager Vilnius"
-      - "talent acquisition operations Europe remote LinkedIn"
       - "retail operations director Vilnius hiring"
-      - "retail operations director Europe hiring LinkedIn"
       - "operations director retail Vilnius"
-      - "operations director retail EMEA remote"
       - "general manager multi-site Lithuania retail"
-      - "general manager multi-site Europe retail"
       - "area manager retail Vilnius"
-      - "area manager retail Europe"
       - "Maxima HR manager Vilnius"
     it-business:
       - "IT recruiter talent partner Vilnius"
-      - "IT recruiter talent partner Europe remote"
       - "HR IT service delivery manager Vilnius"
-      - "HR IT service delivery manager EMEA remote"
       - "IT support manager Vilnius hiring LinkedIn"
-      - "IT support manager remote Europe hiring LinkedIn"
-      - "business analyst lead remote Europe LinkedIn"
 
 company_validation:
   backend: auto
@@ -533,6 +444,10 @@ company_validation:
 profile_enrichment:
   enabled: true
   backend: exa
+  # mode: exa       — legacy: sync /contents endpoint + regex parsing
+  # mode: webset    — NEW: Exa Websets (async, structured enrichment, no regex)
+  # mode: browser   — Playwright browser profile scrape
+  # mode: auto      — try exa, fall back to browser
   mode: exa
   max_profiles_per_run: 10
   max_characters: 3000
@@ -540,6 +455,12 @@ profile_enrichment:
   only_statuses:
     - approved
     - review
+  evidence_deepen:
+    enabled: true
+    max_characters: 1500
+    search_suffix: "hiring talent recruiter HR"
+    only_statuses:
+      - approved
 
 llm:
   enabled: true
@@ -594,10 +515,12 @@ llm:
     enabled: true
     cv_blend_weight: 0.3
 
-# Full end-to-end automation (discovery → validate → rank → live send).
-# Use: python3 tools/hiring_network_workflow.py graph run --full-auto --headed
+# Full end-to-end queue build (discovery → validate → rank → note review).
+# Manual mode is default; browser-click dispatch requires LINKEDIN_SEND_MODE=cli_gated
+# plus --allow-live-dispatch and current SQLite approvals.
+# Safe default: python3 tools/hiring_network_workflow.py graph run --dry-run --headed
 automation:
-  max_dispatch: 5
+  max_dispatch: 3
   require_llm_note: true
   include_queue_review: false
   use_persona_stats: true

@@ -11,11 +11,16 @@ TOOLS_DIR = Path(__file__).resolve().parents[1] / "tools"
 sys.path.insert(0, str(TOOLS_DIR))
 
 from recruiter_ollama_agents import (  # noqa: E402
+    OUTREACH_SYSTEM,
+    SUPERVISOR_SYSTEM,
     CompanyAnalysis,
     DiscoveryBatchResult,
     DiscoveryExtraction,
     OutreachNote,
     SupervisorDecision,
+    _prompts_raw,
+    agent_few_shot_messages,
+    agent_system_prompt,
     analyze_company,
     extract_discovery_batch,
     polish_outreach_note,
@@ -208,6 +213,73 @@ class TestNoLlmPipeline(unittest.TestCase):
             [],
         )
         mock_invoke.assert_not_called()
+
+
+class TestPromptParity(unittest.TestCase):
+    """Ensure Python fallback prompts are consistent with YAML prompts."""
+
+    def setUp(self) -> None:
+        # Clear lru_cache so _prompts_raw reads fresh from disk
+        from recruiter_ollama_agents import _prompts_raw
+        _prompts_raw.cache_clear()
+
+    def test_all_yaml_agents_have_fallback(self) -> None:
+        """Every agent defined in YAML must have a corresponding Python fallback."""
+        raw = _prompts_raw()
+        yaml_agents = set(raw.keys())
+        fallback_agents = {"discovery", "company_analyst", "outreach_writer", "supervisor"}
+        missing = yaml_agents - fallback_agents
+        self.assertEqual(
+            missing, set(),
+            f"YAML agents without Python fallback: {missing}",
+        )
+
+    def test_outreach_fallback_has_brand_rule(self) -> None:
+        """OUTREACH_SYSTEM fallback should include the brand-drop rule from YAML."""
+        self.assertIn("name-drop", OUTREACH_SYSTEM.lower())
+        self.assertIn("non-retail", OUTREACH_SYSTEM.lower())
+
+    def test_supervisor_fallback_has_cross_sector_logic(self) -> None:
+        """SUPERVISOR_SYSTEM fallback should include cross-sector HR approval logic."""
+        self.assertIn("cross-sector", SUPERVISOR_SYSTEM.lower())
+        self.assertIn("in-house recruiter", SUPERVISOR_SYSTEM.lower())
+
+    def test_few_shot_messages_have_unit_tests_presence(self) -> None:
+        """agent_few_shot_messages should produce messages for agents with few_shot in YAML."""
+        raw = _prompts_raw()
+        for agent_name, block in raw.items():
+            if not isinstance(block, dict):
+                continue
+            if block.get("few_shot"):
+                messages = agent_few_shot_messages(agent_name)
+                self.assertGreater(
+                    len(messages), 0,
+                    f"agent_few_shot_messages('{agent_name}') returned empty",
+                )
+                # Each pair is user + assistant
+                self.assertEqual(len(messages) % 2, 0,
+                                 f"few_shot for '{agent_name}' should have even count of messages")
+
+    def test_agent_system_prompt_uses_yaml_when_available(self) -> None:
+        """agent_system_prompt should return YAML content when file exists."""
+        raw = _prompts_raw()
+        for agent_name, block in raw.items():
+            if not isinstance(block, dict):
+                continue
+            yaml_system = (block.get("system") or "").strip()
+            if not yaml_system:
+                continue
+            # Asking for this agent's prompt should return the YAML version
+            result = agent_system_prompt(agent_name, "fallback text")
+            self.assertEqual(
+                result, yaml_system,
+                f"agent_system_prompt('{agent_name}') returned YAML content",
+            )
+
+    def test_agent_system_prompt_falls_back(self) -> None:
+        """agent_system_prompt should return fallback for unknown agent."""
+        result = agent_system_prompt("nonexistent_agent", "custom fallback")
+        self.assertEqual(result, "custom fallback")
 
 
 if __name__ == "__main__":

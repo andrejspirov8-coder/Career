@@ -1,0 +1,67 @@
+.PHONY: scout plan dispatch analytics full-cycle monitor results status clean help
+
+help:
+	@echo ""
+	@echo "🎯 CAREER WORKSPACE COMMANDS"
+	@echo "======================================"
+	@echo ""
+	@echo "Full Workflow:"
+	@echo "  make full-cycle     → Scout + Plan + Dispatch + Analytics"
+	@echo ""
+	@echo "Individual Phases:"
+	@echo "  make scout          → Discover & score profiles"
+	@echo "  make plan           → Build dispatch queue"
+	@echo "  make dispatch       → Preview connections (dry-run)"
+	@echo "  make analytics      → Generate report"
+	@echo ""
+	@echo "Monitoring:"
+	@echo "  make monitor        → Watch scout progress"
+	@echo "  make results        → View latest profiles"
+	@echo "  make status         → Check system status"
+	@echo ""
+	@echo "Utilities:"
+	@echo "  make clean          → Clear logs"
+	@echo "  make help           → This help"
+	@echo ""
+
+scout:
+	@echo "🎬 Scout: Discovering profiles..."
+	uv run python3 tools/recruiter_orchestrate.py scout --headed
+
+plan:
+	@echo "📍 Plan: Building queue..."
+	uv run python3 tools/recruiter_orchestrate.py plan --tier tier_1 --tier tier_2
+
+dispatch:
+	@echo "📍 Dispatch: Preview (dry-run)..."
+	uv run python3 tools/recruiter_orchestrate.py dispatch --headed --tier tier_1 --dry-run
+
+analytics:
+	@echo "📊 Analytics: Generating report..."
+	python3 tools/recruiter_quarterly_report.py --output pipeline/report.md
+
+full-cycle:
+	@chmod +x run_full_cycle.sh
+	./run_full_cycle.sh
+
+monitor:
+	@tail -f pipeline/scout.log
+
+results:
+	@echo ""
+	@echo "📊 Latest Profiles:"
+	@tail -5 pipeline/recruiter_action_plan.jsonl 2>/dev/null | jq -r '.name + " @ " + .company' || echo "No results yet"
+	@echo ""
+
+status:
+	@echo ""
+	@echo "📋 System Status:"
+	@wc -l pipeline/recruiter_action_plan.jsonl 2>/dev/null || echo "No results yet"
+	@echo ""
+
+clean:
+	@echo "🧹 Cleaning..."
+	@rm -f pipeline/scout.log pipeline/workflow.log
+	@echo "✅ Clean complete"
+
+.DEFAULT_GOAL := help

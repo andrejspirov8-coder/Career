@@ -1,0 +1,65 @@
+/* Settings */
+.settingsGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.settingsPanel { display: flex; flex-direction: column; min-height: 330px; }
+.settingsRows { display: grid; padding: 8px 0 18px; }
+.settingsRows > div { display: grid; grid-template-columns: minmax(110px, 0.7fr) minmax(120px, 0.65fr) minmax(170px, 1fr); gap: 16px; align-items: baseline; padding: 12px 0; border-bottom: 1px solid var(--border-soft); }
+.settingsRows span, .settingsRows small { color: var(--muted); font-size: 10px; }
+.settingsRows strong { font-size: 11px; }
+.settingsRows small { line-height: 1.45; }
+.settingsPanel > .buttonLink { margin-top: auto; align-self: flex-start; }
+.settingsPanel > .button { align-self: flex-start; }
+.buildStatusPanel { min-height: 0; }
+.buildStatusPanel.needsUpdate { border-color: rgba(243, 201, 105, 0.34); }
+.buildStatusFlag { flex: 0 0 auto; border: 1px solid var(--border); border-radius: 999px; padding: 5px 8px; color: var(--muted); font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.buildStatusFlag.current { border-color: rgba(125, 226, 168, 0.3); color: var(--success); }
+.buildStatusFlag.update_available { border-color: rgba(243, 201, 105, 0.4); color: var(--warning); }
+.settingsWideMessage { grid-column: 1 / -1; margin: 0; }
+.secureActionForm { display: grid; gap: 12px; padding: 18px 0; }
+.secureActionForm label, .restoreDetails label { display: grid; gap: 7px; color: var(--muted); font-size: 10px; }
+.secureActionForm input, .restoreDetails input, .restoreDetails select { width: 100%; border: 1px solid var(--border); border-radius: 8px; background: rgba(0,0,0,0.18); color: var(--text); padding: 10px; }
+.secureActionForm .button { justify-self: start; }
+.secureActionForm small, .restoreDetails small { color: var(--muted-2); font-size: 9px; line-height: 1.45; }
+.backupList { display: grid; margin: 3px 0 16px; }
+.backupList > div { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border-soft); }
+.backupList > div > span { display: grid; gap: 3px; }
+.backupList strong { font-size: 10px; }
+.backupList small { color: var(--muted); font-size: 9px; }
+.backupList a { color: var(--accent); font-size: 10px; text-decoration: none; }
+.restoreDetails { margin-top: auto; border-top: 1px solid var(--border-soft); padding-top: 14px; }
+.restoreDetails summary { margin-bottom: 14px; color: var(--accent); cursor: pointer; font-size: 10px; }
+.restoreDetails label { margin-bottom: 11px; }
+.restoreDetails > .button { margin-bottom: 10px; }
+.dangerButton { border-color: rgba(255,143,143,0.4) !important; color: #ffc5c5 !important; background: rgba(127,29,29,0.18) !important; }
+.dangerButton:disabled { opacity: 0.45; }
+.localAiPanel { grid-column: 1 / -1; min-height: 0; }
+.privacyFacts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; margin: 18px 0; background: var(--border-soft); }
+.privacyFacts > div { display: grid; gap: 5px; background: var(--panel); padding: 12px; }
+.privacyFacts span { color: var(--muted); font-size: 8px; text-transform: uppercase; letter-spacing: 0.08em; }
+.privacyFacts strong { font-size: 10px; }
+.localAiForm { display: grid; grid-template-columns: minmax(210px, 0.7fr) minmax(260px, 1fr) auto; gap: 14px; align-items: end; }
+.localAiForm > label:not(.toggleLabel) { display: grid; gap: 6px; color: var(--muted); font-size: 9px; }
+.localAiForm select { width: 100%; border: 1px solid var(--border); border-radius: 8px; background: #0c110f; color: var(--text); padding: 9px; }
+.searchProfilePanel { grid-column: 1 / -1; min-height: 0; }
+.queueLimitBadge { flex: 0 0 auto; border: 1px solid rgba(94,227,194,0.35); border-radius: 999px; padding: 7px 10px; color: var(--accent); font-size: 10px; }
+.preferenceForm { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; padding: 20px 0; }
+.preferenceForm > label, .preferenceInlineFields label, .preferenceExclusions label { display: grid; gap: 7px; color: var(--muted); font-size: 11px; }
+.preferenceForm textarea, .preferenceForm input[type="number"], .preferenceForm select {
+  width: 100%; border: 1px solid var(--border); border-radius: 8px; background: rgba(0,0,0,0.18); color: var(--text); padding: 10px; resize: vertical;
+}
+.preferenceForm small { color: var(--muted-2); line-height: 1.4; }
+.preferenceForm fieldset { grid-column: 1 / -1; margin: 0; padding: 14px; border: 1px solid var(--border); border-radius: 8px; }
+.preferenceForm legend { padding: 0 6px; color: var(--muted); font-size: 11px; }
+.preferenceChecks { display: flex; flex-wrap: wrap; gap: 14px; }
+.preferenceChecks label { display: flex; gap: 7px; align-items: center; cursor: pointer; font-size: 11px; }
+.preferenceChecks input { width: 16px; height: 16px; accent-color: var(--accent); }
+.preferenceInlineFields, .preferenceExclusions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.preferenceForm > details { grid-column: 1 / -1; padding-top: 4px; }
+.preferenceForm > details summary { color: var(--muted); cursor: pointer; font-size: 11px; }
+.preferenceExclusions { padding-top: 14px; }
+.preferenceActions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.preferenceActions span { font-size: 11px; }
+.startupCommand { margin: 22px 0 8px; border: 1px solid var(--border); border-radius: 8px; background: #090d0c; padding: 14px; }
+.startupCommand code { color: var(--accent); font-size: 12px; }
+.settingsAdvanced { margin-top: 18px; }
+.settingsAdvanced > summary { cursor: pointer; color: var(--muted); font-size: 12px; }
+.settingsAdvanced[open] > summary { color: var(--text); }

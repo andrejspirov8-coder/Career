@@ -2,6 +2,10 @@
 # Slugs align with filenames: andrej-spirov-cv-<slug>.md and output PDF stems.
 variants:
   luxury-retail:
+    name: Luxury Retail
+    language: English
+    focus: Luxury retail leadership, client experience, sales, and boutique operations.
+    display_order: 40
     pdf_stem: andrej-spirov-cv-luxury-retail
     markdown: andrej-spirov-cv-luxury-retail.md
     target_titles:
@@ -108,6 +112,10 @@ variants:
       - devops engineer
 
   luxury-retail-lt:
+    name: Luxury Retail LT
+    language: Lithuanian
+    focus: Lithuanian premium retail, client service, sales, and store leadership.
+    display_order: 50
     pdf_stem: andrej-spirov-cv-luxury-retail-lt
     markdown: andrej-spirov-cv-luxury-retail-lt.md
     target_titles:
@@ -118,6 +126,12 @@ variants:
       - Pamainos vadovas
       - Klientų aptarnavimo vadovas
       - Pardavimų vadovas
+      - Salono vadovas
+      - Vadovo asistentas
+      - Parfumerijos konsultante
+      - Konsultante kosmetikos salonuose
+      - Kosmetikos salonuose
+      - Deimantu eksperte
       - Retail vadovas
       - Vilniaus prekyba
     keywords:
@@ -126,8 +140,12 @@ variants:
       - premium
       - boutique
       - parduotuvės vadovas
+      - parduotuves vadovas
       - parduotuvės direktorius
       - pamainos vadovas
+      - salono vadovas
+      - vadovo asistentas
+      - vadovo pavaduotojas
       - pardavimų vadovas
       - pardavimų konsultantas
       - klientų aptarnavimas
@@ -146,6 +164,7 @@ variants:
       - mados
       - aksesuarai
       - juvelyrika
+      - jewellery
       - prekybos centras
       - vilnius
       - vilniaus
@@ -173,6 +192,10 @@ variants:
       - devops engineer
 
   operations-management:
+    name: Operations & Commercial Management
+    language: English
+    focus: Operations leadership, commercial reporting, quality improvement, and multi-site management.
+    display_order: 20
     pdf_stem: andrej-spirov-cv-operations-management
     markdown: andrej-spirov-cv-operations-management.md
     target_titles:
@@ -192,9 +215,19 @@ variants:
       - District Manager
       - Regional Manager
       - Business Manager
+      - Strategy and Operations Manager
+      - Program Manager
+      - Quality Programs Manager
+      - Commercial Manager
     keywords:
       - operations
       - operational excellence
+      - continuous improvement
+      - quality programs
+      - operational governance
+      - program management
+      - strategy and operations
+      - process improvement
       - sales management
       - sales operations
       - commercial
@@ -263,52 +296,262 @@ variants:
       - terraform
       - AWS solutions architect
 
+  operations-management-lt:
+    name: Operations & Process Management LT
+    language: Lithuanian
+    focus: Lithuanian operations, process management, improvement, service quality, and leadership.
+    display_order: 30
+    pdf_stem: andrej-spirov-cv-operations-management-lt
+    markdown: andrej-spirov-cv-operations-management-lt.md
+    target_titles:
+      - Operacijų vadovas
+      - Veiklos vadovas
+      - Mažmeninės prekybos veiklos vadovas
+      - Klientų patirties vadovas
+      - Klientų aptarnavimo vadovas
+      - Komandos vadovas
+      - Padalinio vadovas
+      - Pardavimų vadovas
+      - Procesų koordinatorius
+      - Procesų valdymo vadovas
+      - Procesu valdymo vadovas
+      - Procesų tobulinimo vadovas
+      - Verslo procesų vystymo specialistas
+      - Komercijos vadybininkas
+      - Vilniaus operacijos
+    keywords:
+      - operacijos
+      - operacijų vadovas
+      - veiklos vadovas
+      - mažmeninės prekybos veikla
+      - parduotuvių veikla
+      - komandos vadovas
+      - padalinio vadovas
+      - klientų patirtis
+      - klientų aptarnavimas
+      - aptarnavimo kokybė
+      - procesų kontrolė
+      - procesų tobulinimas
+      - procesų valdymas
+      - procesų dokumentavimas
+      - procesų standartizavimas
+      - pokyčių įgyvendinimas
+      - veiklos tobulinimas
+      - automatizavimas
+      - procesu valdymo vadovas
+      - procesu tobulinimas
+      - procesu dokumentavimas
+      - verslo procesu vystymo specialistas
+      - komercijos vadybininkas
+      - darbo grafikai
+      - KPI
+      - veiklos rodikliai
+      - ataskaitos
+      - standartų palaikymas
+      - auditai
+      - atsargų tikslumas
+      - atsargų disciplina
+      - nuostolių prevencija
+      - eskalacijos
+      - partneriai
+      - tiekėjai
+      - HQ
+      - darbuotojų valdymas
+      - vadovų ugdymas
+      - 30 darbuotojų
+      - 5 parduotuvės
+      - 2 atidarymai
+      - Vilnius
+      - Vilniaus
+    negative_keywords:
+      - senior backend
+      - distributed systems
+      - kubernetes
+      - microservices architecture
+      - machine learning engineer
+      - devops engineer
+
+  business-process-operations:
+    name: Business Process Operations
+    language: English
+    focus: Business analysis, process improvement, implementation, and customer operations.
+    display_order: 10
+    pdf_stem: andrej-spirov-cv-business-process-operations
+    markdown: andrej-spirov-cv-business-process-operations.md
+    target_titles:
+      - Business Analyst
+      - Business Process Analyst
+      - Process Analyst
+      - Business Operations Analyst
+      - Business Excellence Analyst
+      - Operations Analyst
+      - Process Coordinator
+      - Operations Coordinator
+      - Customer Operations
+      - Customer Operations Lead
+      - Implementation Coordinator
+      - Delivery Coordinator
+      - Automation Coordinator
+      - Workflow Automation Analyst
+      - Process Design Specialist
+      - Business Process Development Manager
+      - Business Process Manager
+      - Retail Systems Support
+      - Vilnius Business Operations
+    keywords:
+      - business analyst
+      - business process analyst
+      - process analyst
+      - operations analyst
+      - business operations
+      - business excellence
+      - process improvement
+      - continuous improvement
+      - process design specialist
+      - business process development manager
+      - business process manager
+      - process standardization
+      - process governance
+      - operational readiness
+      - change implementation
+      - change management
+      - implementation planning
+      - process validation
+      - testing
+      - cross-functional
+      - process automation
+      - workflow automation
+      - AI automation
+      - agentic orchestration
+      - agentic workflows
+      - LangGraph
+      - Python
+      - bash
+      - Git
+      - GitHub
+      - n8n
+      - Zapier
+      - low-code
+      - no-code
+      - human-in-the-loop
+      - process mapping
+      - workflow mapping
+      - workflow documentation
+      - process documentation
+      - requirements gathering
+      - stakeholder management
+      - stakeholder
+      - user guidance
+      - user training
+      - acceptance criteria
+      - gap analysis
+      - implementation support
+      - implementation coordinator
+      - delivery coordinator
+      - customer operations
+      - customer success
+      - onboarding
+      - escalation handling
+      - service recovery
+      - KPI reporting
+      - KPI dashboard
+      - reporting
+      - Excel
+      - Microsoft Office
+      - POS
+      - inventory workflow
+      - e-commerce operations
+      - product information
+      - marketplace
+      - order flow
+      - fulfilment
+      - data quality
+      - data cleanup
+      - operations coordinator
+      - Vilnius
+      - fintech
+      - shared services
+      - global business services
+      # Lithuanian JD tokens for BA/Ops roles in Vilnius.
+      - verslo analitikas
+      - procesų analitikas
+      - procesų koordinatorius
+      - veiklos analitikas
+      - veiklos koordinavimas
+      - procesų tobulinimas
+      - veiklos rodikliai
+      - ataskaitų rengimas
+      - klientų operacijos
+      - klientų aptarnavimo procesai
+    negative_keywords:
+      - staff engineer
+      - senior software engineer
+      - principal backend
+      - staff level
+      - architect 10+ years
+      - PhD computer science
+      - kernel development
+      - machine learning engineer
+      - kubernetes
+      - terraform
+
   it-business:
+    name: Business Systems & Automation Support
+    language: English
+    focus: Business systems, application support, workflow automation, and technical operations.
+    display_order: 60
     pdf_stem: andrej-spirov-cv-it-business
     markdown: andrej-spirov-cv-it-business.md
     target_titles:
       - IT Support
-      - Business Analyst
       - Operations Support
-      - Customer Success
       - Technical Support
       - Application Support
       - Systems Support
-      - Helpdesk
-      - Service Desk
-      - Business Operations
-      - Process Analyst
-      - Junior Developer
-      - Automation
-      - Data Entry
-      - Reporting Analyst
       - Retail Systems
+      - Business Systems Support
+      - Automation Support
+      - Junior Automation Specialist
+      - Workflow Automation
+      - Technical Operations Support
+      - Vendor Operations Support Specialist
+      - Customer Operations Support
     keywords:
       - business support
       - operations support
       - IT support
       - application support
       - technical support
-      - helpdesk
-      - service desk
-      - customer success
+      - business systems support
+      - automation support
+      - technical operations support
+      - vendor operations support
+      - customer operations support
       - onboarding users
       - user training
       - software training
       - business process
       - process documentation
       - triage
-      - ticket
-      - Jira
-      - ServiceNow
+      - issue triage
+      - troubleshooting
       - reporting
       - data cleanup
-      - SQL
+      - automation
       - Python
       - bash
-      - git
-      - version control
-      - automation
+      - Git
+      - GitHub
+      - AI automation
+      - agentic orchestration
+      - agentic workflows
+      - workflow orchestration
+      - LangGraph
+      - n8n
+      - Zapier
+      - low-code
+      - no-code
+      - human-in-the-loop
       - workflow
       - inventory system
       - e-commerce

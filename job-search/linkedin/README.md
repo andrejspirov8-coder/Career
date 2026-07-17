@@ -1,6 +1,9 @@
 # LinkedIn recruiter automation (personal use)
 
-This mini-app drives **your installed Google Chrome** via Playwright (default) or **Chrome + the Cursor `browse` CLI** when `browser.backend: browse_ws`, searches LinkedIn People for recruiters/staffers, scores each profile with **sector keywords + your CV keyword matcher** (see [`../tools/recruiter_match.py`](../tools/recruiter_match.py)), and can **automatically send connection requests** with a short, personalized note (first name + one line from *their* headline/about + optional CV anchor / keyword accent).
+> Safety update: live LinkedIn connection dispatch is review-first and blocked by default. Use `--dry-run` for queue review. Normal operation is manual: open the profile, copy the approved note, and record the outcome. Browser-click dispatch requires `LINKEDIN_SEND_MODE=cli_gated`, an explicit `--max 1..3`, `--allow-live-dispatch`, and a matching approval for the exact note hash.
+
+
+This mini-app drives **your installed Google Chrome** via Playwright (default) or **Chrome + the Cursor `browse` CLI** when `browser.backend: browse_ws`, searches LinkedIn People for recruiters/staffers, scores each profile with **sector keywords + your CV keyword matcher** (see [`../tools/recruiter_match.py`](../tools/recruiter_match.py)), and prepares short, personalized notes for human review.
 
 Primary day driver is now **`tools/recruiter_orchestrate.py`** (`scout` writes `pipeline/recruiter_action_plan.jsonl`, `plan` builds `pipeline/recruiter_session_state.json`, `dispatch` replays queued URLs directly). Legacy single-entry launcher: `linkedin_recruiter_bot.py` (calls the same engine).
 
@@ -13,7 +16,7 @@ python3 tools/recruiter_orchestrate.py scout --headed
 python3 tools/recruiter_orchestrate.py plan --tier tier_1
 python3 tools/recruiter_orchestrate.py dispatch --headed --tier tier_1 --dry-run
 python3 tools/recruiter_orchestrate.py daily --headed --dry-run
-python3 tools/recruiter_orchestrate.py daily --headed --dispatch-tier tier_1 --max-dispatch 1
+python3 tools/recruiter_orchestrate.py daily --headed --dry-run --dispatch-tier tier_1 --max-dispatch 3
 python3 tools/recruiter_orchestrate.py followup --headed   # wrappers around linkedin_followup.py
 python3 tools/recruiter_orchestrate.py report              # wraps recruiter_performance.py
 ```
@@ -30,9 +33,9 @@ cd job-search
 source .venv/bin/activate
 python tools/hiring_network_workflow.py preflight
 python tools/hiring_network_workflow.py daily --headed --dry-run
-python tools/hiring_network_workflow.py daily --headed --auto-send
+python tools/hiring_network_workflow.py daily --headed --auto-send --dry-run
 python tools/hiring_network_workflow.py dispatch --dry-run --tier auto_send --max 3
-python tools/hiring_network_workflow.py dispatch --tier auto_send --max 3
+LINKEDIN_SEND_MODE=cli_gated python tools/hiring_network_workflow.py dispatch --tier auto_send --max 3 --allow-live-dispatch
 python tools/hiring_network_workflow.py report
 ```
 
@@ -60,8 +63,8 @@ python3 tools/hiring_network_workflow.py graph run --dry-run
 # Rules-only (skip Ollama)
 python3 tools/hiring_network_workflow.py graph run --dry-run --no-llm
 
-# Full automation — LLM notes + live LinkedIn sends (Playwright clicks Connect)
-python3 tools/hiring_network_workflow.py graph run --full-auto --headed --max 3
+# Full queue build with LLM notes; live send stays blocked unless cli_gated is set
+python3 tools/hiring_network_workflow.py graph run --dry-run --headed --max 3
 
 # Stage by stage
 python3 tools/hiring_network_workflow.py graph run --stage discovery
@@ -75,7 +78,7 @@ python3 tools/hiring_network_workflow.py rank
 python3 tools/hiring_network_workflow.py dispatch --dry-run
 ```
 
-Web research backends: `EXA_API_KEY` (Exa API) or `firecrawl` CLI. Config blocks: `web_discovery`, `company_validation` in [`config.yaml`](config.yaml). Discovery now defaults to a **Europe / remote-friendly** scope (`geo_scope: europe`, `require_geo_match: true`) while keeping Vilnius, Lithuania, and the Baltics as strong ranking signals. Offline/tests: `--backend offline`.
+Web research backends: `EXA_API_KEY` (Exa API) or `firecrawl` CLI. Config blocks: `web_discovery`, `company_validation` in [`config.yaml`](config.yaml). Discovery defaults to **Vilnius-only** (`geo_scope: vilnius`, `require_geo_match: true`). Offline/tests: `--backend offline`.
 
 Human gates: review `candidates_discovery.csv` when rows have `needs_linkedin_url=true`; review `candidates_validated.csv` before rank unless `--auto-approve-review`.
 
@@ -104,7 +107,9 @@ Disable LLM for one run: `python3 tools/hiring_network_workflow.py graph run --n
 
 **Agent tracing:** add `--verbose-llm` to print each agent's input/output to the terminal, or set `llm.verbose: true` / `llm.trace: true` in config. Trace file: `pipeline/llm_trace.jsonl` (one JSON object per agent call).
 
-**Full auto (`--full-auto`):** runs the whole pipeline and sends real invites. Ollama writes each note; Playwright fills the note box and clicks Connect. Cap per run: `automation.max_dispatch` (default 5). Skips stub/offline URLs and already-sent profiles (`--only-new`, on by default for full-auto). Stop on login wall or CAPTCHA.
+**Manual mode (`LINKEDIN_SEND_MODE=manual`, default):** runs discovery, validation, ranking, and note drafting without browser-click dispatch. Use the dashboard to approve, copy notes, and record manual outcomes.
+
+**CLI-gated mode (`LINKEDIN_SEND_MODE=cli_gated`):** only for explicitly approved small batches. It still requires an explicit `--max 1..3`, `--allow-live-dispatch`, current SQLite approval hashes, and hard stops on login wall, checkpoint, CAPTCHA, unusual activity, high failure rate, pending-invite buildup, or daily cap.
 
 **Robustness flags (graph run):**
 
@@ -118,7 +123,7 @@ Disable LLM for one run: `python3 tools/hiring_network_workflow.py graph run --n
 | `--only-new` / `--no-only-new` | Skip profiles already in `recruiters.csv` with status sent/pending/accepted |
 | `--verbose-llm` | Log each agent call to stderr + `pipeline/llm_trace.jsonl` |
 
-**International discovery:** `web_discovery.geo_scope: europe` allows Europe, EMEA, UK, Baltics, Nordics, and remote-friendly hits. `geo_scope_fallback: none` only opens the gate when a query would otherwise return zero usable rows. `max_results_per_query: 10`, `discovery_max_rows_per_run: 60`, and expanded HR/area-manager/store-director queries live in [`config.yaml`](config.yaml).
+**Vilnius discovery:** `web_discovery.geo_scope: vilnius` with `geo_scope_fallback: lithuania` when a query returns hits filtered out by strict Vilnius match. `max_results_per_query: 8`, `discovery_max_rows_per_run: 40`, and expanded HR/area-manager/store-director queries in [`config.yaml`](config.yaml).
 
 **Validation → rank:** `automation.use_validation_boost` adds score when company validation is `approved`/`review`. **Rank persona preserve:** `automation.preserve_discovery_persona` keeps discovery CSV personas (e.g. `recruiter_hr` at a software company) when the rank classifier would drop to `low_relevance`; also softens `low_cv_fit` for cross-sector HR. **`discovery_persona`** is passed through the bridge into rank.
 
@@ -179,9 +184,7 @@ Keeps **`linkedin/.browser-profile/`** in sync with Playwright launches a dedica
 From the `job-search` folder:
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements.txt
+make bootstrap
 ```
 
 Install **Google Chrome** if it is not already installed: https://www.google.com/chrome/
@@ -272,16 +275,19 @@ Legacy tier-only path (`scout → plan → dispatch`) still works:
 python3 tools/linkedin_recruiter_bot.py --headed --dry-run
 ```
 
-Pilot with a single invitation:
+Legacy browser-click pilot, only after switching to `LINKEDIN_SEND_MODE=cli_gated`
+and approving the exact note:
 
 ```bash
-python3 tools/linkedin_recruiter_bot.py --headed --max 1
+LINKEDIN_SEND_MODE=cli_gated python3 tools/hiring_network_workflow.py dispatch --tier auto_send --max 1 --allow-live-dispatch
 ```
 
-Normal full-auto capped run (`max_connections_per_day` in config):
+Default operation is manual. Open the profile, copy the approved note, send it
+yourself, and record the outcome locally. Do not treat browser-click dispatch as
+the normal daily path.
 
 ```bash
-python3 tools/linkedin_recruiter_bot.py --headed
+python3 tools/hiring_network_workflow.py dispatch --dry-run --tier queue_review --max 3
 ```
 
 ### Flags
