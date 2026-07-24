@@ -11,7 +11,7 @@ roles:
     timeout_seconds: 600
     sandbox: read-only
   implementer:
-    model: qwen3.5:35b-a3b-coding-nvfp4
+    model: qwen3.6:35b-a3b-coding-nvfp4
     timeout_seconds: 1500
     sandbox: workspace-write
   reviewer:
@@ -86,6 +86,11 @@ planner:
     - dashboard
     - raycast-job-search-hub/src
     - docs
+    - src/career_job_search/core
+    - src/career_job_search/domain
+    - src/career_job_search/application
+    - src/career_job_search/infrastructure
+    - cv
 
 autonomy:
   tier_one_safe_runs: 10

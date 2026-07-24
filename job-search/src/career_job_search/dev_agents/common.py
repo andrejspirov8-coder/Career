@@ -57,7 +57,7 @@ TERMINAL_STATUSES = frozenset(
 )
 MAX_STREAM_CHARS = 2_000_000
 MAX_PATCH_PREVIEW_CHARS = 400_000
-BENCHMARK_MODEL_TIMEOUT_SECONDS = 300
+BENCHMARK_MODEL_TIMEOUT_SECONDS = 600
 PLANNER_POLICY_VERSION = "career_local_dev_planner_v1"
 AUTO_APPLY_POLICY_VERSION = "career_local_auto_apply_v1"
 CODEX_INNER_SANDBOX_MODE = "danger-full-access"
@@ -105,6 +105,12 @@ WRITE_FORBIDDEN_PATHS = (
     "scripts/verify_release.sh",
     "tools/linkedin",
     "linkedin",
+    "src/career_job_search/core",
+    "src/career_job_search/domain",
+    "src/career_job_search/application",
+    "src/career_job_search/infrastructure",
+    "cv/build_cv_pdf.py",
+    "cv/variant_profiles.yaml",
 )
 SENSITIVE_OBJECTIVE_TERMS = (
     "authentication",
@@ -287,12 +293,29 @@ CREATE TABLE IF NOT EXISTS local_agent_service (
 
 @dataclass(frozen=True)
 class CoordinatorPaths:
+    # ``repo_root`` remains the compatibility name for the project root used by
+    # task paths and checks. ``git_root`` may be a parent repository.
     repo_root: Path = JOB_ROOT
+    git_root: Path | None = None
     runtime_root: Path = DEFAULT_RUNTIME_ROOT
     db_path: Path = DEFAULT_DB_PATH
     worktree_root: Path = DEFAULT_WORKTREE_ROOT
     backup_root: Path = DEFAULT_BACKUP_ROOT
     config_path: Path = DEFAULT_CONFIG_PATH
+
+    def __post_init__(self) -> None:
+        project_root = self.repo_root.expanduser().resolve()
+        git_root = (
+            self.git_root.expanduser().resolve()
+            if self.git_root is not None
+            else project_root
+        )
+        object.__setattr__(self, "repo_root", project_root)
+        object.__setattr__(self, "git_root", git_root)
+
+    @property
+    def project_root(self) -> Path:
+        return self.repo_root
 
 
 @dataclass(frozen=True)
