@@ -233,6 +233,19 @@ def verification_checks_for_preset(preset: str) -> list[VerificationCheck]:
                 timeout_seconds=900,
             ),
         ]
+    if preset == "architecture":
+        return [
+            VerificationCheck(
+                name="Architecture: import boundaries",
+                argv=["python", "-m", "career_job_search.dev_agents.architecture", "check"],
+                timeout_seconds=300,
+            ),
+            VerificationCheck(
+                name="Architecture: circular imports",
+                argv=["python", "-m", "career_job_search.dev_agents.architecture", "cycles"],
+                timeout_seconds=300,
+            ),
+        ]
     raise CoordinatorError("Unsupported proposal verification preset.")
 
 

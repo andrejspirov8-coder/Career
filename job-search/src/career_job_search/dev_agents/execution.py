@@ -58,7 +58,7 @@ from career_job_search.dev_agents.sandbox import (
 
 
 def _ollama_model_identities(settings: LocalAgentSettings) -> dict[str, str]:
-    request = urllib.request.Request(
+    request = urllib.request.Request(  # noqa: S310  # URL from trusted config source
         f"{settings.ollama_host.rstrip('/')}/api/tags",
         method="GET",
     )
@@ -238,7 +238,7 @@ def run_agent_process(
                 "Local-agent run was cancelled.", status="cancelled"
             )
         process = subprocess.Popen(
-            command,
+            command,  # noqa: S603  # command starts with sandbox_exec/codex from shutil.which()
             cwd=worktree,
             env=environment,
             stdin=subprocess.PIPE,
@@ -386,6 +386,12 @@ def build_agent_prompt(
             '"detail":"Untrusted input reaches a shell.","path":"runner.py","line":4}. '
             "Return findings as objects in exactly that shape, never as strings."
         )
+        instructions.append(
+            "Check for architectural violations: domain layer importing from "
+            "infrastructure/UI layers, circular dependencies, core layer importing "
+            "from non-core layers. Report as 'major' severity findings with "
+            "specific file:line references."
+        )
     payload: dict[str, Any] = {
         "instructions": instructions,
         "task": task.model_dump(mode="json"),
@@ -481,7 +487,7 @@ def run_checks(
         started = time.monotonic()
         try:
             process = subprocess.run(
-                command,
+                command,  # noqa: S603  # command starts with sandbox_exec from shutil.which()
                 cwd=cwd,
                 env=environment,
                 text=True,

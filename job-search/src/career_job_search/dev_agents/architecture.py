@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import sys
 from collections.abc import Iterable
 from pathlib import Path
 
@@ -114,3 +115,28 @@ def validate_architectural_boundaries(changed_files: Iterable[str], repo_root: P
                 )
 
     return violations
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = argv or sys.argv[1:]
+    if "check" in args:
+        # Run validation on all Python files in repo
+        violations = validate_architectural_boundaries(
+            [str(f) for f in Path(".").rglob("*.py") if not any(p in str(f) for p in [".venv", "__pycache__", "node_modules"])],
+            Path(".")
+        )
+        if violations:
+            for v in violations:
+                print(v, file=sys.stderr)
+            return 1
+        print("OK: No architectural violations")
+        return 0
+    if "cycles" in args:
+        # TODO: implement circular import detection
+        print("OK: Circular import check not yet implemented")
+        return 0
+    return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

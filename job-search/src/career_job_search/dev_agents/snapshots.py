@@ -9,6 +9,7 @@ import subprocess
 from collections.abc import Iterable, Sequence
 from pathlib import Path
 
+from career_job_search.dev_agents.architecture import validate_architectural_boundaries
 from career_job_search.dev_agents.common import (
     TASK_ID_PATTERN,
     CoordinatorError,
@@ -44,7 +45,7 @@ def _git(
     if env:
         merged_env.update(env)
     result = subprocess.run(
-        ["git", *args],
+        ["git", *args],  # noqa: S603, S607  # git is a known-safe tool
         cwd=cwd,
         env=merged_env,
         input=input_text,
@@ -62,7 +63,7 @@ def _git(
 
 def _git_bytes(args: Sequence[str], *, cwd: Path) -> bytes:
     result = subprocess.run(
-        ["git", *args],
+        ["git", *args],  # noqa: S603, S607  # git is a known-safe tool
         cwd=cwd,
         env={**os.environ, "GIT_OPTIONAL_LOCKS": "0"},
         capture_output=True,
@@ -135,6 +136,29 @@ def _validate_snapshot_files(
     return excluded, total_bytes
 
 
+def _copy_snapshot_files(
+    candidates: Iterable[str],
+    *,
+    excluded: Iterable[str],
+    project_root: Path,
+    worktree: Path,
+) -> None:
+    excluded_paths = set(excluded)
+    for raw_path in candidates:
+        path = normalise_relative_path(raw_path)
+        if path in excluded_paths:
+            continue
+        source = project_root / path
+        if not source.exists() and not source.is_symlink():
+            continue
+        destination = worktree / path
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        if source.is_symlink():
+            destination.symlink_to(os.readlink(source))
+        else:
+            shutil.copy2(source, destination, follow_symlinks=False)
+
+
 def _parse_tree_manifest(raw: bytes) -> dict[str, dict[str, str]]:
     manifest: dict[str, dict[str, str]] = {}
     for entry in raw.split(b"\0"):
@@ -167,16 +191,15 @@ def _link_dependencies(worktree: Path, repo_root: Path) -> None:
 
 
 def _isolate_worktree_git(worktree: Path) -> str:
-    """Replace linked worktree metadata with a private one-commit repository."""
+    """Create a private one-commit repository for the project-only snapshot."""
 
     git_marker = worktree / ".git"
-    if not git_marker.is_file():
-        raise CoordinatorError("Detached snapshot worktree has invalid Git metadata.")
-    git_marker.unlink()
+    if git_marker.exists():
+        raise CoordinatorError("Snapshot destination already contains Git metadata.")
     _git(["init", "-q"], cwd=worktree)
     _git(["config", "user.name", "Career Local Agent"], cwd=worktree)
     _git(["config", "user.email", "local-agent@localhost"], cwd=worktree)
-    _git(["add", "-A", "--", "."], cwd=worktree)
+    _git(["add", "-A", "-f", "--", "."], cwd=worktree)
     commit_env = {
         "GIT_AUTHOR_DATE": utc_now_iso(),
         "GIT_COMMITTER_DATE": utc_now_iso(),
@@ -204,92 +227,93 @@ def create_snapshot(
     paths: CoordinatorPaths,
 ) -> SnapshotInfo:
     clean_id = validate_task_id(task_id)
-    repo_root = paths.repo_root.resolve()
+    project_root = paths.repo_root.resolve()
+    git_root = Path(paths.git_root).resolve()
     run_dir = paths.runtime_root / "runs" / clean_id
-    before_status = _git_bytes(["status", "--porcelain=v2", "-z"], cwd=repo_root)
-    before_head = _git(["rev-parse", "HEAD"], cwd=repo_root).stdout.strip()
-    before_branch = _git(
-        ["symbolic-ref", "--short", "-q", "HEAD"], cwd=repo_root, check=False
+    run_dir.mkdir(parents=True, exist_ok=True)
+    if project_root != git_root and not project_root.is_relative_to(git_root):
+        raise CoordinatorError("Project root must be inside the configured Git root.")
+    if project_root != git_root and (project_root / ".git").exists():
+        raise CoordinatorError(
+            "Nested Git metadata is not allowed inside the configured project root."
+        )
+    discovered_git_root = _git(
+        ["rev-parse", "--show-toplevel"], cwd=project_root, check=False
     ).stdout.strip()
+    if not discovered_git_root or Path(discovered_git_root).resolve() != git_root:
+        raise CoordinatorError(
+            "The configured Git root does not own the project workspace."
+        )
 
-    candidates = _snapshot_candidates(repo_root)
-    excluded, _ = _validate_snapshot_files(
-        candidates, settings=settings, repo_root=repo_root
+    before_status = _git_bytes(
+        ["status", "--porcelain=v2", "-z"], cwd=project_root
     )
-    index_path = run_dir / "snapshot.index"
-    index_path.unlink(missing_ok=True)
-    index_env = {"GIT_INDEX_FILE": str(index_path)}
-    try:
-        _git(["read-tree", "HEAD"], cwd=repo_root, env=index_env)
-        _git(["add", "-A", "--", "."], cwd=repo_root, env=index_env)
-        for path in excluded:
-            _git(
-                ["update-index", "--force-remove", "--", path],
-                cwd=repo_root,
-                env=index_env,
-                check=False,
-            )
-        tree = _git(["write-tree"], cwd=repo_root, env=index_env).stdout.strip()
-    finally:
-        index_path.unlink(missing_ok=True)
-
-    commit_env = {
-        "GIT_AUTHOR_NAME": "Career Local Agent",
-        "GIT_AUTHOR_EMAIL": "local-agent@localhost",
-        "GIT_COMMITTER_NAME": "Career Local Agent",
-        "GIT_COMMITTER_EMAIL": "local-agent@localhost",
-        "GIT_AUTHOR_DATE": utc_now_iso(),
-        "GIT_COMMITTER_DATE": utc_now_iso(),
-    }
-    commit = _git(
-        ["commit-tree", tree, "-p", before_head],
-        cwd=repo_root,
-        env=commit_env,
-        input_text=f"Ephemeral local-agent snapshot {clean_id}\n",
+    before_head = _git(["rev-parse", "HEAD"], cwd=git_root).stdout.strip()
+    before_branch = _git(
+        ["symbolic-ref", "--short", "-q", "HEAD"], cwd=git_root, check=False
     ).stdout.strip()
+
+    candidates = _snapshot_candidates(project_root)
+    excluded, _ = _validate_snapshot_files(
+        candidates, settings=settings, repo_root=project_root
+    )
 
     paths.worktree_root.mkdir(parents=True, exist_ok=True)
     paths.worktree_root.chmod(0o700)
     worktree = paths.worktree_root / clean_id
     if worktree.exists():
         raise CoordinatorError(f"Local-agent worktree already exists: {worktree}")
-    _git(
-        [
-            "-c",
-            "core.hooksPath=/dev/null",
-            "worktree",
-            "add",
-            "--detach",
-            str(worktree),
-            commit,
-        ],
-        cwd=repo_root,
-    )
-    manifest = _parse_tree_manifest(
-        _git_bytes(["ls-tree", "-r", "-z", "--full-tree", commit], cwd=repo_root)
-    )
-    isolated_commit = _isolate_worktree_git(worktree)
-    _link_dependencies(worktree, repo_root)
-    manifest_path = run_dir / "snapshot-manifest.json"
-    atomic_write_json(
-        manifest_path,
-        {
-            "schema": "career_local_dev_snapshot_v1",
-            "task_id": clean_id,
-            "commit": commit,
-            "isolated_commit": isolated_commit,
-            "tree": tree,
-            "head_parent": before_head,
-            "branch": before_branch,
-            "excluded_paths": excluded,
-            "files": manifest,
-        },
-    )
+    worktree.mkdir()
+    try:
+        _copy_snapshot_files(
+            candidates,
+            excluded=excluded,
+            project_root=project_root,
+            worktree=worktree,
+        )
+        isolated_commit = _isolate_worktree_git(worktree)
+        tree = _git(
+            ["rev-parse", "HEAD^{tree}"], cwd=worktree
+        ).stdout.strip()
+        manifest = _parse_tree_manifest(
+            _git_bytes(
+                ["ls-tree", "-r", "-z", "--full-tree", isolated_commit],
+                cwd=worktree,
+            )
+        )
+        _link_dependencies(worktree, project_root)
+        manifest_path = run_dir / "snapshot-manifest.json"
+        atomic_write_json(
+            manifest_path,
+            {
+                "schema": "career_local_dev_snapshot_v1",
+                "task_id": clean_id,
+                "commit": isolated_commit,
+                "isolated_commit": isolated_commit,
+                "tree": tree,
+                "head_parent": before_head,
+                "branch": before_branch,
+                "git_root": str(git_root),
+                "project_root": str(project_root),
+                "project_prefix": (
+                    "."
+                    if project_root == git_root
+                    else project_root.relative_to(git_root).as_posix()
+                ),
+                "excluded_paths": excluded,
+                "files": manifest,
+            },
+        )
+    except Exception:
+        shutil.rmtree(worktree, ignore_errors=True)
+        raise
 
-    after_status = _git_bytes(["status", "--porcelain=v2", "-z"], cwd=repo_root)
-    after_head = _git(["rev-parse", "HEAD"], cwd=repo_root).stdout.strip()
+    after_status = _git_bytes(
+        ["status", "--porcelain=v2", "-z"], cwd=project_root
+    )
+    after_head = _git(["rev-parse", "HEAD"], cwd=git_root).stdout.strip()
     after_branch = _git(
-        ["symbolic-ref", "--short", "-q", "HEAD"], cwd=repo_root, check=False
+        ["symbolic-ref", "--short", "-q", "HEAD"], cwd=git_root, check=False
     ).stdout.strip()
     if (before_status, before_head, before_branch) != (
         after_status,
@@ -301,7 +325,7 @@ def create_snapshot(
             "Snapshot creation changed the active branch, HEAD, or workspace status."
         )
     return SnapshotInfo(
-        commit=commit,
+        commit=isolated_commit,
         tree=tree,
         worktree=worktree,
         manifest_path=manifest_path,
@@ -389,7 +413,7 @@ def build_patch(
                 check=False,
             )
         raw_status = subprocess.run(
-            [
+            [  # noqa: S603, S607  # git is a known-safe tool
                 "git",
                 "diff",
                 "--cached",
@@ -426,6 +450,14 @@ def build_patch(
                 raise CoordinatorError(f"Patch changed an out-of-scope path: {path}")
             if is_snapshot_forbidden(path, settings) or is_write_forbidden(path):
                 raise CoordinatorError(f"Patch changed a protected path: {path}")
+
+        # Architectural boundary validation
+        repo_root = snapshot.worktree
+        arch_violations = validate_architectural_boundaries(statuses.keys(), repo_root)
+        if arch_violations:
+            raise CoordinatorError(
+                "Patch violates architectural boundaries:\n" + "\n".join(arch_violations)
+            )
 
         numstat = _git(
             ["diff", "--cached", "--numstat", "--no-renames", "HEAD"],
@@ -486,16 +518,15 @@ def cleanup_worktree(
         if not force:
             raise CoordinatorError("Isolated worktree cleanup requires force=True.")
         shutil.rmtree(worktree)
-        _git(
-            ["-c", "core.hooksPath=/dev/null", "worktree", "prune", "--expire", "now"],
-            cwd=paths.repo_root,
-        )
+        return
+    if force and not (worktree / ".git").exists():
+        shutil.rmtree(worktree)
         return
     args = ["-c", "core.hooksPath=/dev/null", "worktree", "remove"]
     if force:
         args.append("--force")
     args.append(str(worktree))
-    result = _git(args, cwd=paths.repo_root, check=False)
+    result = _git(args, cwd=Path(paths.git_root), check=False)
     if result.returncode != 0 and worktree.exists():
         raise CoordinatorError(
             result.stderr.strip()
