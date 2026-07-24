@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -23,10 +24,11 @@ HELPERS = [
 ]
 
 GENERATED_DIR = Path("dashboard/lib/generated")
-GENERATED_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def main() -> int:
+    GENERATED_DIR.mkdir(parents=True, exist_ok=True)
+
     # Generate envelope type first
     envelope_schema = {
         "$schema": "http://json-schema.org/draft-07/schema#",
@@ -67,8 +69,16 @@ def run_ts_gen(schema: dict, out_path: Path, type_name: str) -> None:
     # Fix: json-schema-to-typescript outputs `export interface` but we want `export type` for envelope
     content = result.stdout
     if type_name == "PythonHelperEnvelopeV1":
-        content = content.replace("export interface ", "export type ")
-        content = content.replace(f"export type {type_name} {{", f"export type {type_name} = {{")
+        # Replace the interface declaration for the specific type only
+        content = re.sub(
+            rf"^export interface {re.escape(type_name)}\s*\{{",
+            f"export type {type_name} = {{",
+            content,
+            flags=re.MULTILINE
+        )
+        # The original interface ends with a single "}" on its own line.
+        # For "export type X = { ... }", we keep that single closing brace.
+        # No extra replacement needed.
     out_path.write_text(content)
     print(f"Generated {out_path}")
 
