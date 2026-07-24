@@ -1,26 +1,22 @@
 import '../app.css'
 import type { Metadata } from 'next'
-import type { ReactNode } from 'react'
-import { isDashboardPageAuthenticated } from '../lib/dashboard-page-auth'
-import AppNavigation from './app-navigation'
 
 export const metadata: Metadata = {
   title: 'Career Workspace',
   description: 'Private local job-search operations dashboard',
 }
 
-export default async function RootLayout({ children }: { children: ReactNode }) {
-  const authenticated = await isDashboardPageAuthenticated()
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="en">
-      <body>
-        {authenticated ? (
-          <div className="appShell">
-            <AppNavigation />
-            <div className="appContent">{children}</div>
-          </div>
-        ) : children}
-      </body>
+      <head>
+        <link rel="icon" href="/icon.svg" sizes="any" type="image/svg+xml" />
+      </head>
+      <body>{children}</body>
     </html>
   )
 }
