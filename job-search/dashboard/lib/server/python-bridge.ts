@@ -24,11 +24,10 @@ export type PythonProcessResult = {
   exitCode: number
 }
 
-export type PythonHelperEnvelopeV1<T> = {
-  schema: 'career_python_helper_v1'
-  ok?: boolean
+import type { PythonHelperEnvelopeV1 as GeneratedPythonHelperEnvelopeV1 } from '@/lib/generated/envelope'
+
+export type PythonHelperEnvelopeV1<T> = GeneratedPythonHelperEnvelopeV1 & {
   data?: T
-  error?: string
 }
 
 export type PythonHelperOptions = {
