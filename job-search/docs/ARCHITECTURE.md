@@ -61,3 +61,17 @@ Files under `archive/` are preserved evidence only. They are excluded from
 runtime imports, dependency setup, lint targets, CI decisions, and local-agent
 work proposals. Current instructions always take precedence over archived
 content.
+
+
+## Dashboard route groups
+
+The Next.js dashboard uses a route-group pattern to scope authentication. The
+`app/(dashboard)/` route group wraps all authenticated pages behind a shared
+layout (`app/(dashboard)/layout.tsx`) that checks the dashboard token and
+redirects unauthenticated requests to `app/login/`. Routes outside the
+`(dashboard)` group — currently only the login page — are unauthenticated by
+default. This keeps auth logic in one layout instead of per-page middleware.
+
+## Persistence and time
+
+Application CSV and outcome JSONL writers share an advisory `fcntl.flock` lock. CSV replacements are temporary-file + flush + fsync + `os.replace`; JSONL records are complete fsynced lines. Local application, response, reminder, and analytics dates use `Europe/Vilnius`; UTC timestamps remain suitable for audit instants.
