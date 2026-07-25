@@ -1,4 +1,4 @@
-import { dashboardTokenFromEnv, safeDashboardNextPath } from '../../lib/dashboard-auth'
+import { dashboardTokenFromEnv, safeDashboardNextPath } from '@/lib/dashboard-auth'
 import LoginForm from './login-form'
 
 export const dynamic = 'force-dynamic'
