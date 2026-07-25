@@ -26,5 +26,17 @@ job-search/summary_report_*.json
 raycast-job-search-hub/node_modules/
 raycast-job-search-hub/dist/
 
+job-search/linkedin/config.yaml
+
 # Browser automation scratch
 .playwright-cli/
+
+# Defense-in-depth: job-search runtime artifacts (secondary coverage)
+job-search/state/
+job-search/runtime/
+job-search/reports/
+job-search/*.sqlite
+job-search/*.db
+
+# Local development agent workspace
+.superpowers/

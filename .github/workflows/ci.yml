@@ -19,6 +19,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
       - name: Install Python
         run: uv python install 3.11
       - name: Verify lock and install
@@ -44,6 +46,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
       - uses: actions/setup-node@v4
         with:
           node-version: 22.22.2
@@ -120,6 +124,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
       - uses: actions/setup-node@v4
         with:
           node-version: 22.22.2

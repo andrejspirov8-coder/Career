@@ -1,3 +1,6 @@
+PY ?= uv run python
+DASHBOARD_PORT ?= $(if $(CAREER_DASHBOARD_PORT),$(CAREER_DASHBOARD_PORT),3001)
+
 .PHONY: bootstrap lock test lint format preflight doctor scout plan approve-session check-approvals dispatch-dry daily-dry daily-queue weekly-review rebuild-cvs smoke verify-patch verify-release dashboard-dev dashboard-build dashboard-start dashboard-open dashboard-worker dashboard-status dashboard-backup dashboard-restore dashboard-test dashboard-e2e raycast-check audit-runtime dev-agent-doctor dev-agent-benchmark dev-agent-model-benchmark dev-agent-plan dev-agent-proposals dev-agent-proposal-approve dev-agent-proposal-reject dev-agent-autonomy dev-agent-service dev-agent-status dev-agent-run dev-agent-show dev-agent-verify dev-agent-approve dev-agent-apply dev-agent-cleanup
 
 bootstrap:
@@ -10,20 +13,20 @@ test:
 	uv run --group dev python -m pytest
 
 lint:
-	uv run ruff check tools cv tests
+	uv run ruff check src mcp tools cv tests
 
 format:
-	uv run black tools cv tests
-	uv run ruff check --fix tools cv tests
+	uv run ruff format src mcp tools cv tests
+	uv run ruff check --fix src mcp tools cv tests
 
 preflight:
 	$(PY) tools/recruiter_orchestrate.py preflight
 
 doctor:
-	uv lock --check || true
-	uv run ruff check tools cv tests
+	uv lock --check
+	uv run ruff check src mcp tools cv tests
 	uv run --group dev python -m pytest
-	$(PY) tools/recruiter_orchestrate.py preflight --browse-status || true
+	$(PY) tools/recruiter_orchestrate.py preflight --browse-status
 
 scout:
 	$(PY) tools/recruiter_orchestrate.py scout --headed
@@ -66,16 +69,16 @@ audit-runtime:
 	uvx pip-audit -r /tmp/job-search-runtime-requirements.txt
 
 dashboard-dev:
-	$(PY) tools/dashboard_service.py --mode dev
+	$(PY) tools/dashboard_service.py --mode dev --port "$(DASHBOARD_PORT)"
 
 dashboard-build:
 	cd dashboard && npm run build
 
 dashboard-start: dashboard-build
-	$(PY) tools/dashboard_service.py --mode production
+	$(PY) tools/dashboard_service.py --mode production --port "$(DASHBOARD_PORT)"
 
 dashboard-open:
-	open http://127.0.0.1:3000
+	open "http://127.0.0.1:$(DASHBOARD_PORT)"
 
 dashboard-worker:
 	$(PY) tools/dashboard_service.py --mode worker
