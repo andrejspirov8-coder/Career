@@ -53,3 +53,5 @@ secrets/
 *.db
 *.csv.bak
 uv.lock.bak
+
+pipeline/.application-state.lock
