@@ -1,0 +1,1 @@
+- 2026-07-26 — created .memory/ + scripts/remember.sh + make remember/save targets for cross-session persistence

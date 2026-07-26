@@ -1,0 +1,1 @@
+- 2026-07-26 — implemented opencode best practices: opencode.json, review-agent, session-handoff agent, handoff.sh, career-context skill, build fix, pre-commit activation

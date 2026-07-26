@@ -7,7 +7,7 @@ from typing import Any, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from career_job_search.recruiters.identity import canonical_linkedin_profile_url
+from career_job_search.core.linkedin_urls import canonical_linkedin_profile_url
 
 Persona = Literal[
     "recruiter_hr",
@@ -46,6 +46,10 @@ class ProfileCandidate(BaseModel):
     scraped_text: str = ""
     search_variant_slug: str = ""
     source_backend: str = ""
+    target_company: str = ""
+    target_opportunity_id: str = ""
+    target_role_title: str = ""
+    target_company_verified: bool = False
 
     @field_validator("profile_url")
     @classmethod
@@ -162,6 +166,10 @@ class RankedInvite(BaseModel):
             "note": self.note,
             "note_reason": self.note_reason,
             "source_backend": self.candidate.source_backend,
+            "target_company": self.candidate.target_company,
+            "target_opportunity_id": self.candidate.target_opportunity_id,
+            "target_role_title": self.candidate.target_role_title,
+            "target_company_verified": self.candidate.target_company_verified,
         }
 
 

@@ -1,7 +1,7 @@
 PY ?= uv run python
 DASHBOARD_PORT ?= $(if $(CAREER_DASHBOARD_PORT),$(CAREER_DASHBOARD_PORT),3001)
 
-.PHONY: bootstrap lock test lint format preflight doctor scout plan approve-session check-approvals dispatch-dry daily-dry daily-queue weekly-review rebuild-cvs smoke verify-patch verify-release dashboard-dev dashboard-build dashboard-start dashboard-open dashboard-worker dashboard-status dashboard-backup dashboard-restore dashboard-test dashboard-e2e raycast-check audit-runtime dev-agent-doctor dev-agent-benchmark dev-agent-model-benchmark dev-agent-plan dev-agent-proposals dev-agent-proposal-approve dev-agent-proposal-reject dev-agent-autonomy dev-agent-service dev-agent-status dev-agent-run dev-agent-show dev-agent-verify dev-agent-approve dev-agent-apply dev-agent-cleanup
+.PHONY: bootstrap lock test lint format preflight doctor scout plan approve-session check-approvals dispatch-dry daily-dry daily-queue weekly-review rebuild-cvs smoke verify-patch verify-release dashboard-dev dashboard-build dashboard-start dashboard-open dashboard-worker dashboard-status dashboard-backup dashboard-restore dashboard-test dashboard-e2e raycast-check audit-runtime dev-agent-doctor dev-agent-benchmark dev-agent-model-benchmark dev-agent-plan dev-agent-proposals dev-agent-proposal-approve dev-agent-proposal-reject dev-agent-autonomy dev-agent-service dev-agent-status dev-agent-run dev-agent-show dev-agent-verify dev-agent-approve dev-agent-apply dev-agent-cleanup remember save precommit-setup handoff
 
 bootstrap:
 	./scripts/bootstrap.sh
@@ -156,6 +156,21 @@ dev-agent-apply:
 
 dev-agent-cleanup:
 	$(PY) tools/local_dev_agents.py cleanup
+
+precommit-setup:
+	cd "$(shell git rev-parse --show-toplevel)" && pre-commit install
+
+remember:
+	@test -n "$(TOPIC)" || (echo "Use: make remember TOPIC=<topic> MSG=<message>" && exit 2)
+	./scripts/remember.sh "$(TOPIC)" "$(MSG)"
+
+save:
+	@test -n "$(TOPIC)" || (echo "Use: echo 'did X' | make save TOPIC=<topic>" && exit 2)
+	./scripts/remember.sh "$(TOPIC)"
+
+handoff:
+	@test -n "$(GOAL)" || (echo "Use: make handoff GOAL=... DONE='item1|item2' NEXT='step1|step2' BLOCKERS='b1|b2'" && exit 2)
+	./scripts/handoff.sh
 
 verify-release:
 	./scripts/verify_release.sh

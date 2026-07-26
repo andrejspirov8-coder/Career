@@ -38,11 +38,25 @@ may be approved in one local calendar day.
 - Preserve unrelated dirty-worktree changes. A touched file that changed after snapshot creation makes the patch stale.
 - Runtime artifacts stay under ignored `runtime/local-dev-agents/`; disposable worktrees and backups stay outside the repository.
 
+## Cross-session memory
+
+This project uses `.memory/` for lightweight cross-session persistence:
+
+- **`make remember TOPIC=<topic> MSG="<message>"`** — append to a topic file
+- **`make save TOPIC=<topic>`** — same, but read message from stdin (pipe-friendly)
+
+At the end of every session, add one line summarizing what was done so the next agent session can pick up context.
+
+Context:
+- `.memory/index.md` — topic index (read this first)
+- `.memory/topics/*.md` — individual topic timelines
+- Full project reviews go in the Obsidian vault at `~/Documents/Obsidian Vault/Career Project Review.md`
+
 ## Verification commands
 
 ```bash
 uv run ruff check tools cv tests
-uv run pytest -q
+uv run --group dev python -m pytest -q
 make dashboard-test
 make raycast-check
 make verify-release
