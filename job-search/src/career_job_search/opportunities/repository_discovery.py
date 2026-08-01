@@ -7,6 +7,7 @@ import sqlite3
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+from career_job_search.core.context import current_user_id
 from career_job_search.opportunities.models import (
     Opportunity,
     OpportunityStatus,
@@ -23,6 +24,10 @@ from career_job_search.opportunities.repository_db import (
 )
 
 
+def _uid() -> str:
+    return current_user_id.get()
+
+
 def upsert_opportunities(
     opportunities: list[Opportunity],
     *,
@@ -33,7 +38,7 @@ def upsert_opportunities(
     with connect(db_path) as con:
         for opportunity in opportunities:
             aliases = _alias_specs(opportunity)
-            row = _resolve_discovery_row(con, opportunity, now=now)
+            row = _resolve_discovery_row(con, opportunity, now=now, user_id=_uid())
             existing = _row_to_opportunity(row) if row else None
             created_at = str(row["created_at"]) if row else now
             if existing is not None:
@@ -50,12 +55,14 @@ def upsert_opportunities(
                 created_at=created_at,
                 now=now,
                 exists=existing is not None,
+                user_id=_uid(),
             )
             _register_aliases(
                 con,
                 aliases,
                 opportunity_id=opportunity.opportunity_id,
                 now=now,
+                user_id=_uid(),
             )
     return len(opportunities)
 
@@ -102,11 +109,12 @@ def _resolve_discovery_row(
     opportunity: Opportunity,
     *,
     now: str,
+    user_id: str,
 ) -> sqlite3.Row | None:
     aliases = _alias_specs(opportunity)
     exact_aliases = [alias for alias in aliases if alias[1] in {"native", "url"}]
     for alias_key, _, _, _ in exact_aliases:
-        row = _row_for_alias(con, alias_key)
+        row = _row_for_alias(con, alias_key, user_id=user_id)
         if row and not _is_new_same_source_native(opportunity, row):
             return row
 
@@ -121,10 +129,10 @@ def _resolve_discovery_row(
             SELECT o.data_json, o.created_at
             FROM opportunity_aliases AS a
             JOIN opportunities AS o ON o.opportunity_id = a.opportunity_id
-            WHERE a.alias_key = ? AND a.last_seen_at >= ?
+            WHERE a.alias_key = ? AND o.user_id = ? AND a.last_seen_at >= ?
             LIMIT 1
             """,
-            (alias_key, cutoff),
+            (alias_key, user_id, cutoff),
         ).fetchone()
         if row and not _is_new_same_source_native(opportunity, row):
             return row
@@ -133,13 +141,14 @@ def _resolve_discovery_row(
         """
         SELECT data_json, created_at
         FROM opportunities
-        WHERE dedupe_key = ? OR opportunity_id = ?
+        WHERE (dedupe_key = ? OR opportunity_id = ?) AND user_id = ?
         ORDER BY CASE WHEN dedupe_key = ? THEN 0 ELSE 1 END
         LIMIT 1
         """,
         (
             opportunity.dedupe_key,
             opportunity.opportunity_id,
+            user_id,
             opportunity.dedupe_key,
         ),
     ).fetchone()
@@ -148,16 +157,18 @@ def _resolve_discovery_row(
 def _row_for_alias(
     con: sqlite3.Connection,
     alias_key: str,
+    *,
+    user_id: str,
 ) -> sqlite3.Row | None:
     return con.execute(
         """
         SELECT o.data_json, o.created_at
         FROM opportunity_aliases AS a
         JOIN opportunities AS o ON o.opportunity_id = a.opportunity_id
-        WHERE a.alias_key = ?
+        WHERE a.alias_key = ? AND o.user_id = ?
         LIMIT 1
         """,
-        (alias_key,),
+        (alias_key, user_id),
     ).fetchone()
 
 
@@ -182,8 +193,10 @@ def _write_discovered_opportunity(
     created_at: str,
     now: str,
     exists: bool,
+    user_id: str,
 ) -> None:
     values = (
+        user_id,
         opportunity.dedupe_key,
         opportunity.source_kind.value,
         opportunity.source_url,
@@ -203,24 +216,24 @@ def _write_discovered_opportunity(
         con.execute(
             """
             UPDATE opportunities
-            SET dedupe_key = ?, source_kind = ?, source_url = ?, title = ?,
+            SET user_id = ?, dedupe_key = ?, source_kind = ?, source_url = ?, title = ?,
                 company = ?, location = ?, status = ?, data_json = ?,
                 updated_at = ?
-            WHERE opportunity_id = ?
+            WHERE opportunity_id = ? AND user_id = ?
             """,
-            values,
+            values + (user_id,),
         )
         return
     con.execute(
         """
         INSERT INTO opportunities(
-          opportunity_id, dedupe_key, source_kind, source_url, title,
+          opportunity_id, user_id, dedupe_key, source_kind, source_url, title,
           company, location, status, data_json, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             opportunity.opportunity_id,
-            *values[:8],
+            *values[:9],
             created_at,
             now,
         ),
@@ -233,17 +246,19 @@ def _register_aliases(
     *,
     opportunity_id: str,
     now: str,
+    user_id: str,
 ) -> None:
     for alias_key, alias_type, source, native_source_id in aliases:
         con.execute(
             """
             INSERT OR IGNORE INTO opportunity_aliases(
-              alias_key, alias_type, opportunity_id, source, native_source_id,
-              created_at, last_seen_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+              alias_key, user_id, alias_type, opportunity_id, source,
+              native_source_id, created_at, last_seen_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 alias_key,
+                user_id,
                 alias_type,
                 opportunity_id,
                 source,
@@ -256,9 +271,9 @@ def _register_aliases(
             """
             UPDATE opportunity_aliases
             SET last_seen_at = ?
-            WHERE alias_key = ? AND opportunity_id = ?
+            WHERE alias_key = ? AND opportunity_id = ? AND user_id = ?
             """,
-            (now, alias_key, opportunity_id),
+            (now, alias_key, opportunity_id, user_id),
         )
 
 
@@ -439,7 +454,12 @@ def list_opportunities(
     init_db(db_path)
     with connect(db_path) as con:
         rows = con.execute(
-            "SELECT data_json FROM opportunities ORDER BY updated_at DESC, created_at DESC"
+            """
+            SELECT data_json FROM opportunities
+            WHERE user_id = ?
+            ORDER BY updated_at DESC, created_at DESC
+            """,
+            (_uid(),),
         ).fetchall()
     return [_row_to_opportunity(row) for row in rows]
 
@@ -452,8 +472,11 @@ def get_opportunity(
     init_db(db_path)
     with connect(db_path) as con:
         row = con.execute(
-            "SELECT data_json FROM opportunities WHERE opportunity_id = ? LIMIT 1",
-            (opportunity_id,),
+            """
+            SELECT data_json FROM opportunities
+            WHERE opportunity_id = ? AND user_id = ? LIMIT 1
+            """,
+            (opportunity_id, _uid()),
         ).fetchone()
     return _row_to_opportunity(row) if row else None
 
@@ -466,19 +489,23 @@ def save_opportunity(
     init_db(db_path)
     now = utc_now_iso()
     data = opportunity.to_json_dict()
+    user_id = _uid()
     with connect(db_path) as con:
         existing = con.execute(
-            "SELECT created_at FROM opportunities WHERE dedupe_key = ? LIMIT 1",
-            (opportunity.dedupe_key,),
+            """
+            SELECT created_at FROM opportunities
+            WHERE dedupe_key = ? AND user_id = ? LIMIT 1
+            """,
+            (opportunity.dedupe_key, user_id),
         ).fetchone()
         created_at = str(existing["created_at"]) if existing else now
         con.execute(
             """
             INSERT INTO opportunities(
-              opportunity_id, dedupe_key, source_kind, source_url, title,
+              opportunity_id, user_id, dedupe_key, source_kind, source_url, title,
               company, location, status, data_json, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(dedupe_key) DO UPDATE SET
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(user_id, dedupe_key) DO UPDATE SET
               opportunity_id = excluded.opportunity_id,
               source_kind = excluded.source_kind,
               source_url = excluded.source_url,
@@ -491,6 +518,7 @@ def save_opportunity(
             """,
             (
                 opportunity.opportunity_id,
+                user_id,
                 opportunity.dedupe_key,
                 opportunity.source_kind.value,
                 opportunity.source_url,

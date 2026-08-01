@@ -198,6 +198,7 @@ def test_tracked_top_level_structure_is_expected() -> None:
         "raycast-job-search-hub",
         "scripts",
         "src",
+        "supabase",
         "tests",
         "tools",
     }

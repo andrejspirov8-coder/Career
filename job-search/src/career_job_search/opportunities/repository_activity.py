@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
+from career_job_search.core.context import current_user_id
 from career_job_search.opportunities.models import (
     Opportunity,
     OpportunityStatus,
@@ -27,6 +28,10 @@ from career_job_search.opportunities.repository_discovery import (
 )
 
 
+def _uid() -> str:
+    return current_user_id.get()
+
+
 def record_action(
     *,
     opportunity: Opportunity,
@@ -42,11 +47,12 @@ def record_action(
         cur = con.execute(
             """
             INSERT INTO opportunity_actions(
-              opportunity_id, action_type, old_status, new_status,
+              user_id, opportunity_id, action_type, old_status, new_status,
               operator_source, metadata_json, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
+                _uid(),
                 opportunity.opportunity_id,
                 action_type,
                 old_status.value,
@@ -79,10 +85,10 @@ def actions_for_opportunity(
             SELECT action_type, old_status, new_status, operator_source,
                    metadata_json, created_at
             FROM opportunity_actions
-            WHERE opportunity_id = ?
+            WHERE opportunity_id = ? AND user_id = ?
             ORDER BY created_at DESC, id DESC
             """,
-            (opportunity_id,),
+            (opportunity_id, _uid()),
         ).fetchall()
     out: list[dict[str, Any]] = []
     for row in rows:
@@ -110,7 +116,12 @@ def count_by_status(
     init_db(db_path)
     with connect(db_path) as con:
         rows = con.execute(
-            "SELECT status, COUNT(*) AS n FROM opportunities GROUP BY status"
+            """
+            SELECT status, COUNT(*) AS n FROM opportunities
+            WHERE user_id = ?
+            GROUP BY status
+            """,
+            (_uid(),),
         ).fetchall()
     return {str(row["status"]): int(row["n"]) for row in rows}
 
@@ -148,11 +159,12 @@ def record_source_run(
         cur = con.execute(
             """
             INSERT INTO source_runs(
-              run_id, source, status, snapshot_type, item_count, duration_ms,
-              error, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+              user_id, run_id, source, status, snapshot_type, item_count,
+              duration_ms, error, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
+                _uid(),
                 source_run_id,
                 source,
                 status,
@@ -191,15 +203,15 @@ def save_daily_run(
         con.execute(
             """
             INSERT INTO daily_runs(
-              run_id, status, partial, output_json, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?)
+              user_id, run_id, status, partial, output_json, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(run_id) DO UPDATE SET
               status = excluded.status,
               partial = excluded.partial,
               output_json = excluded.output_json,
               updated_at = excluded.updated_at
             """,
-            (run_id, status, int(partial), output_json, now, now),
+            (_uid(), run_id, status, int(partial), output_json, now, now),
         )
     saved = get_daily_run(run_id, db_path=db_path)
     if saved is None:
@@ -228,10 +240,10 @@ def get_daily_run(
             """
             SELECT run_id, status, partial, output_json, created_at, updated_at
             FROM daily_runs
-            WHERE run_id = ?
+            WHERE run_id = ? AND user_id = ?
             LIMIT 1
             """,
-            (run_id,),
+            (run_id, _uid()),
         ).fetchone()
     return _daily_run_dict(row) if row else None
 
@@ -245,9 +257,11 @@ def latest_daily_run(
             """
             SELECT run_id, status, partial, output_json, created_at, updated_at
             FROM daily_runs
+            WHERE user_id = ?
             ORDER BY updated_at DESC, rowid DESC
             LIMIT 1
-            """
+            """,
+            (_uid(),),
         ).fetchone()
     return _daily_run_dict(row) if row else None
 
@@ -295,11 +309,12 @@ def claim_deliveries(
             cur = con.execute(
                 """
                 INSERT OR IGNORE INTO deliveries(
-                  delivery_date, canonical_identity, opportunity_id, run_id,
-                  delivered_at
-                ) VALUES (?, ?, ?, ?, ?)
+                  user_id, delivery_date, canonical_identity, opportunity_id,
+                  run_id, delivered_at
+                ) VALUES (?, ?, ?, ?, ?, ?)
                 """,
                 (
+                    _uid(),
                     delivery_date,
                     identity,
                     opportunity.opportunity_id,
@@ -340,10 +355,10 @@ def _identity_delivered(
         """
         SELECT 1
         FROM deliveries
-        WHERE canonical_identity = ?
+        WHERE canonical_identity = ? AND user_id = ?
         LIMIT 1
         """,
-        (identity,),
+        (identity, _uid()),
     ).fetchone()
     return row is not None
 
@@ -362,7 +377,10 @@ def mark_unseen_opportunities_expired(
     now = utc_now_iso()
     changed = 0
     with connect(db_path) as con:
-        rows = con.execute("SELECT data_json FROM opportunities").fetchall()
+        rows = con.execute(
+            "SELECT data_json FROM opportunities WHERE user_id = ?",
+            (_uid(),),
+        ).fetchall()
         for row in rows:
             opportunity = _row_to_opportunity(row)
             if opportunity.source not in sources:
@@ -386,7 +404,7 @@ def mark_unseen_opportunities_expired(
                 """
                 UPDATE opportunities
                 SET status = ?, data_json = ?, updated_at = ?
-                WHERE opportunity_id = ?
+                WHERE opportunity_id = ? AND user_id = ?
                 """,
                 (
                     opportunity.status.value,
@@ -397,6 +415,7 @@ def mark_unseen_opportunities_expired(
                     ),
                     now,
                     opportunity.opportunity_id,
+                    _uid(),
                 ),
             )
             changed += 1
@@ -429,7 +448,10 @@ def mark_unseen_linkedin_browser_unverified(
         OpportunityStatus.EXPIRED,
     }
     with connect(db_path) as con:
-        rows = con.execute("SELECT data_json FROM opportunities").fetchall()
+        rows = con.execute(
+            "SELECT data_json FROM opportunities WHERE user_id = ?",
+            (_uid(),),
+        ).fetchall()
         for row in rows:
             opportunity = _row_to_opportunity(row)
             if (
@@ -461,7 +483,7 @@ def mark_unseen_linkedin_browser_unverified(
                 """
                 UPDATE opportunities
                 SET status = ?, data_json = ?, updated_at = ?
-                WHERE opportunity_id = ?
+                WHERE opportunity_id = ? AND user_id = ?
                 """,
                 (
                     opportunity.status.value,
@@ -472,6 +494,7 @@ def mark_unseen_linkedin_browser_unverified(
                     ),
                     now,
                     opportunity.opportunity_id,
+                    _uid(),
                 ),
             )
             changed += 1
