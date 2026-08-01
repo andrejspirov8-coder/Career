@@ -9,18 +9,18 @@ _Last trimmed to match repository reality (`job-search` LinkedIn recruiter stack
 
 | Capability | Entry point | Outputs |
 |-----------|-------------|---------|
-| People search → scrape → **`match_recruiter_profile`** (single scorer) | `linkedin_recruiter_bot.py`, `tools/recruiter_orchestrate.py scout` | `pipeline/recruiters.csv`, optionally `pipeline/recruiter_action_plan.jsonl` |
-| Tier buckets from YAML | `linkedin/config.yaml` → `assign_best_tier` in `recruiter_match.py` | Stored on JSONL scout records |
+| People search → scrape → **`match_recruiter_profile`** (single scorer) | `linkedin_recruiter_bot.py`, `career_job_search.recruiters.orchestrator scout` | `pipeline/recruiters.csv`, optionally `pipeline/recruiter_action_plan.jsonl` |
+| Tier buckets from YAML | `linkedin/config.yaml` → `assign_best_tier` in `career_job_search.recruiters.matching` | Stored on JSONL scout records |
 | Note builder (templates + headline/about phrase + CV anchor + keyword suffix) | `prepare_outreach_note` / `_bundle` | `note_live_full` (≤ chars from config) |
 | Browser backends | **`playwright`** (default) vs **`browse_ws`** (Chrome + `browse --ws`) | Shares `linkedin/.browser-profile/` |
-| Session planner for MCP / dispatch queues | `recruiter_orchestrate.py plan` | `pipeline/recruiter_session_state.json` |
-| Three-agent LangGraph pipeline | `hiring_network_workflow.py graph run` | discovery CSV → validated CSV → ranked JSONL → dispatch |
-| Web-first discovery | `recruiter_web_discover.py` | `pipeline/candidates_discovery.csv` |
-| Company validation | `recruiter_company_validate.py` | `pipeline/candidates_validated.csv` |
-| Dispatch from session (re-score + CSV log) | `recruiter_orchestrate.py dispatch` | CSV rows incl. dry-run previews |
-| Daily chain | `recruiter_orchestrate.py daily` | scout JSONL → plan JSON → headed dispatch |
+| Session planner for MCP / dispatch queues | `career_job_search.recruiters.orchestrator plan` | `pipeline/recruiter_session_state.json` |
+| Three-agent LangGraph pipeline | `career_job_search.recruiters.hiring_network graph run` | discovery CSV → validated CSV → ranked JSONL → dispatch |
+| Web-first discovery | `career_job_search.recruiters.web_discovery` | `pipeline/candidates_discovery.csv` |
+| Company validation | `career_job_search.recruiters.company_validation` | `pipeline/candidates_validated.csv` |
+| Dispatch from session (re-score + CSV log) | `career_job_search.recruiters.orchestrator dispatch` | CSV rows incl. dry-run previews |
+| Daily chain | `career_job_search.recruiters.orchestrator daily` | scout JSONL → plan JSON → headed dispatch |
 
-Deprecated prototype: **`tools/recruiter_agent_orchestrate.py`** (prints redirect to orchestrator CLI).
+Deprecated prototype: `recruiter_agent_orchestrate.py` (removed; prints redirect to orchestrator CLI).
 
 Detailed operator checklist + risks lives in **`job-search/linkedin/README.md`** and the Cursor skill **`.cursor/skills/linkedin-recruiter-daily/SKILL.md`**.
 
@@ -30,7 +30,7 @@ Ideas intentionally **out of this pass**:
 
 - CVbankas / company-directory / Arc ingestion scouts
 - Enrichment pipelines (`recruiter_index.jsonl`, auto dedup merges across sources separate from recruiters.csv)
-- Raycast façade (optional fast-follow: invoke `python3 tools/recruiter_orchestrate.py daily --dry-run`)
+- Raycast façade (optional fast-follow: invoke `python3 -m career_job_search.recruiters.orchestrator daily --dry-run`)
 - Full message-thread parsing for follow-ups (today: best-effort heuristics in `linkedin_followup.py`)
 - Cloud Browserbase / captcha offload (Browse plugin `.env` only if operator opts in)
 

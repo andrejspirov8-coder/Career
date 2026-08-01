@@ -315,9 +315,9 @@ export const recruiterOverviewFixture: RecruiterOverview = {
     ready_for_manual_send: 1,
   },
   safe_actions: {
-    preflight: ['python', 'tools/hiring_network_workflow.py', 'preflight'],
-    search_rank: ['python', 'tools/hiring_network_workflow.py', 'graph', 'run', '--dry-run', '--stage', 'all'],
-    rank_existing: ['python', 'tools/hiring_network_workflow.py', 'rank'],
-    dispatch_dry_run: ['python', 'tools/hiring_network_workflow.py', 'dispatch', '--dry-run', '--max', '5'],
+    preflight: ['python', '-m', 'career_job_search.recruiters.hiring_network', 'preflight'],
+    search_rank: ['python', '-m', 'career_job_search.recruiters.hiring_network', 'graph', 'run', '--dry-run', '--stage', 'all'],
+    rank_existing: ['python', '-m', 'career_job_search.recruiters.hiring_network', 'rank'],
+    dispatch_dry_run: ['python', '-m', 'career_job_search.recruiters.hiring_network', 'dispatch', '--dry-run', '--max', '5'],
   },
 }

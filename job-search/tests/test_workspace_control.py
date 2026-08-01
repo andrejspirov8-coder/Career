@@ -6,7 +6,7 @@ from pathlib import Path, PurePosixPath
 
 import pytest
 
-import workspace_control as control
+from career_job_search.workspace import control as control
 
 
 def test_backup_path_allowlist_rejects_code_secrets_and_traversal():
@@ -21,7 +21,9 @@ def test_backup_path_allowlist_rejects_code_secrets_and_traversal():
     assert control._allowed_backup_path(PurePosixPath("output/cv.pdf"))
     assert control._allowed_backup_path(PurePosixPath("cv/assets/headshot.png"))
     assert not control._allowed_backup_path(PurePosixPath("dashboard/.env.local"))
-    assert not control._allowed_backup_path(PurePosixPath("tools/workspace_control.py"))
+    assert not control._allowed_backup_path(
+        PurePosixPath("src/career_job_search/workspace/control.py")
+    )
     assert not control._allowed_backup_path(PurePosixPath("state/../.env"))
     assert not control._allowed_backup_path(PurePosixPath("state/dashboard_service.json"))
     assert not control._allowed_backup_path(
@@ -141,10 +143,11 @@ def test_launch_agent_uses_fixed_arguments_and_local_project_path(
     payload = control._launch_agent_payload()
 
     assert payload["ProgramArguments"][0] == "/safe/bin/uv"
-    assert payload["ProgramArguments"][1:4] == [
+    assert payload["ProgramArguments"][1:5] == [
         "run",
         "python",
-        str(control.JOB_ROOT / "tools" / "dashboard_service.py"),
+        "-m",
+        "career_job_search.workspace.dashboard_service",
     ]
     assert payload["WorkingDirectory"] == str(control.JOB_ROOT)
     assert payload["RunAtLoad"] is True

@@ -1,12 +1,6 @@
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-TOOLS_DIR = Path(__file__).resolve().parents[1] / "tools"
-sys.path.insert(0, str(TOOLS_DIR))
-
-from matching_lib import (  # noqa: E402
+from career_job_search.cvs.matching import (  # noqa: E402
     load_profiles,
     match_job_to_variants,
     parse_job_file,

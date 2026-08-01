@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-import recruiter_state as rs
-from recruiter_dashboard import (
+from career_job_search.recruiters import repository as rs
+from career_job_search.recruiters.dashboard_adapter import (
     SAFE_ACTIONS,
     approve_dashboard_note,
     build_overview,
@@ -245,7 +245,7 @@ def test_dashboard_actions_reject_unsafe_actions_and_live_flags(tmp_path: Path) 
         run_dashboard_action(
             "preflight",
             runtime_dir=tmp_path,
-            command_override=["python", "tools/hiring_network_workflow.py", "--allow-live-dispatch"],
+            command_override=["python", "-m", "career_job_search.recruiters.hiring_network", "--allow-live-dispatch"],
         )
 
 

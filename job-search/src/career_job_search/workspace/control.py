@@ -392,7 +392,8 @@ def _launch_agent_payload() -> dict[str, Any]:
             uv_path,
             "run",
             "python",
-            str(JOB_ROOT / "tools" / "dashboard_service.py"),
+            "-m",
+            "career_job_search.workspace.dashboard_service",
             "--mode",
             "production",
         ],
@@ -607,4 +608,7 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    from career_job_search.core.entrypoint import entry
+    from career_job_search.core.schema import WORKSPACE_CONTROLS_SCHEMA
+
+    entry(WORKSPACE_CONTROLS_SCHEMA, main)

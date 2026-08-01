@@ -5,9 +5,15 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from opportunity_capture import OpportunityCaptureInput, capture_opportunity
-from opportunity_state import actions_for_opportunity, list_opportunities
-from search_preferences import SearchPreferences
+from career_job_search.opportunities.capture import (
+    OpportunityCaptureInput,
+    capture_opportunity,
+)
+from career_job_search.opportunities.preferences import SearchPreferences
+from career_job_search.opportunities.repository import (
+    actions_for_opportunity,
+    list_opportunities,
+)
 
 
 def test_url_capture_is_local_unverified_and_deduplicated(tmp_path: Path) -> None:

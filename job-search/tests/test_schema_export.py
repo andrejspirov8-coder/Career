@@ -18,23 +18,23 @@ def test_schema_module_exists():
 
 
 HELPER_SCHEMA_MAP = [
-    ("automation_control", "AutomationOverview"),
-    ("opportunity_dashboard", "OpportunityOverview"),
-    ("recruiter_dashboard", "RecruiterOverview"),
-    ("cv_catalogue", "CvCatalogue"),
-    ("cv_studio", "CvStudioStatus"),
-    ("local_drafting", "LocalDraftingStatus"),
-    ("notification_center", "NotificationOverview"),
-    ("search_preferences", "SearchPreferences"),
-    ("workspace_control", "WorkspaceControls"),
-    ("career_analytics", "AnalyticsOverview"),
+    ("career_job_search.automation.control", "AutomationOverview"),
+    ("career_job_search.opportunities.dashboard_adapter", "OpportunityOverview"),
+    ("career_job_search.recruiters.dashboard_adapter", "RecruiterOverview"),
+    ("career_job_search.cvs.catalogue_cli", "CvCatalogue"),
+    ("career_job_search.cvs.studio", "CvStudioStatus"),
+    ("career_job_search.cvs.drafting", "LocalDraftingStatus"),
+    ("career_job_search.notifications.center", "NotificationOverview"),
+    ("career_job_search.opportunities.preferences", "SearchPreferences"),
+    ("career_job_search.workspace.control", "WorkspaceControls"),
+    ("career_job_search.automation.analytics", "AnalyticsOverview"),
 ]
 
 
 def test_all_helpers_have_schema_flag():
     for helper, schema_name in HELPER_SCHEMA_MAP:
         result = subprocess.run(
-            ["uv", "run", "python", f"tools/{helper}.py", "--schema"],
+            ["uv", "run", "python", "-m", helper, "--schema"],
             capture_output=True,
             text=True,
             cwd=".",

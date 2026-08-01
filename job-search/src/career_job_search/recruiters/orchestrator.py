@@ -3,11 +3,11 @@
 
 Run from ``job-search/``::
 
-  python3 tools/recruiter_orchestrate.py preflight
-  python3 tools/recruiter_orchestrate.py scout --headed
-  python3 tools/recruiter_orchestrate.py plan --tier tier_1
-  python3 tools/recruiter_orchestrate.py dispatch --headed --tier tier_1 --dry-run
-  python3 tools/recruiter_orchestrate.py daily --headed --dry-run
+  python3 -m career_job_search.recruiters.orchestrator preflight
+  python3 -m career_job_search.recruiters.orchestrator scout --headed
+  python3 -m career_job_search.recruiters.orchestrator plan --tier tier_1
+  python3 -m career_job_search.recruiters.orchestrator dispatch --headed --tier tier_1 --dry-run
+  python3 -m career_job_search.recruiters.orchestrator daily --headed --dry-run
 """
 
 from __future__ import annotations
@@ -519,7 +519,7 @@ def cmd_dispatch(
         )
     if not session_path.exists():
         raise SystemExit(
-            f"Missing session plan {session_path}. Run: python3 tools/recruiter_orchestrate.py plan …",
+            f"Missing session plan {session_path}. Run: python3 -m career_job_search.recruiters.orchestrator plan …",
         )
 
     session = json.loads(session_path.read_text(encoding="utf-8"))
@@ -578,7 +578,7 @@ def cmd_dispatch(
             raise SystemExit(
                 "Live dispatch requires a matching SQLite approval ledger entry for "
                 "each profile and exact note hash. Run:\n"
-                "  python3 tools/recruiter_approval.py approve-session "
+                "  python3 -m career_job_search.recruiters.approval approve-session "
                 f"--session {session_path}\n"
                 f"Gate reason: {gate.reason}\n"
                 f"Missing approvals:\n{preview or '(none)'}{more}"

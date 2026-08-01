@@ -21,7 +21,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--source-action-plan",
         type=Path,
         default=Path("pipeline/recruiter_action_plan.jsonl"),
-        help="Scout input from recruiter_orchestrate.py",
+        help="Scout input from career_job_search.recruiters.orchestrator",
     )
     ap.add_argument(
         "--output",

@@ -20,7 +20,6 @@ from career_job_search.core.paths import PROJECT_ROOT as JOB_ROOT
 from career_job_search.workspace.control import read_env_token, read_keychain_token
 
 DASHBOARD_DIR = JOB_ROOT / "dashboard"
-AUTOMATION_CONTROL = JOB_ROOT / "tools" / "automation_control.py"
 DASHBOARD_TOKEN_KEY = "CAREER_DASHBOARD_TOKEN"  # noqa: S105
 DASHBOARD_TOKEN_PLACEHOLDER = "replace-with-a-long-random-local-token"  # noqa: S105
 SERVICE_STATUS_PATH = JOB_ROOT / "state" / "dashboard_service.json"
@@ -234,7 +233,8 @@ def service_commands(
 ) -> tuple[list[str], list[str] | None]:
     worker = [
         sys.executable,
-        str(AUTOMATION_CONTROL),
+        "-m",
+        "career_job_search.automation.control",
         "worker",
         "--poll-seconds",
         str(max(1.0, min(float(poll_seconds), 60.0))),

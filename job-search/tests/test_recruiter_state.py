@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import recruiter_state as rs
+from career_job_search.recruiters import repository as rs
 
 
 def test_approval_requires_exact_note_hash(tmp_path: Path) -> None:

@@ -151,8 +151,8 @@ signals until at least 10 applications exist. The terminal reports remain
 available when needed:
 
 ```bash
-python3 tools/variant_performance.py
-python3 tools/variant_performance.py --by source
+python3 -m career_job_search.cvs.performance
+python3 -m career_job_search.cvs.performance --by source
 ```
 
 ## Local dashboard privacy and recovery
@@ -187,13 +187,13 @@ make dashboard-restore BACKUP=career-backup-YYYYMMDDTHHMMSSZ-abcdef.career-backu
 make bootstrap
 
 # Create a job file from the terminal
-uv run python tools/new_job.py
+uv run python -m career_job_search.opportunities.new_job
 
 # Match all inbox jobs
-uv run python tools/batch_match_and_pack.py
+uv run python -m career_job_search.opportunities.batch
 
 # Review generated packs
-uv run python tools/review_packs.py --sort score
+uv run python -m career_job_search.opportunities.review_packs --sort score
 
 # Rebuild all CV PDFs and Canva text files
 uv run python cv/build_cv_pdf.py --all
@@ -206,7 +206,7 @@ Playwright-backed recruiter scouting reuses CV keyword scoring (`matching_lib`).
 Default mode is review-first:
 
 ```bash
-uv run python tools/recruiter_orchestrate.py daily --headed --dry-run
+uv run python -m career_job_search.recruiters.orchestrator daily --headed --dry-run
 ```
 
 Live connection dispatch is off by default. Normal use is manual: review the
@@ -216,7 +216,7 @@ CLI-click dispatch is available only if you explicitly switch the local mode to
 `cli_gated` and pass the acknowledgement flag:
 
 ```bash
-LINKEDIN_SEND_MODE=cli_gated uv run python tools/recruiter_orchestrate.py dispatch --headed --tier tier_1 --max 3 --allow-live-dispatch
+LINKEDIN_SEND_MODE=cli_gated uv run python -m career_job_search.recruiters.orchestrator dispatch --headed --tier tier_1 --max 3 --allow-live-dispatch
 ```
 
 Use small batches only. Stop immediately on CAPTCHA, checkpoint, platform warning, unexpected modal, or repeated selector failure.
@@ -234,13 +234,13 @@ and track status, but it cannot auto-apply or scrape restricted job boards.
 
 ```bash
 # Preview discovered opportunities without writing state
-uv run python tools/opportunity_orchestrate.py --config config/opportunities.example.yaml discover --dry-run
+uv run python -m career_job_search.opportunities.orchestrator --config config/opportunities.example.yaml discover --dry-run
 
 # Persist discovered rows, score them against CV variants, and report dashboard data
-uv run python tools/opportunity_orchestrate.py --config config/opportunities.example.yaml discover
-uv run python tools/opportunity_orchestrate.py match
-uv run python tools/opportunity_orchestrate.py --config config/opportunities.example.yaml daily-queue
-uv run python tools/opportunity_orchestrate.py report
+uv run python -m career_job_search.opportunities.orchestrator --config config/opportunities.example.yaml discover
+uv run python -m career_job_search.opportunities.orchestrator match
+uv run python -m career_job_search.opportunities.orchestrator --config config/opportunities.example.yaml daily-queue
+uv run python -m career_job_search.opportunities.orchestrator report
 ```
 
 Open the local dashboard at `/opportunities` to review saved views, inspect
@@ -326,7 +326,7 @@ make plan
 make dispatch-dry
 make approve-session
 make check-approvals
-LINKEDIN_SEND_MODE=cli_gated uv run python tools/recruiter_orchestrate.py dispatch --headed --tier tier_1 --max 3 --allow-live-dispatch
+LINKEDIN_SEND_MODE=cli_gated uv run python -m career_job_search.recruiters.orchestrator dispatch --headed --tier tier_1 --max 3 --allow-live-dispatch
 ```
 
 Generated approval state is stored under `state/` and is intentionally gitignored.

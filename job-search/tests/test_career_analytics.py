@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from career_analytics import build_analytics
+from career_job_search.automation.analytics import build_analytics
 
 
 def _write_csv(path: Path, fields: list[str], rows: list[dict[str, str]]) -> None:

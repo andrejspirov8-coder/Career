@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-import notification_center as notifications
+from career_job_search.notifications import center as notifications
 
 NOW = datetime(2026, 7, 15, 8, 0, tzinfo=UTC)
 

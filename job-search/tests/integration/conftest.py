@@ -25,7 +25,7 @@ def dashboard_server() -> str:
         "CAREER_DASHBOARD_PORT": str(DASHBOARD_PORT),
     }
     proc = subprocess.Popen(
-        ["uv", "run", "python", "tools/dashboard_service.py", "--mode", "dev", "--port", str(DASHBOARD_PORT)],
+        ["uv", "run", "python", "-m", "career_job_search.workspace.dashboard_service", "--mode", "dev", "--port", str(DASHBOARD_PORT)],
         cwd=JOB_ROOT,
         env=env,
         stdout=subprocess.PIPE,
@@ -49,13 +49,30 @@ def dashboard_server() -> str:
     proc.wait(timeout=10)
 
 
+HELPER_MODULES = {
+    "automation_control": "career_job_search.automation.control",
+    "opportunity_dashboard": "career_job_search.opportunities.dashboard_adapter",
+    "recruiter_dashboard": "career_job_search.recruiters.dashboard_adapter",
+    "cv_catalogue": "career_job_search.cvs.catalogue_cli",
+    "cv_studio": "career_job_search.cvs.studio",
+    "local_drafting": "career_job_search.cvs.drafting",
+    "notification_center": "career_job_search.notifications.center",
+    "search_preferences": "career_job_search.opportunities.preferences",
+    "workspace_control": "career_job_search.workspace.control",
+    "career_analytics": "career_job_search.automation.analytics",
+}
+
+
 @pytest.fixture
 def python_helper() -> Callable[[str, list[str]], dict]:
     """Call a Python helper via subprocess and return parsed JSON envelope."""
 
     def _call(helper: str, args: list[str]) -> dict:
+        module = HELPER_MODULES.get(helper)
+        if module is None:
+            raise KeyError(f"Unknown helper: {helper}")
         result = subprocess.run(
-            ["uv", "run", "python", f"tools/{helper}.py", *args],
+            ["uv", "run", "python", "-m", module, *args],
             cwd=JOB_ROOT,
             capture_output=True,
             text=True,

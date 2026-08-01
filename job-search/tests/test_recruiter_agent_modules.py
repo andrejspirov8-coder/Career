@@ -2,26 +2,24 @@
 
 from __future__ import annotations
 
-import sys
 import unittest
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-TOOLS_DIR = Path(__file__).resolve().parents[1] / "tools"
-sys.path.insert(0, str(TOOLS_DIR))
-
-from recruiter_agent_context import outreach_context, supervisor_context  # noqa: E402
-from recruiter_agent_tools import (  # noqa: E402
+from career_job_search.recruiters.agent_context import (  # noqa: E402
+    outreach_context,
+    supervisor_context,
+)
+from career_job_search.recruiters.agent_tools import (  # noqa: E402
     _tool_count_chars,
     _tool_lookup_persona_stats,
     dispatch_tool_call,
     tools_for_agent,
 )
-from recruiter_agent_validators import (  # noqa: E402
+from career_job_search.recruiters.agent_validators import (  # noqa: E402
     validate_outreach_note,
     validate_supervisor_decision,
 )
-from recruiter_ollama_agents import (  # noqa: E402
+from career_job_search.recruiters.ollama_agents import (  # noqa: E402
     CompanyAnalysis,
     OutreachNote,
     SupervisorDecision,
@@ -29,7 +27,7 @@ from recruiter_ollama_agents import (  # noqa: E402
     analyze_company,
     polish_outreach_note,
 )
-from recruiter_ollama_client import (  # noqa: E402
+from career_job_search.recruiters.ollama_client import (  # noqa: E402
     invoke_with_tools,
     prompt_version,
     reset_circuit_breaker,
@@ -61,8 +59,8 @@ def _sample_cfg(*, use_tools: bool = False) -> dict:
 
 
 class TestAgentContext(unittest.TestCase):
-    @patch("recruiter_agent_context.load_persona_stats")
-    @patch("recruiter_agent_context.cv_context_blob")
+    @patch("career_job_search.recruiters.agent_context.load_persona_stats")
+    @patch("career_job_search.recruiters.agent_context.cv_context_blob")
     def test_outreach_context_includes_cv_excerpt_and_persona_rate(
         self, mock_cv: MagicMock, mock_stats: MagicMock
     ) -> None:
@@ -114,7 +112,7 @@ class TestAgentValidators(unittest.TestCase):
 
 
 class TestCompanyAnalystValidator(unittest.TestCase):
-    @patch("recruiter_ollama_agents.invoke_structured")
+    @patch("career_job_search.recruiters.ollama_agents.invoke_structured")
     def test_company_analyst_falls_back_when_validator_fails(
         self, mock_invoke: MagicMock
     ) -> None:
@@ -140,7 +138,7 @@ class TestAgentTools(unittest.TestCase):
     def test_count_chars_tool(self) -> None:
         self.assertEqual(_tool_count_chars("Hi  Jane"), "7")
 
-    @patch("recruiter_agent_tools.load_persona_stats")
+    @patch("career_job_search.recruiters.agent_tools.load_persona_stats")
     def test_lookup_persona_stats_tool(self, mock_stats: MagicMock) -> None:
         mock_stats.return_value = {
             "hiring_manager": {"sent": 3, "accepted": 1, "rate": 0.33}
@@ -153,8 +151,8 @@ class TestInvokeWithTools(unittest.TestCase):
     def setUp(self) -> None:
         reset_circuit_breaker()
 
-    @patch("recruiter_ollama_client._chat_ollama")
-    @patch("recruiter_ollama_client._invoke_with_retry")
+    @patch("career_job_search.recruiters.ollama_client._chat_ollama")
+    @patch("career_job_search.recruiters.ollama_client._invoke_with_retry")
     def test_invoke_with_tools_routes_tool_call_then_returns_structured(
         self, mock_retry: MagicMock, mock_chat: MagicMock
     ) -> None:
@@ -199,8 +197,8 @@ class TestInvokeWithTools(unittest.TestCase):
         assert result is not None
         self.assertIn("Jane", result.note)
 
-    @patch("recruiter_ollama_client.invoke_structured")
-    @patch("recruiter_ollama_client._chat_ollama")
+    @patch("career_job_search.recruiters.ollama_client.invoke_structured")
+    @patch("career_job_search.recruiters.ollama_client._chat_ollama")
     def test_supervisor_falls_back_to_invoke_structured_when_bind_tools_unsupported(
         self, mock_chat: MagicMock, mock_structured: MagicMock
     ) -> None:
@@ -221,9 +219,9 @@ class TestInvokeWithTools(unittest.TestCase):
         self.assertEqual(result.action, "review")
         mock_structured.assert_called_once()
 
-    @patch("recruiter_llm_trace.emit_event")
-    @patch("recruiter_ollama_client._chat_ollama")
-    @patch("recruiter_ollama_client._invoke_with_retry")
+    @patch("career_job_search.recruiters.llm_trace.emit_event")
+    @patch("career_job_search.recruiters.ollama_client._chat_ollama")
+    @patch("career_job_search.recruiters.ollama_client._invoke_with_retry")
     def test_tool_call_event_appears_in_trace(
         self, mock_retry: MagicMock, mock_chat: MagicMock, mock_emit: MagicMock
     ) -> None:
@@ -261,8 +259,8 @@ class TestInvokeWithTools(unittest.TestCase):
 
 
 class TestOutreachWriterToolsConfig(unittest.TestCase):
-    @patch("recruiter_ollama_agents.invoke_with_tools")
-    @patch("recruiter_ollama_agents.agent_enabled")
+    @patch("career_job_search.recruiters.ollama_agents.invoke_with_tools")
+    @patch("career_job_search.recruiters.ollama_agents.agent_enabled")
     def test_outreach_writer_uses_tools_when_configured(
         self, mock_enabled: MagicMock, mock_tools: MagicMock
     ) -> None:

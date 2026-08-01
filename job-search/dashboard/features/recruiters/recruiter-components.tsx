@@ -19,8 +19,8 @@ import type {
 } from '../../lib/recruiter-data'
 
 const fallbackCommands: Partial<Record<RecruiterRunActionName, string[]>> = {
-  preflight: ['python', 'tools/hiring_network_workflow.py', 'preflight'],
-  rank_existing: ['python', 'tools/hiring_network_workflow.py', 'rank'],
+  preflight: ['python', '-m', 'career_job_search.recruiters.hiring_network', 'preflight'],
+  rank_existing: ['python', '-m', 'career_job_search.recruiters.hiring_network', 'rank'],
 }
 
 export function firstNonEmptyView(overview: RecruiterOverview): SavedViewKey {

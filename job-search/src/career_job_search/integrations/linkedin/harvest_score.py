@@ -2,9 +2,9 @@
 """Score harvested LinkedIn profile stubs and append pipeline rows.
 
 Usage (from job-search/):
-  python3 tools/mcp_harvest_score.py --stdin
-  python3 tools/mcp_harvest_score.py pipeline/mcp_discovery_batch.jsonl
-  python3 tools/mcp_harvest_score.py pipeline/mcp_discovery_batch.jsonl --write-action-plan
+  python3 -m career_job_search.integrations.linkedin.harvest_score --stdin
+  python3 -m career_job_search.integrations.linkedin.harvest_score pipeline/mcp_discovery_batch.jsonl
+  python3 -m career_job_search.integrations.linkedin.harvest_score pipeline/mcp_discovery_batch.jsonl --write-action-plan
 """
 
 # ruff: noqa: E402

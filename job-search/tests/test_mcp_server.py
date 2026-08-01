@@ -8,9 +8,12 @@ from http.client import HTTPConnection
 from pathlib import Path
 from threading import Thread
 
-from linkedin_recruiter_bot import cfg_matching, load_config
-from recruiter_linkedin_paths import DEFAULT_LINKEDIN_CONFIG
-from recruiter_match import match_recruiter_profile, should_send_recruiter_connection
+from career_job_search.integrations.linkedin.campaign import cfg_matching, load_config
+from career_job_search.integrations.linkedin.paths import DEFAULT_LINKEDIN_CONFIG
+from career_job_search.recruiters.matching import (
+    match_recruiter_profile,
+    should_send_recruiter_connection,
+)
 
 
 def load_server_module():

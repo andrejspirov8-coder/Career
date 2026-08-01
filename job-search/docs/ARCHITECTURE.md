@@ -50,7 +50,7 @@ SQLite database; the architecture does not merge databases or migrate data.
 - Dashboard: `make dashboard-dev` or `make dashboard-start`.
 - Safe daily search: `make daily-queue`.
 - CV generation: `make rebuild-cvs`.
-- Recruiter review: `tools/recruiter_orchestrate.py` through `uv run python`.
+- Recruiter review: `career_job_search.recruiters.orchestrator` through `uv run python`.
 - Complete verification: `make verify-release`.
 
 ## Historical material

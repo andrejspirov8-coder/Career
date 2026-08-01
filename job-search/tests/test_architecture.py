@@ -14,9 +14,7 @@ from career_job_search.cvs.catalogue import load_cv_catalogue
 
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGE_ROOT = ROOT / "src" / "career_job_search"
-TOOLS_ROOT = ROOT / "tools"
 MAX_PRODUCTION_MODULE_LINES = 800
-MAX_TOOL_WRAPPER_LINES = 25
 
 
 def _module_name(path: Path) -> str:
@@ -29,7 +27,7 @@ def _module_name(path: Path) -> str:
 
 
 def _active_modules() -> dict[str, Path]:
-    paths = [*PACKAGE_ROOT.rglob("*.py"), *TOOLS_ROOT.glob("*.py")]
+    paths = [*PACKAGE_ROOT.rglob("*.py")]
     return {_module_name(path): path for path in paths}
 
 
@@ -102,24 +100,6 @@ def test_active_python_import_graph_has_no_static_cycles() -> None:
     assert not (found := _cycle(graph)), " -> ".join(found)
 
 
-def test_package_does_not_import_legacy_tool_modules() -> None:
-    legacy_names = {path.stem for path in TOOLS_ROOT.glob("*.py")}
-    violations: list[str] = []
-    for path in PACKAGE_ROOT.rglob("*.py"):
-        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Import):
-                names = [alias.name.split(".")[0] for alias in node.names]
-            elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
-                names = [node.module.split(".")[0]]
-            else:
-                continue
-            for name in names:
-                if name in legacy_names:
-                    violations.append(f"{path.relative_to(ROOT)} imports {name}")
-    assert violations == []
-
-
 def test_core_and_domain_models_respect_dependency_direction() -> None:
     modules = _active_modules()
     known = set(modules)
@@ -159,21 +139,11 @@ def test_core_and_domain_models_respect_dependency_direction() -> None:
 def test_production_python_modules_stay_bounded() -> None:
     violations: list[str] = []
     for path in _python_files(
-        [ROOT / "src", ROOT / "tools", ROOT / "cv", ROOT / "mcp"]
+        [ROOT / "src", ROOT / "cv", ROOT / "mcp"]
     ):
         line_count = len(path.read_text(encoding="utf-8").splitlines())
         if line_count > MAX_PRODUCTION_MODULE_LINES:
             violations.append(f"{path.relative_to(ROOT)}: {line_count} lines")
-    assert violations == []
-
-
-def test_tools_are_thin_compatibility_adapters() -> None:
-    violations = [
-        f"{path.relative_to(ROOT)}: {line_count} lines"
-        for path in sorted(TOOLS_ROOT.glob("*.py"))
-        if (line_count := len(path.read_text(encoding="utf-8").splitlines()))
-        > MAX_TOOL_WRAPPER_LINES
-    ]
     assert violations == []
 
 
@@ -198,7 +168,6 @@ def test_tracked_top_level_structure_is_expected() -> None:
         "src",
         "supabase",
         "tests",
-        "tools",
     }
     completed = subprocess.run(
         ["git", "ls-files"],
@@ -218,7 +187,7 @@ def test_tracked_top_level_structure_is_expected() -> None:
 
 def test_live_dispatch_limit_has_one_active_assignment() -> None:
     assignments: list[tuple[Path, object]] = []
-    for path in _python_files([ROOT / "src", ROOT / "tools", ROOT / "cv", ROOT / "mcp"]):
+    for path in _python_files([ROOT / "src", ROOT / "cv", ROOT / "mcp"]):
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
         for node in ast.walk(tree):
             if isinstance(node, ast.Assign):
@@ -257,7 +226,7 @@ def test_cv_catalogue_helper_uses_versioned_envelopes() -> None:
         filter(None, [str(ROOT / "src"), env.get("PYTHONPATH", "")])
     )
     completed = subprocess.run(
-        [sys.executable, str(ROOT / "tools" / "cv_catalogue.py")],
+        [sys.executable, "-m", "career_job_search.cvs.catalogue_cli"],
         cwd=ROOT,
         env=env,
         capture_output=True,

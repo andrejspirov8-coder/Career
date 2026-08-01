@@ -274,10 +274,10 @@ Agent logs blocker, closes session, reports to user.
 - `pipeline/recruiter_performance_report.md` → Analytics
 
 ### Tools Used
-- `tools/matching_lib.py` → Variant scoring engine
-- `tools/recruiter_match.py` → Profile → variant mapping
-- `tools/linkedin_selectors.py` → Playwright selectors, blocker detection
-- `tools/linkedin_recruiter_bot.py` → Browser automation (Playwright)
+- `career_job_search.cvs.matching` → Variant scoring engine
+- `career_job_search.recruiters.matching` → Profile → variant mapping
+- `career_job_search.integrations.linkedin.selectors` → Playwright selectors, blocker detection
+- `career_job_search.integrations.linkedin.campaign` → Browser automation (Playwright)
 
 ---
 
@@ -371,25 +371,25 @@ Recruiter responses mention: "team leadership", "client facing", "high-touch"
 
 ```bash
 # Preflight: validate CV paths, daily caps, browser status
-cd job-search && python3 tools/recruiter_orchestrate.py preflight --browse-status
+cd job-search && python3 -m career_job_search.recruiters.orchestrator preflight --browse-status
 
 # Daily chain: scout → plan → dispatch (dry-run by default)
-cd job-search && python3 tools/recruiter_orchestrate.py daily --headed --dry-run
+cd job-search && python3 -m career_job_search.recruiters.orchestrator daily --headed --dry-run
 
 # Scout only: discover and score new recruiters
-cd job-search && python3 tools/recruiter_orchestrate.py scout --headed
+cd job-search && python3 -m career_job_search.recruiters.orchestrator scout --headed
 
 # Plan: build dispatch queue from scout JSONL, filter by tier
-cd job-search && python3 tools/recruiter_orchestrate.py plan --tier tier_1
+cd job-search && python3 -m career_job_search.recruiters.orchestrator plan --tier tier_1
 
 # Dispatch: send connection requests (dry-run preview)
-cd job-search && python3 tools/recruiter_orchestrate.py dispatch --headed --tier tier_1 --dry-run
+cd job-search && python3 -m career_job_search.recruiters.orchestrator dispatch --headed --tier tier_1 --dry-run
 
 # Live dispatch requires explicit approval after manual review
-cd job-search && python3 tools/recruiter_orchestrate.py dispatch --headed --tier tier_1 --allow-live-dispatch
+cd job-search && python3 -m career_job_search.recruiters.orchestrator dispatch --headed --tier tier_1 --allow-live-dispatch
 
 # Full end-to-end via hiring network LangGraph pipeline
-cd job-search && python3 tools/hiring_network_workflow.py graph run --full-auto --headed
+cd job-search && python3 -m career_job_search.recruiters.hiring_network graph run --full-auto --headed
 
 # Or using Makefile convenience targets:
 cd job-search && make daily-dry

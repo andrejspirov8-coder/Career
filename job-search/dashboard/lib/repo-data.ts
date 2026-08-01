@@ -243,14 +243,14 @@ function workflowChecks(): WorkflowCheck[] {
     },
     {
       label: 'Recruiter preflight',
-      command: 'python tools/recruiter_orchestrate.py preflight --browse-status',
-      available: existsSync(join(repoRoot, 'tools', 'recruiter_orchestrate.py')),
+      command: 'python -m career_job_search.recruiters.orchestrator preflight --browse-status',
+      available: existsSync(join(repoRoot, 'src', 'career_job_search', 'recruiters', 'orchestrator.py')),
       detail: 'reads repo state files',
     },
     {
       label: 'Batch matching',
-      command: 'python tools/batch_match_and_pack.py --dry-run',
-      available: existsSync(join(repoRoot, 'tools', 'batch_match_and_pack.py')),
+      command: 'python -m career_job_search.opportunities.batch --dry-run',
+      available: existsSync(join(repoRoot, 'src', 'career_job_search', 'opportunities', 'batch.py')),
       detail: 'generates packs and summaries',
     },
   ]

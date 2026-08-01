@@ -15,7 +15,7 @@ echo "[verify-patch] running full test suite"
 uv run --group dev pytest -q
 
 echo "[verify-patch] running recruiter preflight"
-uv run --group dev python tools/recruiter_orchestrate.py preflight --browse-status
+uv run --group dev python -m career_job_search.recruiters.orchestrator preflight --browse-status
 
 echo "[verify-patch] rebuilding CVs"
 uv run --group dev python cv/build_cv_pdf.py --all

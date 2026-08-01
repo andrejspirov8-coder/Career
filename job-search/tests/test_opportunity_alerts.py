@@ -5,12 +5,12 @@ from datetime import UTC, datetime
 
 import pytest
 
-from opportunity_alerts import (
+from career_job_search.opportunities.alerts import (
     AlertPayloadError,
     load_alert_payloads,
     opportunities_from_alert,
 )
-from opportunity_models import OpportunitySourceKind
+from career_job_search.opportunities.models import OpportunitySourceKind
 
 NOW = datetime(2026, 7, 8, 9, 0, tzinfo=UTC)
 

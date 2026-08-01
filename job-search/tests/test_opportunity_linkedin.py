@@ -4,7 +4,7 @@ from urllib.parse import parse_qs, urlsplit
 
 import pytest
 
-from opportunity_linkedin import (
+from career_job_search.integrations.linkedin.opportunities import (
     access_block_reason,
     build_search_url,
     canonical_job_url,

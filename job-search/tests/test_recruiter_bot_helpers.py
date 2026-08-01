@@ -2,18 +2,14 @@
 
 from __future__ import annotations
 
-import sys
 import unittest
 from pathlib import Path
 
-TOOLS_DIR = Path(__file__).resolve().parents[1] / "tools"
-sys.path.insert(0, str(TOOLS_DIR))
-
-import linkedin_recruiter_bot as bot  # noqa: E402
-import linkedin_selectors as lis  # noqa: E402
-import recruiter_log as rlog  # noqa: E402
-import recruiter_match as rm  # noqa: E402
-import recruiter_orchestrate as orch  # noqa: E402
+from career_job_search.integrations.linkedin import campaign as bot  # noqa: E402
+from career_job_search.integrations.linkedin import selectors as lis  # noqa: E402
+from career_job_search.recruiters import log as rlog  # noqa: E402
+from career_job_search.recruiters import matching as rm  # noqa: E402
+from career_job_search.recruiters import orchestrator as orch  # noqa: E402
 
 
 class TestCanonicalProfileUrls(unittest.TestCase):

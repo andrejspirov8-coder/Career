@@ -40,10 +40,11 @@ UNSAFE_COMMAND_TOKENS = frozenset(
     {"--allow-live-dispatch", "--full-auto", "--auto-send"}
 )
 SAFE_ACTIONS: dict[str, list[str]] = {
-    "preflight": [sys.executable, "tools/hiring_network_workflow.py", "preflight"],
+    "preflight": [sys.executable, "-m", "career_job_search.recruiters.hiring_network", "preflight"],
     "search_rank": [
         sys.executable,
-        "tools/hiring_network_workflow.py",
+        "-m",
+        "career_job_search.recruiters.hiring_network",
         "graph",
         "run",
         "--dry-run",
@@ -52,12 +53,14 @@ SAFE_ACTIONS: dict[str, list[str]] = {
     ],
     "rank_existing": [
         sys.executable,
-        "tools/hiring_network_workflow.py",
+        "-m",
+        "career_job_search.recruiters.hiring_network",
         "rank",
     ],
     "dispatch_dry_run": [
         sys.executable,
-        "tools/hiring_network_workflow.py",
+        "-m",
+        "career_job_search.recruiters.hiring_network",
         "dispatch",
         "--dry-run",
         "--max",

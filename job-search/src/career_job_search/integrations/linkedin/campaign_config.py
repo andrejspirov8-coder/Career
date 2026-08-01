@@ -195,7 +195,7 @@ def _profile_in_use_exit_message(*, channel: str | None, exc: BaseException) -> 
         "- Sign in inside the bot's Chrome window only — Cursor's Glass/browser panel is a "
         "separate session and will not save login here.\n"
         "- Quit any leftover automation Chrome from a previous run, then retry with --headed.\n"
-        "- Run: python3 tools/recruiter_orchestrate.py preflight  (clears stale locks)\n"
+        "- Run: python3 -m career_job_search.recruiters.orchestrator preflight  (clears stale locks)\n"
         "- Or set browser.channel: chromium in linkedin/config.yaml\n"
         f"Details: {exc}"
     )

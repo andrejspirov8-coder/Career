@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from recruiter_models import WorkflowMode, WorkflowStage
-from recruiter_run_state import (
+from career_job_search.recruiters.run_state import (
     advance_snapshot_stage,
     initial_snapshot,
     load_run_state,
@@ -10,7 +9,8 @@ from recruiter_run_state import (
     save_snapshot,
     snapshot_run_id,
 )
-from recruiter_workflow import initialise_run_state
+from career_job_search.recruiters.workflow import initialise_run_state
+from career_job_search.recruiters.workflow_models import WorkflowMode, WorkflowStage
 
 
 def test_save_and_load_run_state(tmp_path):

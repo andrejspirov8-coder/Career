@@ -5,8 +5,8 @@ from types import SimpleNamespace
 
 import pytest
 
-import local_drafting as drafting
-from opportunity_models import OpportunityEvidence
+from career_job_search.cvs import drafting as drafting
+from career_job_search.opportunities.models import OpportunityEvidence
 
 
 def test_local_drafting_defaults_off_and_uses_loopback_only(

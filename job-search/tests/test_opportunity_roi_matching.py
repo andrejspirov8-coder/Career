@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from opportunity_match import match_opportunity
-from opportunity_models import (
+from career_job_search.opportunities.matching import match_opportunity
+from career_job_search.opportunities.models import (
     Opportunity,
     OpportunitySourceKind,
     OpportunityStatus,

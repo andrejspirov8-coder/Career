@@ -7,9 +7,9 @@ from pathlib import Path
 
 import pytest
 
-import opportunity_state as state
-from opportunity_browser import opportunity_from_browser_job
-from opportunity_models import (
+from career_job_search.opportunities import repository as state
+from career_job_search.opportunities.browser import opportunity_from_browser_job
+from career_job_search.opportunities.models import (
     Opportunity,
     OpportunityPack,
     OpportunitySourceKind,

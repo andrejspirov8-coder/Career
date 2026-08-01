@@ -3,16 +3,12 @@
 from __future__ import annotations
 
 import json
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-TOOLS_DIR = Path(__file__).resolve().parents[1] / "tools"
-sys.path.insert(0, str(TOOLS_DIR))
-
-from recruiter_llm_trace import (  # noqa: E402
+from career_job_search.recruiters.llm_trace import (  # noqa: E402
     AgentCallTrace,
     emit_event,
     trace_enabled,
@@ -51,7 +47,7 @@ class TestLlmTrace(unittest.TestCase):
             self.assertEqual(row["agent"], "outreach_writer")
             self.assertEqual(row["output"]["note"], "Hello")
 
-    @patch("recruiter_llm_trace._print_event")
+    @patch("career_job_search.recruiters.llm_trace._print_event")
     def test_agent_call_trace_success(self, mock_print) -> None:
         cfg = {"llm": {"verbose": True, "trace": False}}
         with AgentCallTrace(

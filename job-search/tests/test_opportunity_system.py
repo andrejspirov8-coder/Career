@@ -8,15 +8,18 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from opportunity_dashboard import (
+from career_job_search.opportunities.dashboard_adapter import (
     build_opportunity_detail,
     build_opportunity_overview,
     build_weekly_roi_summary,
     record_opportunity_action,
 )
-from opportunity_live import apply_daily_live_gate, classify_live_page
-from opportunity_match import match_opportunities
-from opportunity_models import (
+from career_job_search.opportunities.live import (
+    apply_daily_live_gate,
+    classify_live_page,
+)
+from career_job_search.opportunities.matching import match_opportunities
+from career_job_search.opportunities.models import (
     Opportunity,
     OpportunityMatch,
     OpportunitySourceKind,
@@ -24,20 +27,20 @@ from opportunity_models import (
     next_action_for_opportunity,
     utc_now_iso,
 )
-from opportunity_orchestrate import main as opportunity_main
-from opportunity_sources import (
-    dedupe_opportunities,
-    discover_opportunities,
-    normalize_ats_posting,
-)
-from opportunity_state import (
+from career_job_search.opportunities.orchestrator import main as opportunity_main
+from career_job_search.opportunities.repository import (
     get_opportunity,
     init_db,
     list_opportunities,
     mark_unseen_opportunities_expired,
     upsert_opportunities,
 )
-from opportunity_text import (
+from career_job_search.opportunities.sources import (
+    dedupe_opportunities,
+    discover_opportunities,
+    normalize_ats_posting,
+)
+from career_job_search.opportunities.text import (
     clean_opportunity_text,
     extract_deadline,
     extract_salary_text,
@@ -147,7 +150,7 @@ def test_live_ats_adapter_respects_source_caps(monkeypatch: pytest.MonkeyPatch) 
             ]
         }
 
-    monkeypatch.setattr("opportunity_sources.fetch_json", fake_fetch_json)
+    monkeypatch.setattr("career_job_search.opportunities.sources.fetch_json", fake_fetch_json)
 
     discovered = discover_opportunities(
         {
@@ -233,7 +236,7 @@ def test_live_ats_adapters_discover_public_postings_without_applying(
             }
         raise AssertionError(f"Unexpected URL: {url}")
 
-    monkeypatch.setattr("opportunity_sources.fetch_json", fake_fetch_json)
+    monkeypatch.setattr("career_job_search.opportunities.sources.fetch_json", fake_fetch_json)
 
     discovered = discover_opportunities(
         {
@@ -615,7 +618,7 @@ def test_current_browser_verified_linkedin_job_skips_cookie_less_http_check(
             "browser-verified LinkedIn row was rechecked without cookies"
         )
 
-    monkeypatch.setattr("opportunity_live.fetch_public_page_text", should_not_fetch)
+    monkeypatch.setattr("career_job_search.opportunities.live.fetch_public_page_text", should_not_fetch)
 
     checked = apply_daily_live_gate([row], fresh_dedupe_keys=[])
 
@@ -663,7 +666,7 @@ def test_daily_live_gate_marks_ats_live_and_manual_closed(
         return 200, "Negalioja Skelbimas neaktyvus CV siųsti nebegalite PANDORA"
 
     monkeypatch.setattr(
-        "opportunity_live.fetch_public_page_text", fake_fetch_public_page_text
+        "career_job_search.opportunities.live.fetch_public_page_text", fake_fetch_public_page_text
     )
 
     gated = apply_daily_live_gate(

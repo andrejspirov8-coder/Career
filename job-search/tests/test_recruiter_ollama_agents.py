@@ -2,15 +2,10 @@
 
 from __future__ import annotations
 
-import sys
 import unittest
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-TOOLS_DIR = Path(__file__).resolve().parents[1] / "tools"
-sys.path.insert(0, str(TOOLS_DIR))
-
-from recruiter_ollama_agents import (  # noqa: E402
+from career_job_search.recruiters.ollama_agents import (  # noqa: E402
     OUTREACH_SYSTEM,
     SUPERVISOR_SYSTEM,
     CompanyAnalysis,
@@ -26,14 +21,14 @@ from recruiter_ollama_agents import (  # noqa: E402
     polish_outreach_note,
     supervise_row,
 )
-from recruiter_ollama_client import (  # noqa: E402
+from career_job_search.recruiters.ollama_client import (  # noqa: E402
     agent_enabled,
     health_check,
     llm_enabled,
     resolve_chat_model,
 )
-from recruiter_ollama_embed import blend_cv_score  # noqa: E402
-from recruiter_web_research import WebSearchHit  # noqa: E402
+from career_job_search.recruiters.ollama_embed import blend_cv_score  # noqa: E402
+from career_job_search.recruiters.web_research import WebSearchHit  # noqa: E402
 
 
 def _sample_cfg(*, enabled: bool = True) -> dict:
@@ -84,7 +79,7 @@ class TestPydanticSchemas(unittest.TestCase):
 
 
 class TestDiscoveryAgentMocked(unittest.TestCase):
-    @patch("recruiter_ollama_agents.invoke_structured")
+    @patch("career_job_search.recruiters.ollama_agents.invoke_structured")
     def test_batch_extraction(self, mock_invoke: MagicMock) -> None:
         mock_invoke.return_value = DiscoveryBatchResult(
             candidates=[
@@ -111,7 +106,7 @@ class TestDiscoveryAgentMocked(unittest.TestCase):
         self.assertEqual(len(out), 1)
         self.assertIn("linkedin.com/in/", out[0].profile_url)
 
-    @patch("recruiter_ollama_agents.invoke_structured")
+    @patch("career_job_search.recruiters.ollama_agents.invoke_structured")
     def test_fallback_when_llm_returns_none(self, mock_invoke: MagicMock) -> None:
         mock_invoke.return_value = None
         hits = [WebSearchHit(title="Test", url="https://example.com", snippet="x")]
@@ -122,7 +117,7 @@ class TestDiscoveryAgentMocked(unittest.TestCase):
 
 
 class TestCompanyAnalystMocked(unittest.TestCase):
-    @patch("recruiter_ollama_agents.invoke_structured")
+    @patch("career_job_search.recruiters.ollama_agents.invoke_structured")
     def test_analyze_company(self, mock_invoke: MagicMock) -> None:
         mock_invoke.return_value = CompanyAnalysis(
             relevance_0_100=72,
@@ -142,7 +137,7 @@ class TestCompanyAnalystMocked(unittest.TestCase):
 
 
 class TestOutreachWriterMocked(unittest.TestCase):
-    @patch("recruiter_ollama_agents.invoke_structured")
+    @patch("career_job_search.recruiters.ollama_agents.invoke_structured")
     def test_polish_note(self, mock_invoke: MagicMock) -> None:
         mock_invoke.return_value = OutreachNote(
             note="Hi Lina, I am exploring premium retail leadership around Vilnius. "
@@ -165,7 +160,7 @@ class TestOutreachWriterMocked(unittest.TestCase):
 
 
 class TestSupervisorMocked(unittest.TestCase):
-    @patch("recruiter_ollama_agents.invoke_structured")
+    @patch("career_job_search.recruiters.ollama_agents.invoke_structured")
     def test_supervise_row_uses_heavy_model_flag(self, mock_invoke: MagicMock) -> None:
         mock_invoke.return_value = SupervisorDecision(
             action="approved", reason="clear retail fit"
@@ -204,7 +199,7 @@ class TestHealthCheck(unittest.TestCase):
 
 
 class TestNoLlmPipeline(unittest.TestCase):
-    @patch("recruiter_ollama_agents.invoke_structured")
+    @patch("career_job_search.recruiters.ollama_agents.invoke_structured")
     def test_disabled_llm_skips_agents(self, mock_invoke: MagicMock) -> None:
         cfg = _sample_cfg(enabled=False)
         hits = [WebSearchHit(title="T", url="https://linkedin.com/in/x/", snippet="s")]
@@ -220,7 +215,7 @@ class TestPromptParity(unittest.TestCase):
 
     def setUp(self) -> None:
         # Clear lru_cache so _prompts_raw reads fresh from disk
-        from recruiter_ollama_agents import _prompts_raw
+        from career_job_search.recruiters.ollama_agents import _prompts_raw
         _prompts_raw.cache_clear()
 
     def test_all_yaml_agents_have_fallback(self) -> None:

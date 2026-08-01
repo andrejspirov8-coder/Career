@@ -4,7 +4,7 @@ Sync LinkedIn invitation + messaging signals into pipeline/recruiters.csv (read-
 
 Run from `job-search/` (logged-in automation Chrome profile):
 
-  python3 tools/linkedin_followup.py --headed
+  python3 -m career_job_search.integrations.linkedin.followup --headed
 
 Requires the same PyYAML + Playwright setup as linkedin_recruiter_bot.py.
 """

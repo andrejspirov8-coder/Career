@@ -2,17 +2,16 @@
 
 from __future__ import annotations
 
-import sys
 import unittest
-from pathlib import Path
 
-TOOLS_DIR = Path(__file__).resolve().parents[1] / "tools"
-sys.path.insert(0, str(TOOLS_DIR))
-
-import hiring_network_workflow as hn  # noqa: E402
-from recruiter_discovery_bridge import validated_to_scout_records  # noqa: E402
-from recruiter_discovery_csv import validated_row_partial  # noqa: E402
-from recruiter_profile_enrich import (  # noqa: E402
+from career_job_search.recruiters import hiring_network as hn  # noqa: E402
+from career_job_search.recruiters.discovery_bridge import (
+    validated_to_scout_records,  # noqa: E402
+)
+from career_job_search.recruiters.discovery_csv import (
+    validated_row_partial,  # noqa: E402
+)
+from career_job_search.recruiters.profile_enrichment import (  # noqa: E402
     enrich_validated_rows,
     parse_exa_profile_text,
 )
@@ -75,7 +74,9 @@ class TestProfileEnrichment(unittest.TestCase):
         self.assertIn("Apranga", str(records[0].get("role_text")))
 
     def test_company_about_prefers_headline_for_role(self) -> None:
-        from recruiter_profile_enrich import parse_exa_profile_text
+        from career_job_search.recruiters.profile_enrichment import (
+            parse_exa_profile_text,
+        )
 
         text = (
             "# Tatyana Gorelova\n\n"

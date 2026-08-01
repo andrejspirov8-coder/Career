@@ -3,27 +3,27 @@
 > Safety update: live LinkedIn connection dispatch is review-first and blocked by default. Use `--dry-run` for queue review. Normal operation is manual: open the profile, copy the approved note, and record the outcome. Browser-click dispatch requires `LINKEDIN_SEND_MODE=cli_gated`, an explicit `--max 1..3`, `--allow-live-dispatch`, and a matching approval for the exact note hash.
 
 
-This mini-app drives **your installed Google Chrome** via Playwright (default) or **Chrome + the Cursor `browse` CLI** when `browser.backend: browse_ws`, searches LinkedIn People for recruiters/staffers, scores each profile with **sector keywords + your CV keyword matcher** (see [`../tools/recruiter_match.py`](../tools/recruiter_match.py)), and prepares short, personalized notes for human review.
+This mini-app drives **your installed Google Chrome** via Playwright (default) or **Chrome + the Cursor `browse` CLI** when `browser.backend: browse_ws`, searches LinkedIn People for recruiters/staffers, scores each profile with **sector keywords + your CV keyword matcher** (see [`career_job_search.recruiters.matching`](../src/career_job_search/recruiters/matching.py)), and prepares short, personalized notes for human review.
 
-Primary day driver is now **`tools/recruiter_orchestrate.py`** (`scout` writes `pipeline/recruiter_action_plan.jsonl`, `plan` builds `pipeline/recruiter_session_state.json`, `dispatch` replays queued URLs directly). Legacy single-entry launcher: `linkedin_recruiter_bot.py` (calls the same engine).
+Primary day driver is now **`career_job_search.recruiters.orchestrator`** (`scout` writes `pipeline/recruiter_action_plan.jsonl`, `plan` builds `pipeline/recruiter_session_state.json`, `dispatch` replays queued URLs directly). Legacy single-entry launcher: `linkedin_recruiter_bot.py` (calls the same engine).
 
 ### Orchestrator shortcuts
 
 ```bash
 cd job-search
-python3 tools/recruiter_orchestrate.py preflight
-python3 tools/recruiter_orchestrate.py scout --headed
-python3 tools/recruiter_orchestrate.py plan --tier tier_1
-python3 tools/recruiter_orchestrate.py dispatch --headed --tier tier_1 --dry-run
-python3 tools/recruiter_orchestrate.py daily --headed --dry-run
-python3 tools/recruiter_orchestrate.py daily --headed --dry-run --dispatch-tier tier_1 --max-dispatch 3
-python3 tools/recruiter_orchestrate.py followup --headed   # wrappers around linkedin_followup.py
-python3 tools/recruiter_orchestrate.py report              # wraps recruiter_performance.py
+python3 -m career_job_search.recruiters.orchestrator preflight
+python3 -m career_job_search.recruiters.orchestrator scout --headed
+python3 -m career_job_search.recruiters.orchestrator plan --tier tier_1
+python3 -m career_job_search.recruiters.orchestrator dispatch --headed --tier tier_1 --dry-run
+python3 -m career_job_search.recruiters.orchestrator daily --headed --dry-run
+python3 -m career_job_search.recruiters.orchestrator daily --headed --dry-run --dispatch-tier tier_1 --max-dispatch 3
+python3 -m career_job_search.recruiters.orchestrator followup --headed   # wrappers around linkedin_followup.py
+python3 -m career_job_search.recruiters.orchestrator report              # wraps recruiter_performance.py
 ```
 
 ### Agentic hiring-network workflow
 
-`tools/hiring_network_workflow.py` ranks recruiters plus hiring managers, area managers,
+`career_job_search.recruiters.hiring_network` ranks recruiters plus hiring managers, area managers,
 regional managers, store directors, operations directors, HR leaders, and IT/business
 leaders before dispatch. It writes a separate ranked plan and reuses the same Playwright
 sender only after the safety governor approves a record.
@@ -31,12 +31,12 @@ sender only after the safety governor approves a record.
 ```bash
 cd job-search
 source .venv/bin/activate
-python tools/hiring_network_workflow.py preflight
-python tools/hiring_network_workflow.py daily --headed --dry-run
-python tools/hiring_network_workflow.py daily --headed --auto-send --dry-run
-python tools/hiring_network_workflow.py dispatch --dry-run --tier auto_send --max 3
-LINKEDIN_SEND_MODE=cli_gated python tools/hiring_network_workflow.py dispatch --tier auto_send --max 3 --allow-live-dispatch
-python tools/hiring_network_workflow.py report
+python -m career_job_search.recruiters.hiring_network preflight
+python -m career_job_search.recruiters.hiring_network daily --headed --dry-run
+python -m career_job_search.recruiters.hiring_network daily --headed --auto-send --dry-run
+python -m career_job_search.recruiters.hiring_network dispatch --dry-run --tier auto_send --max 3
+LINKEDIN_SEND_MODE=cli_gated python -m career_job_search.recruiters.hiring_network dispatch --tier auto_send --max 3 --allow-live-dispatch
+python -m career_job_search.recruiters.hiring_network report
 ```
 
 The workflow uses Pydantic schemas for strict profile/persona/CV/ranking outputs and
@@ -58,24 +58,24 @@ cd job-search
 source .venv/bin/activate
 
 # Full graph (dispatch dry-run by default)
-python3 tools/hiring_network_workflow.py graph run --dry-run
+python3 -m career_job_search.recruiters.hiring_network graph run --dry-run
 
 # Rules-only (skip Ollama)
-python3 tools/hiring_network_workflow.py graph run --dry-run --no-llm
+python3 -m career_job_search.recruiters.hiring_network graph run --dry-run --no-llm
 
 # Full queue build with LLM notes; live send stays blocked unless cli_gated is set
-python3 tools/hiring_network_workflow.py graph run --dry-run --headed --max 3
+python3 -m career_job_search.recruiters.hiring_network graph run --dry-run --headed --max 3
 
 # Stage by stage
-python3 tools/hiring_network_workflow.py graph run --stage discovery
-python3 tools/recruiter_company_validate.py
-python3 tools/hiring_network_workflow.py graph run --stage rank
-python3 tools/hiring_network_workflow.py graph run --stage dispatch --dry-run --max 3
+python3 -m career_job_search.recruiters.hiring_network graph run --stage discovery
+python3 -m career_job_search.recruiters.company_validation
+python3 -m career_job_search.recruiters.hiring_network graph run --stage rank
+python3 -m career_job_search.recruiters.hiring_network graph run --stage dispatch --dry-run --max 3
 
 # Bridge validated CSV manually
-python3 tools/hiring_network_workflow.py bridge --write-action-plan
-python3 tools/hiring_network_workflow.py rank
-python3 tools/hiring_network_workflow.py dispatch --dry-run
+python3 -m career_job_search.recruiters.hiring_network bridge --write-action-plan
+python3 -m career_job_search.recruiters.hiring_network rank
+python3 -m career_job_search.recruiters.hiring_network dispatch --dry-run
 ```
 
 Web research backends: `EXA_API_KEY` (Exa API) or `firecrawl` CLI. Config blocks: `web_discovery`, `company_validation` in [`config.yaml`](config.yaml). Discovery defaults to **Vilnius-only** (`geo_scope: vilnius`, `require_geo_match: true`). Offline/tests: `--backend offline`.
@@ -92,7 +92,7 @@ When `llm.enabled: true` in [`config.yaml`](config.yaml), four **local Ollama ag
 ollama serve   # if not already running
 ollama pull qwen3.5:35b-a3b-fast
 ollama pull nomic-embed-text:latest
-python3 tools/recruiter_ollama_client.py --health
+python3 -m career_job_search.recruiters.ollama_client --health
 ```
 
 | Agent | Model (default) | Role |
@@ -103,7 +103,7 @@ python3 tools/recruiter_ollama_client.py --health
 | Supervisor | `qwen3.5:35b-a3b-fast` | Resolve `review` rows only (`qwen3.6:latest` for ≤5 hard cases) |
 | CV embedder | `nomic-embed-text:latest` | Optional embedding blend in CV match |
 
-Disable LLM for one run: `python3 tools/hiring_network_workflow.py graph run --no-llm --dry-run` or set `llm.enabled: false`. If Ollama is down, `fallback_to_rules: true` keeps the pipeline running on rules alone.
+Disable LLM for one run: `python3 -m career_job_search.recruiters.hiring_network graph run --no-llm --dry-run` or set `llm.enabled: false`. If Ollama is down, `fallback_to_rules: true` keeps the pipeline running on rules alone.
 
 **Agent tracing:** add `--verbose-llm` to print each agent's input/output to the terminal, or set `llm.verbose: true` / `llm.trace: true` in config. Trace file: `pipeline/llm_trace.jsonl` (one JSON object per agent call).
 
@@ -134,8 +134,8 @@ Disable LLM for one run: `python3 tools/hiring_network_workflow.py graph run --n
 **Learning loop:** after `linkedin_followup.py` runs, `pipeline/persona_stats.json` is refreshed. When `automation.use_persona_stats: true`, ranking boosts personas with higher accept rates. View stats:
 
 ```bash
-python3 tools/recruiter_performance.py --persona-stats
-python3 tools/hiring_network_workflow.py report --persona-stats
+python3 -m career_job_search.recruiters.performance --persona-stats
+python3 -m career_job_search.recruiters.hiring_network report --persona-stats
 ```
 
 `dispatch --dry-run` is local-only: it previews the approved queue and final notes without
@@ -156,7 +156,7 @@ Artifacts:
 
 By default [`config.yaml`](config.yaml) sets `browser.channel: chrome`. That launches **Google Chrome from your Mac** (the same app you use day to day), with a **separate profile folder** at `linkedin/.browser-profile/` so the bot does not touch your normal Chrome bookmarks/history.
 
-**Before each run:** quit any **leftover automation Chrome** from a previous bot run (the window that used `linkedin/.browser-profile/`). Your normal everyday Chrome can stay open — the bot uses a separate profile folder. If launch fails with “profile already in use”, run `python3 tools/recruiter_orchestrate.py preflight` to clear a stale lock.
+**Before each run:** quit any **leftover automation Chrome** from a previous bot run (the window that used `linkedin/.browser-profile/`). Your normal everyday Chrome can stay open — the bot uses a separate profile folder. If launch fails with “profile already in use”, run `python3 -m career_job_search.recruiters.orchestrator preflight` to clear a stale lock.
 
 To fall back to Playwright’s bundled Chromium (old behaviour):
 
@@ -174,7 +174,7 @@ Keeps **`linkedin/.browser-profile/`** in sync with Playwright launches a dedica
 ## Risks you accept by running it
 
 - **LinkedIn may restrict your account** (limits on invites, temporary blocks, checkpoints). Automated outreach conflicts with LinkedIn’s normal-use expectations.
-- **The UI breaks when LinkedIn ships layout changes.** You may need small edits under [`tools/linkedin_selectors.py`](../tools/linkedin_selectors.py).
+- **The UI breaks when LinkedIn ships layout changes.** You may need small edits under [`selectors.py`](../src/career_job_search/integrations/linkedin/selectors.py).
 - **You are accountable for message content.** Review templates in [`config.yaml`](config.yaml).
 
 **What could go wrong:** Your account lands on “verify identity” mid-run; invitations go to mismatched contacts if scoring thresholds are wrong; CSV/history grows on disk (local only).
@@ -203,8 +203,8 @@ The bot **does** remember LinkedIn login — but only inside its own Chrome prof
 2. From `job-search/`, run:
 
    ```bash
-   python3 tools/recruiter_orchestrate.py preflight
-   python3 tools/linkedin_recruiter_bot.py --headed --dry-run
+   python3 -m career_job_search.recruiters.orchestrator preflight
+   python3 -m career_job_search.integrations.linkedin.campaign --headed --dry-run
    ```
 
 3. When the **automation Chrome window** opens (not Cursor’s Glass/browser panel), sign in to LinkedIn and complete any verification.
@@ -225,7 +225,7 @@ The bot **does** remember LinkedIn login — but only inside its own Chrome prof
 **Check session health:**
 
 ```bash
-python3 tools/recruiter_orchestrate.py preflight
+python3 -m career_job_search.recruiters.orchestrator preflight
 ```
 
 Look for `Saved session cookies: yes` and `Profile lock: unlocked`.
@@ -245,11 +245,11 @@ MCP/Glass browser and `linkedin/.browser-profile/` are **different logins**. Sig
 
 ```bash
 cd job-search
-python3 tools/hiring_network_workflow.py rank
+python3 -m career_job_search.recruiters.hiring_network rank
 # MCP: filtered People search → pipeline/mcp_discovery_batch.jsonl
-python3 tools/mcp_harvest_score.py pipeline/mcp_discovery_batch.jsonl --write-action-plan
-python3 tools/hiring_network_workflow.py rank
-python3 tools/hiring_network_workflow.py dispatch --tier queue_review --max 3 --dry-run
+python3 -m career_job_search.integrations.linkedin.harvest_score pipeline/mcp_discovery_batch.jsonl --write-action-plan
+python3 -m career_job_search.recruiters.hiring_network rank
+python3 -m career_job_search.recruiters.hiring_network dispatch --tier queue_review --max 3 --dry-run
 ```
 
 Dispatch approved rows from `pipeline/hiring_network_action_plan.jsonl` using the frozen `note` field (≤280 chars).
@@ -258,28 +258,28 @@ Dispatch approved rows from `pipeline/hiring_network_action_plan.jsonl` using th
 
 ```bash
 cd job-search
-python3 tools/recruiter_orchestrate.py preflight
-python3 tools/hiring_network_workflow.py daily --headed --dry-run
-python3 tools/hiring_network_workflow.py dispatch --tier queue_review --max 3 --dry-run
+python3 -m career_job_search.recruiters.orchestrator preflight
+python3 -m career_job_search.recruiters.hiring_network daily --headed --dry-run
+python3 -m career_job_search.recruiters.hiring_network dispatch --tier queue_review --max 3 --dry-run
 ```
 
 Or one command:
 
 ```bash
-python3 tools/recruiter_orchestrate.py daily --mode hiring_network --headed --dry-run
+python3 -m career_job_search.recruiters.orchestrator daily --mode hiring_network --headed --dry-run
 ```
 
 Legacy tier-only path (`scout → plan → dispatch`) still works:
 
 ```bash
-python3 tools/linkedin_recruiter_bot.py --headed --dry-run
+python3 -m career_job_search.integrations.linkedin.campaign --headed --dry-run
 ```
 
 Legacy browser-click pilot, only after switching to `LINKEDIN_SEND_MODE=cli_gated`
 and approving the exact note:
 
 ```bash
-LINKEDIN_SEND_MODE=cli_gated python3 tools/hiring_network_workflow.py dispatch --tier auto_send --max 1 --allow-live-dispatch
+LINKEDIN_SEND_MODE=cli_gated python3 -m career_job_search.recruiters.hiring_network dispatch --tier auto_send --max 1 --allow-live-dispatch
 ```
 
 Default operation is manual. Open the profile, copy the approved note, send it
@@ -287,7 +287,7 @@ yourself, and record the outcome locally. Do not treat browser-click dispatch as
 the normal daily path.
 
 ```bash
-python3 tools/hiring_network_workflow.py dispatch --dry-run --tier queue_review --max 3
+python3 -m career_job_search.recruiters.hiring_network dispatch --dry-run --tier queue_review --max 3
 ```
 
 ### Flags
@@ -313,7 +313,7 @@ Close the loop so you can tune thresholds against real outcomes:
 
 ```bash
 cd job-search
-python3 tools/linkedin_followup.py --headed
+python3 -m career_job_search.integrations.linkedin.followup --headed
 ```
 
 This opens **Sent invitations** and **Messaging**, then updates `accepted_at`, `reply_at`, and `reply_excerpt` in `recruiters.csv` (best-effort heuristics; UI changes can break detection).
@@ -321,9 +321,9 @@ This opens **Sent invitations** and **Messaging**, then updates `accepted_at`, `
 Weekly funnel summary:
 
 ```bash
-python3 tools/recruiter_performance.py
-python3 tools/recruiter_performance.py --by-persona
-python3 tools/hiring_network_workflow.py report
+python3 -m career_job_search.recruiters.performance
+python3 -m career_job_search.recruiters.performance --by-persona
+python3 -m career_job_search.recruiters.hiring_network report
 ```
 
 ### Pacing and caps
@@ -349,7 +349,7 @@ Sources used for these limits: [ConnectSafely 2026 limits](https://connectsafely
 
 ## If LinkedIn shows a blocker
 
-The bot **stops** when it detects login walls, checkpoints, CAPTCHA-ish copy, or “unusual activity” strings (see [`linkedin_selectors.py`](../tools/linkedin_selectors.py)).
+The bot **stops** when it detects login walls, checkpoints, CAPTCHA-ish copy, or “unusual activity” strings (see [`selectors.py`](../src/career_job_search/integrations/linkedin/selectors.py)).
 
 1. Run again with **`--headed`**, solve the prompt in the automation Chrome window.
 2. Lower daily caps/delays in [`config.yaml`](config.yaml).

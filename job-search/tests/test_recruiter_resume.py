@@ -1,8 +1,11 @@
 from __future__ import annotations
 
-from recruiter_models import WorkflowStage
-from recruiter_run_state import initial_snapshot
-from recruiter_workflow import initialise_run_state, resume_from_snapshot
+from career_job_search.recruiters.run_state import initial_snapshot
+from career_job_search.recruiters.workflow import (
+    initialise_run_state,
+    resume_from_snapshot,
+)
+from career_job_search.recruiters.workflow_models import WorkflowStage
 
 
 def test_resume_from_snapshot_keeps_current_stage() -> None:

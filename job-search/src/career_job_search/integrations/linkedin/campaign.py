@@ -3,7 +3,7 @@
 LinkedIn recruiter scout: People search → profile scrape → CV match → optional connection invite.
 
 Run from `job-search/`:
-  python3 tools/linkedin_recruiter_bot.py --headed --dry-run
+  python3 -m career_job_search.integrations.linkedin.campaign --headed --dry-run
 """
 
 from __future__ import annotations

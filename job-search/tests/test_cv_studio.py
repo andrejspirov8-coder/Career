@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-import cv_studio
+import career_job_search.cvs.studio as cv_studio
 from build_cv_pdf import build_variant
 
 SLUG = "business-process-operations"

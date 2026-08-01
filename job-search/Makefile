@@ -23,43 +23,43 @@ format:
 	uv run ruff check --fix src mcp tools cv tests
 
 preflight:
-	$(PY) tools/recruiter_orchestrate.py preflight
+	$(PY) -m career_job_search.recruiters.orchestrator preflight
 
 doctor:
 	uv lock --check
 	uv run ruff check src mcp tools cv tests
 	uv run --group dev python -m pytest
-	$(PY) tools/recruiter_orchestrate.py preflight --browse-status
+	$(PY) -m career_job_search.recruiters.orchestrator preflight --browse-status
 
 scout:
-	$(PY) tools/recruiter_orchestrate.py scout --headed
+	$(PY) -m career_job_search.recruiters.orchestrator scout --headed
 
 plan:
-	$(PY) tools/recruiter_orchestrate.py plan --tier tier_1
+	$(PY) -m career_job_search.recruiters.orchestrator plan --tier tier_1
 
 approve-session:
-	$(PY) tools/recruiter_approval.py approve-session --session pipeline/recruiter_session_state.json
+	$(PY) -m career_job_search.recruiters.approval approve-session --session pipeline/recruiter_session_state.json
 
 check-approvals:
-	$(PY) tools/recruiter_approval.py check-session --session pipeline/recruiter_session_state.json
+	$(PY) -m career_job_search.recruiters.approval check-session --session pipeline/recruiter_session_state.json
 
 dispatch-dry:
-	$(PY) tools/recruiter_orchestrate.py dispatch --headed --tier tier_1 --dry-run
+	$(PY) -m career_job_search.recruiters.orchestrator dispatch --headed --tier tier_1 --dry-run
 
 daily-dry:
-	$(PY) tools/recruiter_orchestrate.py daily --headed --dry-run
+	$(PY) -m career_job_search.recruiters.orchestrator daily --headed --dry-run
 
 daily-queue:
-	$(PY) tools/automation_control.py enqueue --kind daily_search --trigger make --spawn-worker
+	$(PY) -m career_job_search.automation.control enqueue --kind daily_search --trigger make --spawn-worker
 	@echo "The private worker started. If the dashboard is not already open, run: make dashboard-dev"
 
 weekly-review:
-	$(PY) tools/opportunity_dashboard.py weekly-roi
-	$(PY) tools/variant_performance.py
-	$(PY) tools/variant_performance.py --by source
-	$(PY) tools/variant_performance.py --roi
-	$(PY) tools/hiring_network_workflow.py report
-	$(PY) tools/opportunity_orchestrate.py --config config/opportunities.example.yaml report --summary
+	$(PY) -m career_job_search.opportunities.dashboard_adapter weekly-roi
+	$(PY) -m career_job_search.cvs.performance
+	$(PY) -m career_job_search.cvs.performance --by source
+	$(PY) -m career_job_search.cvs.performance --roi
+	$(PY) -m career_job_search.recruiters.hiring_network report
+	$(PY) -m career_job_search.opportunities.orchestrator --config config/opportunities.example.yaml report --summary
 
 rebuild-cvs:
 	$(PY) cv/build_cv_pdf.py --all
@@ -72,29 +72,29 @@ audit-runtime:
 	uvx pip-audit -r /tmp/job-search-runtime-requirements.txt
 
 dashboard-dev:
-	$(PY) tools/dashboard_service.py --mode dev --port "$(DASHBOARD_PORT)"
+	$(PY) -m career_job_search.workspace.dashboard_service --mode dev --port "$(DASHBOARD_PORT)"
 
 dashboard-build:
 	cd dashboard && npm run build
 
 dashboard-start: dashboard-build
-	$(PY) tools/dashboard_service.py --mode production --port "$(DASHBOARD_PORT)"
+	$(PY) -m career_job_search.workspace.dashboard_service --mode production --port "$(DASHBOARD_PORT)"
 
 dashboard-open:
 	open "http://127.0.0.1:$(DASHBOARD_PORT)"
 
 dashboard-worker:
-	$(PY) tools/dashboard_service.py --mode worker
+	$(PY) -m career_job_search.workspace.dashboard_service --mode worker
 
 dashboard-status:
-	$(PY) tools/workspace_control.py status
+	$(PY) -m career_job_search.workspace.control status
 
 dashboard-backup:
-	$(PY) tools/workspace_control.py backup-create-interactive
+	$(PY) -m career_job_search.workspace.control backup-create-interactive
 
 dashboard-restore:
 	@test -n "$(BACKUP)" || (echo "Use: make dashboard-restore BACKUP=career-backup-YYYYMMDDTHHMMSSZ-abcdef.career-backup" && exit 2)
-	$(PY) tools/workspace_control.py backup-restore-interactive --filename "$(BACKUP)"
+	$(PY) -m career_job_search.workspace.control backup-restore-interactive --filename "$(BACKUP)"
 
 dashboard-test:
 	cd dashboard && npm test && npm run typecheck
@@ -122,4 +122,4 @@ verify-release:
 
 verify-patch:
 	$(MAKE) test
-	$(PY) tools/recruiter_orchestrate.py preflight --browse-status
+	$(PY) -m career_job_search.recruiters.orchestrator preflight --browse-status

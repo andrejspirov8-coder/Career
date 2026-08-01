@@ -34,7 +34,7 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src", "tools", "cv"]
+pythonpath = ["src", "cv"]
 addopts = "-q"
 
 [tool.coverage.run]
@@ -50,7 +50,7 @@ fail_under = 0
 [tool.ruff]
 line-length = 88
 target-version = "py311"
-src = ["src", "tools", "cv", "tests"]
+src = ["src", "cv", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "S"]

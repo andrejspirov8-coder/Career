@@ -4,8 +4,8 @@ Weekly funnel stats from pipeline/recruiters.csv (LinkedIn recruiter automation)
 
 Usage (from job-search/):
 
-  python3 tools/recruiter_performance.py
-  python3 tools/recruiter_performance.py --csv
+  python3 -m career_job_search.recruiters.performance
+  python3 -m career_job_search.recruiters.performance --csv
 """
 
 from __future__ import annotations

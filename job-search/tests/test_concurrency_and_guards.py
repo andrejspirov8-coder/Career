@@ -5,8 +5,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 
-import recruiter_state as state
-from recruiter_dispatch_guard import validate_note_integrity
+from career_job_search.recruiters import repository as state
+from career_job_search.recruiters.dispatch_guard import validate_note_integrity
 
 
 def test_sqlite_wal_journal_mode():

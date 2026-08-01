@@ -2,14 +2,9 @@
 
 from __future__ import annotations
 
-import sys
 import unittest
-from pathlib import Path
 
-TOOLS_DIR = Path(__file__).resolve().parents[1] / "tools"
-sys.path.insert(0, str(TOOLS_DIR))
-
-import recruiter_match as rm  # noqa: E402
+from career_job_search.recruiters import matching as rm  # noqa: E402
 
 
 class TestTrackRelevanceGate(unittest.TestCase):

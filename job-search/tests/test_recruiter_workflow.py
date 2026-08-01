@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from recruiter_models import WorkflowMode, WorkflowStage
-from recruiter_run_state import initial_snapshot
-from recruiter_workflow import (
+from career_job_search.recruiters.run_state import initial_snapshot
+from career_job_search.recruiters.workflow import (
     initialise_run_state,
     is_terminal,
     next_stage,
     pipeline_stages,
     resume_from_snapshot,
 )
+from career_job_search.recruiters.workflow_models import WorkflowMode, WorkflowStage
 
 
 def test_pipeline_stages_order() -> None:

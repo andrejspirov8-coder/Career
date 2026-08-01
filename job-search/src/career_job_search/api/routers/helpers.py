@@ -15,20 +15,20 @@ from career_job_search.api.auth import verify_token
 
 HELPER_REGISTRY: dict[str, str] = {
     "analytics": "career_job_search.automation.analytics",
-    "cvCatalogue": "tools.cv_catalogue",
+    "cvCatalogue": "career_job_search.cvs.catalogue_cli",
     "cvStudio": "career_job_search.cvs.studio",
     "cvProfiles": "career_job_search.cvs.profiles_helper",
     "linkedinConfig": "career_job_search.integrations.linkedin.config_helper",
     "localDrafting": "career_job_search.cvs.drafting",
     "notifications": "career_job_search.notifications.center",
-    "opportunities": "tools.opportunity_dashboard",
+    "opportunities": "career_job_search.opportunities.dashboard_adapter",
     "opportunitySources": "career_job_search.opportunities.sources_helper",
     "recruiters": "career_job_search.recruiters.dashboard_adapter",
     "searchPreferences": "career_job_search.opportunities.preferences",
     "settingsControl": "career_job_search.recruiters.settings_helper",
     "setupChecklist": "career_job_search.setup.checklist",
-    "workspace": "tools.workspace_control",
-    "automation": "tools.automation_control",
+    "workspace": "career_job_search.workspace.control",
+    "automation": "career_job_search.automation.control",
 }
 
 router = APIRouter(prefix="/api/v1/helpers", dependencies=[Depends(verify_token)])

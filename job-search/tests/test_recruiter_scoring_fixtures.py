@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import recruiter_match as rm
+from career_job_search.recruiters import matching as rm
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures" / "recruiters"
 

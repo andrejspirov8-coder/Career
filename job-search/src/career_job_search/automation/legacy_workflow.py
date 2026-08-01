@@ -5,11 +5,11 @@ Automated Career Workspace Workflow Orchestrator
 Full pipeline: Scout → Plan → Dispatch → Analytics
 
 Usage:
-  python3 tools/automated_workflow.py              # Full cycle
-  python3 tools/automated_workflow.py scout        # Scout only
-  python3 tools/automated_workflow.py plan         # Plan only
-  python3 tools/automated_workflow.py dispatch     # Dispatch only
-  python3 tools/automated_workflow.py analytics    # Analytics only
+  python3 -m career_job_search.automation.legacy_workflow              # Full cycle
+  python3 -m career_job_search.automation.legacy_workflow scout        # Scout only
+  python3 -m career_job_search.automation.legacy_workflow plan         # Plan only
+  python3 -m career_job_search.automation.legacy_workflow dispatch     # Dispatch only
+  python3 -m career_job_search.automation.legacy_workflow analytics    # Analytics only
 """
 
 import subprocess
@@ -56,5 +56,5 @@ class CareerWorkflow:
     def scout_phase(self):
         """Phase 1: Scout & Score"""
         self.log("SCOUT: Discovering & Scoring Profiles", "HEADER")
-        cmd = "uv run python3 tools/recruiter_orchestrate.py scout --headed"
+        cmd = "uv run python3 -m career_job_search.recruiters.orchestrator scout --headed"
         self.run_command(cmd, "Scout")

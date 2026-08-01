@@ -2,5 +2,5 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-uv run python tools/recruiter_orchestrate.py preflight --browse-status || true
+uv run python -m career_job_search.recruiters.orchestrator preflight --browse-status || true
 uv run pytest -q

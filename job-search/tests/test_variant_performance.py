@@ -1,15 +1,11 @@
 from __future__ import annotations
 
 import csv
-import sys
 from pathlib import Path
 
 import pytest
 
-TOOLS_DIR = Path(__file__).resolve().parents[1] / "tools"
-sys.path.insert(0, str(TOOLS_DIR))
-
-import variant_performance as vp  # noqa: E402
+from career_job_search.cvs import performance as vp  # noqa: E402
 
 
 def test_analyse_by_variant_counts_and_rates(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

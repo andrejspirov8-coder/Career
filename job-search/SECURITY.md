@@ -81,13 +81,13 @@ must be reviewed before saving or using a draft.
 Live connection sending is intentionally gated. Use dry runs and review queues by default.
 
 ```bash
-uv run python tools/recruiter_orchestrate.py daily --headed --dry-run
+uv run python -m career_job_search.recruiters.orchestrator daily --headed --dry-run
 ```
 
 Browser-click dispatch requires CLI-gated mode, an explicit maximum from one to three, the acknowledgement flag, and current approval for every exact note.
 
 ```bash
-LINKEDIN_SEND_MODE=cli_gated uv run python tools/recruiter_orchestrate.py dispatch --headed --tier tier_1 --max 3 --allow-live-dispatch
+LINKEDIN_SEND_MODE=cli_gated uv run python -m career_job_search.recruiters.orchestrator dispatch --headed --tier tier_1 --max 3 --allow-live-dispatch
 ```
 
 Stop immediately on CAPTCHA, checkpoint, account warning, unusual activity, or unclear page state.

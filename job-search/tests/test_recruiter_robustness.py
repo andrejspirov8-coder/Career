@@ -4,23 +4,21 @@ from __future__ import annotations
 
 import csv
 import json
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-TOOLS_DIR = Path(__file__).resolve().parents[1] / "tools"
-sys.path.insert(0, str(TOOLS_DIR))
-
-import hiring_network_workflow as hn  # noqa: E402
-from recruiter_dispatch_guard import is_stub_or_empty_row  # noqa: E402
-from recruiter_ollama_client import (  # noqa: E402
+from career_job_search.recruiters import hiring_network as hn  # noqa: E402
+from career_job_search.recruiters.dispatch_guard import (
+    is_stub_or_empty_row,  # noqa: E402
+)
+from career_job_search.recruiters.ollama_client import (  # noqa: E402
     _invoke_with_retry,
     agent_enabled,
     reset_circuit_breaker,
 )
-from recruiter_persona_stats import (  # noqa: E402
+from career_job_search.recruiters.persona_stats import (  # noqa: E402
     aggregate_persona_stats,
     persona_boost_factor,
     write_persona_stats,
@@ -120,7 +118,7 @@ class TestApprovedInvitesGuard(unittest.TestCase):
             path.unlink(missing_ok=True)
         self.assertEqual(len(approved), 0)
 
-    @patch("recruiter_dispatch_guard.load_already_sent_urls")
+    @patch("career_job_search.recruiters.dispatch_guard.load_already_sent_urls")
     def test_only_new_skips_already_sent_urls(self, mock_sent: MagicMock) -> None:
         mock_sent.return_value = {"https://www.linkedin.com/in/already-sent/"}
         path = self._write_plan(
@@ -259,7 +257,7 @@ class TestPersonaStats(unittest.TestCase):
         cv = hn.match_candidate_to_cv(candidate, hn.default_hiring_network_config())
         history = hn.HistorySignals(sent_count=10, accepted_count=8)
         cfg = hn.default_hiring_network_config()
-        with patch("recruiter_persona_stats.load_persona_stats") as mock_stats:
+        with patch("career_job_search.recruiters.persona_stats.load_persona_stats") as mock_stats:
             mock_stats.return_value = {
                 persona.persona: {"sent": 10, "accepted": 8, "rate": 0.8}
             }
@@ -295,7 +293,7 @@ class TestPersonaStats(unittest.TestCase):
         cv = hn.match_candidate_to_cv(candidate, hn.default_hiring_network_config())
         history = hn.HistorySignals()
         cfg = hn.default_hiring_network_config()
-        with patch("recruiter_persona_stats.load_persona_stats", return_value={}):
+        with patch("career_job_search.recruiters.persona_stats.load_persona_stats", return_value={}):
             score_a = hn.rank_candidate(candidate, persona, cv, cfg, history)
             score_b = hn.rank_candidate(candidate, persona, cv, cfg, history)
         self.assertEqual(score_a, score_b)
@@ -334,7 +332,9 @@ class TestWritePersonaStats(unittest.TestCase):
 
 class TestWebDiscoverParsing(unittest.TestCase):
     def test_guess_location_from_exa_snippet(self) -> None:
-        from recruiter_web_discover import guess_location_from_snippet
+        from career_job_search.recruiters.web_discovery import (
+            guess_location_from_snippet,
+        )
 
         snippet = (
             "Head Of Physical Retail at [Dyson](https://www.linkedin.com/company/dyson)\n\n"
@@ -357,8 +357,8 @@ class TestWebDiscoverParsing(unittest.TestCase):
         self.assertIn("Vilnius", guess_location_from_snippet(exp_snippet))
 
     def test_guess_company_from_exa_snippet(self) -> None:
-        from recruiter_web_discover import guess_company_from_hit
-        from recruiter_web_research import WebSearchHit
+        from career_job_search.recruiters.web_discovery import guess_company_from_hit
+        from career_job_search.recruiters.web_research import WebSearchHit
 
         hit = WebSearchHit(
             title="Iuliia Kliuchkovska - Head of Physical Retail at Dyson - LinkedIn",
@@ -372,8 +372,8 @@ class TestWebDiscoverParsing(unittest.TestCase):
         self.assertEqual(guess_company_from_hit(hit), "Dyson")
 
     def test_generic_llm_location_does_not_override_snippet(self) -> None:
-        from recruiter_ollama_agents import DiscoveryExtraction
-        from recruiter_web_discover import _merge_llm_extraction
+        from career_job_search.recruiters.ollama_agents import DiscoveryExtraction
+        from career_job_search.recruiters.web_discovery import _merge_llm_extraction
 
         extraction = DiscoveryExtraction(
             name="",
@@ -397,7 +397,7 @@ class TestWebDiscoverParsing(unittest.TestCase):
 
 class TestVilniusGeoFilter(unittest.TestCase):
     def test_passes_vilnius_scope(self) -> None:
-        from recruiter_web_discover import passes_geo_filter
+        from career_job_search.recruiters.web_discovery import passes_geo_filter
 
         self.assertTrue(
             passes_geo_filter(
@@ -415,8 +415,8 @@ class TestVilniusGeoFilter(unittest.TestCase):
         )
 
     def test_hit_to_discovery_row_skips_abroad_when_geo_required(self) -> None:
-        from recruiter_web_discover import hit_to_discovery_row
-        from recruiter_web_research import WebSearchHit
+        from career_job_search.recruiters.web_discovery import hit_to_discovery_row
+        from career_job_search.recruiters.web_research import WebSearchHit
 
         full_cfg = {
             "web_discovery": {"geo_scope": "vilnius", "require_geo_match": True},
@@ -443,7 +443,7 @@ class TestVilniusGeoFilter(unittest.TestCase):
 
 class TestValidationRankBoost(unittest.TestCase):
     def test_approved_boost_increases_score(self) -> None:
-        from hiring_network_workflow import (
+        from career_job_search.recruiters.hiring_network import (
             PersonaDecision,
             apply_validation_rank_adjustments,
         )
@@ -465,7 +465,7 @@ class TestValidationRankBoost(unittest.TestCase):
         self.assertIn("no_hiring_network_signal", softened)
 
     def test_clear_fresh_run_artifacts(self) -> None:
-        from recruiter_linkedin_paths import (
+        from career_job_search.integrations.linkedin.paths import (
             ACTION_PLAN_JSONL,
             clear_fresh_run_artifacts,
         )

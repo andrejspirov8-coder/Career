@@ -3,17 +3,17 @@ import { spawn } from 'node:child_process'
 import { repositoryRoot } from './repository'
 
 const helperScripts = {
-  analytics: 'tools/career_analytics.py',
-  automation: 'tools/automation_control.py',
-  cvCatalogue: 'tools/cv_catalogue.py',
-  cvStudio: 'tools/cv_studio.py',
-  localDrafting: 'tools/local_drafting.py',
-  notifications: 'tools/notification_center.py',
-  opportunities: 'tools/opportunity_dashboard.py',
-  opportunityOrchestrate: 'tools/opportunity_orchestrate.py',
-  recruiters: 'tools/recruiter_dashboard.py',
-  searchPreferences: 'tools/search_preferences.py',
-  workspace: 'tools/workspace_control.py',
+  analytics: 'career_job_search.automation.analytics',
+  automation: 'career_job_search.automation.control',
+  cvCatalogue: 'career_job_search.cvs.catalogue_cli',
+  cvStudio: 'career_job_search.cvs.studio',
+  localDrafting: 'career_job_search.cvs.drafting',
+  notifications: 'career_job_search.notifications.center',
+  opportunities: 'career_job_search.opportunities.dashboard_adapter',
+  opportunityOrchestrate: 'career_job_search.opportunities.orchestrator',
+  recruiters: 'career_job_search.recruiters.dashboard_adapter',
+  searchPreferences: 'career_job_search.opportunities.preferences',
+  workspace: 'career_job_search.workspace.control',
 } as const
 
 export type PythonHelperName = keyof typeof helperScripts
@@ -89,7 +89,7 @@ export function executePythonHelper(
   const errorLabel = options.errorLabel || 'Python helper'
 
   return new Promise((resolvePromise, reject) => {
-    const child = spawn('uv', ['run', 'python', helperScripts[helper], ...args], {
+    const child = spawn('uv', ['run', 'python', '-m', helperScripts[helper], ...args], {
       cwd: repositoryRoot,
       env: process.env,
       shell: false,

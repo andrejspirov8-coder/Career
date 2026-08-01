@@ -10,16 +10,16 @@ import sys
 from pathlib import Path
 
 HELPERS = [
-    ("automation_control", "automation", "AutomationOverview"),
-    ("opportunity_dashboard", "opportunities", "OpportunityOverview"),
-    ("recruiter_dashboard", "recruiters", "RecruiterOverview"),
-    ("cv_catalogue", "cvCatalogue", "CvCatalogue"),
-    ("cv_studio", "cvStudio", "CvStudioStatus"),
-    ("local_drafting", "localDrafting", "LocalDraftingStatus"),
-    ("notification_center", "notifications", "NotificationOverview"),
-    ("search_preferences", "searchPreferences", "SearchPreferences"),
-    ("workspace_control", "workspace", "WorkspaceControls"),
-    ("career_analytics", "analytics", "AnalyticsOverview"),
+    ("career_job_search.automation.control", "automation", "AutomationOverview"),
+    ("career_job_search.opportunities.dashboard_adapter", "opportunities", "OpportunityOverview"),
+    ("career_job_search.recruiters.dashboard_adapter", "recruiters", "RecruiterOverview"),
+    ("career_job_search.cvs.catalogue_cli", "cvCatalogue", "CvCatalogue"),
+    ("career_job_search.cvs.studio", "cvStudio", "CvStudioStatus"),
+    ("career_job_search.cvs.drafting", "localDrafting", "LocalDraftingStatus"),
+    ("career_job_search.notifications.center", "notifications", "NotificationOverview"),
+    ("career_job_search.opportunities.preferences", "searchPreferences", "SearchPreferences"),
+    ("career_job_search.workspace.control", "workspace", "WorkspaceControls"),
+    ("career_job_search.automation.analytics", "analytics", "AnalyticsOverview"),
 ]
 
 GENERATED_DIR = Path("dashboard/lib/generated")
@@ -44,16 +44,16 @@ def main() -> int:
     run_ts_gen(envelope_schema, GENERATED_DIR / "envelope.ts", "PythonHelperEnvelopeV1")
 
     # Generate per-helper types
-    for helper_script, helper_name, type_name in HELPERS:
+    for helper_module, helper_name, type_name in HELPERS:
         try:
             schema_json = subprocess.run(
-                ["uv", "run", "python", f"tools/{helper_script}.py", "--schema"],
+                ["uv", "run", "python", "-m", helper_module, "--schema"],
                 capture_output=True, text=True, check=True
             ).stdout
             schema = json.loads(schema_json)
             run_ts_gen(schema, GENERATED_DIR / f"{helper_name}-contracts.ts", type_name)
         except subprocess.CalledProcessError as e:
-            print(f"ERROR: {helper_script} --schema failed: {e.stderr}", file=sys.stderr)
+            print(f"ERROR: {helper_module} --schema failed: {e.stderr}", file=sys.stderr)
             return 1
 
     return 0

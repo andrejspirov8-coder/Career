@@ -7,9 +7,8 @@ from subprocess import CompletedProcess
 
 import pytest
 
-import dashboard_service as service
-from dashboard_service import (
-    AUTOMATION_CONTROL,
+from career_job_search.workspace import dashboard_service as service
+from career_job_search.workspace.dashboard_service import (
     DASHBOARD_TOKEN_PLACEHOLDER,
     consume_restart_request,
     dashboard_process_environment,
@@ -24,7 +23,8 @@ def test_service_uses_fixed_argument_arrays():
 
     assert worker == [
         sys.executable,
-        str(AUTOMATION_CONTROL),
+        "-m",
+        "career_job_search.automation.control",
         "worker",
         "--poll-seconds",
         "5.0",
@@ -82,7 +82,7 @@ def test_service_prefers_keychain_without_writing_env_file(tmp_path, monkeypatch
     env_path = tmp_path / ".env.local"
     monkeypatch.delenv("CAREER_DASHBOARD_TOKEN", raising=False)
     monkeypatch.setattr(
-        "dashboard_service.read_keychain_token", lambda: "keychain-secret"
+        "career_job_search.workspace.dashboard_service.read_keychain_token", lambda: "keychain-secret"
     )
 
     environment, storage, created = dashboard_process_environment(env_path)
@@ -95,7 +95,7 @@ def test_service_prefers_keychain_without_writing_env_file(tmp_path, monkeypatch
 
 def test_service_keeps_an_explicit_environment_secret(tmp_path, monkeypatch):
     env_path = tmp_path / ".env.local"
-    monkeypatch.setattr("dashboard_service.read_keychain_token", lambda: "")
+    monkeypatch.setattr("career_job_search.workspace.dashboard_service.read_keychain_token", lambda: "")
     monkeypatch.setenv("CAREER_DASHBOARD_TOKEN", "inherited-secret")
 
     environment, storage, created = dashboard_process_environment(env_path)

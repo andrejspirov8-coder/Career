@@ -17,7 +17,7 @@ Use this for the next 30 days to spend time where it is most likely to create in
 3. Apply only to strong, geographically eligible roles. Prefer the top 5-10 unless a role is strategically valuable.
 4. Spend up to 20 minutes tailoring a normal application. Spend more only for a top 3 role.
 5. Log every application in `pipeline/applications.csv`.
-6. Run `python3 tools/variant_performance.py`, `python3 tools/variant_performance.py --by source`, and `python3 tools/variant_performance.py --roi` at the end of the week.
+6. Run `python3 -m career_job_search.cvs.performance`, `python3 -m career_job_search.cvs.performance --by source`, and `python3 -m career_job_search.cvs.performance --roi` at the end of the week.
 
 ## What To Log
 

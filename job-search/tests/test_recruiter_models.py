@@ -1,6 +1,11 @@
 from __future__ import annotations
 
-from recruiter_models import CandidateProfile, WorkflowMode, WorkflowRun, WorkflowStage
+from career_job_search.recruiters.workflow_models import (
+    CandidateProfile,
+    WorkflowMode,
+    WorkflowRun,
+    WorkflowStage,
+)
 
 
 def test_candidate_profile_canonicalises_url() -> None:

@@ -13,15 +13,15 @@ Use this when operating the Vilnius recruiter pipeline: **web-first discovery �
 
 From the private repository root:
 
-- **LangGraph driver:** [`tools/hiring_network_workflow.py`](../../../tools/hiring_network_workflow.py) (`graph run`)
-- **Agent 1 — discovery:** [`tools/recruiter_web_discover.py`](../../../tools/recruiter_web_discover.py)
-- **Agent 2 — company validate:** [`tools/recruiter_company_validate.py`](../../../tools/recruiter_company_validate.py)
-- **Bridge CSV → scout:** [`tools/recruiter_discovery_bridge.py`](../../../tools/recruiter_discovery_bridge.py)
-- **Graph nodes:** [`tools/recruiter_graph_workflow.py`](../../../tools/recruiter_graph_workflow.py)
-- **Ollama client:** [`tools/recruiter_ollama_client.py`](../../../tools/recruiter_ollama_client.py)
-- **Ollama agents:** [`tools/recruiter_ollama_agents.py`](../../../tools/recruiter_ollama_agents.py)
-- Matcher + notes: [`tools/recruiter_match.py`](../../../tools/recruiter_match.py)
-- MCP harvest scoring: [`tools/mcp_harvest_score.py`](../../../tools/mcp_harvest_score.py)
+- **LangGraph driver:** [`hiring_network.py`](../../../src/career_job_search/recruiters/hiring_network.py) (`graph run`)
+- **Agent 1 — discovery:** [`web_discovery.py`](../../../src/career_job_search/recruiters/web_discovery.py)
+- **Agent 2 — company validate:** [`company_validation.py`](../../../src/career_job_search/recruiters/company_validation.py)
+- **Bridge CSV → scout:** [`discovery_bridge.py`](../../../src/career_job_search/recruiters/discovery_bridge.py)
+- **Graph nodes:** [`graph_workflow.py`](../../../src/career_job_search/recruiters/graph_workflow.py)
+- **Ollama client:** [`ollama_client.py`](../../../src/career_job_search/recruiters/ollama_client.py)
+- **Ollama agents:** [`ollama_agents.py`](../../../src/career_job_search/recruiters/ollama_agents.py)
+- Matcher + notes: [`matching.py`](../../../src/career_job_search/recruiters/matching.py)
+- MCP harvest scoring: [`harvest_score.py`](../../../src/career_job_search/integrations/linkedin/harvest_score.py)
 - Config: [`linkedin/config.yaml`](../../../linkedin/config.yaml)
 
 Artifacts:
@@ -45,22 +45,22 @@ cd job-search
 source .venv/bin/activate
 
 # Full pipeline (dry-run dispatch by default)
-python3 tools/hiring_network_workflow.py graph run --dry-run --backend offline
+python3 -m career_job_search.recruiters.hiring_network graph run --dry-run --backend offline
 
 # Or stage by stage:
-python3 tools/hiring_network_workflow.py graph run --stage discovery
-python3 tools/recruiter_company_validate.py
+python3 -m career_job_search.recruiters.hiring_network graph run --stage discovery
+python3 -m career_job_search.recruiters.company_validation
 # Review pipeline/candidates_validated.csv in Sheets/Numbers
-python3 tools/hiring_network_workflow.py graph run --stage rank
-python3 tools/hiring_network_workflow.py graph run --stage dispatch --dry-run --max 3
+python3 -m career_job_search.recruiters.hiring_network graph run --stage rank
+python3 -m career_job_search.recruiters.hiring_network graph run --stage dispatch --dry-run --max 3
 ```
 
 Live sends (after CSV review and exact-note approval):
 
 ```bash
-LINKEDIN_SEND_MODE=cli_gated uv run python tools/hiring_network_workflow.py graph run --stage dispatch --no-dry-run --max 3 --allow-live-dispatch
-python3 tools/linkedin_followup.py --headed
-python3 tools/recruiter_performance.py --by-persona
+LINKEDIN_SEND_MODE=cli_gated uv run python -m career_job_search.recruiters.hiring_network graph run --stage dispatch --no-dry-run --max 3 --allow-live-dispatch
+python3 -m career_job_search.integrations.linkedin.followup --headed
+python3 -m career_job_search.recruiters.performance --by-persona
 ```
 
 Web backends (`EXA_API_KEY` or `firecrawl` CLI): set in env; config `web_discovery.backend: auto`.
@@ -79,21 +79,21 @@ Config block: `llm` in [`linkedin/config.yaml`](../../../linkedin/config.yaml). 
 ollama serve
 ollama pull qwen3.5:35b-a3b-fast
 ollama pull nomic-embed-text:latest
-python3 tools/recruiter_ollama_client.py --health
+python3 -m career_job_search.recruiters.ollama_client --health
 
 # Full graph with LLM (default when llm.enabled: true)
-python3 tools/hiring_network_workflow.py graph run --dry-run
+python3 -m career_job_search.recruiters.hiring_network graph run --dry-run
 
 # Rules-only for one run
-python3 tools/hiring_network_workflow.py graph run --dry-run --no-llm
+python3 -m career_job_search.recruiters.hiring_network graph run --dry-run --no-llm
 
 # Full automation — LLM notes + CLI-gated live LinkedIn sends
-LINKEDIN_SEND_MODE=cli_gated uv run python tools/hiring_network_workflow.py graph run --full-auto --headed --max 3 --allow-live-dispatch
+LINKEDIN_SEND_MODE=cli_gated uv run python -m career_job_search.recruiters.hiring_network graph run --full-auto --headed --max 3 --allow-live-dispatch
 ```
 
 Safety: LLM never clicks Connect; Playwright does. LLM cannot alone approve sends; Ollama down → `fallback_to_rules` continues on keywords. **Full auto** skips CSV review pauses, dedupes against `recruiters.csv` (`--only-new`, default on), blocks stub/offline URLs, requires an explicit `--max 1..3`, and cannot exceed three successful sends per local calendar day.
 
-**Robustness flags:** `--no-cache` (fresh web search), `--only-new` / `--no-only-new`, `--verbose-llm`. After followup, check learning: `python3 tools/recruiter_performance.py --persona-stats` or `report --persona-stats`.
+**Robustness flags:** `--no-cache` (fresh web search), `--only-new` / `--no-only-new`, `--verbose-llm`. After followup, check learning: `python3 -m career_job_search.recruiters.performance --persona-stats` or `report --persona-stats`.
 
 ## Daily discovery volume (Exa + MCP)
 
@@ -103,13 +103,13 @@ Exa web search alone often yields only a few Vilnius profiles per run. For **8�
 
    ```bash
    # Score stubs and optionally append to action plan
-   python3 tools/mcp_harvest_score.py pipeline/mcp_discovery_batch.jsonl
+   python3 -m career_job_search.integrations.linkedin.harvest_score pipeline/mcp_discovery_batch.jsonl
    ```
 
 2. **Exa discovery** — run graph discovery **without** `--no-merge-mcp` so MCP rows merge into `candidates_discovery.csv`:
 
    ```bash
-   python3 tools/hiring_network_workflow.py graph run --stage discovery --backend exa
+   python3 -m career_job_search.recruiters.hiring_network graph run --stage discovery --backend exa
    ```
 
 3. **Inspect** `pipeline/candidates_discovery.csv` (persona, location, `needs_linkedin_url`).
@@ -124,15 +124,15 @@ When Agent 1 leaves `needs_linkedin_url=true`:
 2. Re-run discovery (merges MCP batch):
 
    ```bash
-   python3 tools/recruiter_web_discover.py --append
+   python3 -m career_job_search.recruiters.web_discovery --append
    ```
 
 Bridge only (validated CSV already reviewed):
 
 ```bash
-python3 tools/hiring_network_workflow.py bridge --write-action-plan
-python3 tools/hiring_network_workflow.py rank
-python3 tools/hiring_network_workflow.py dispatch --dry-run --max 3
+python3 -m career_job_search.recruiters.hiring_network bridge --write-action-plan
+python3 -m career_job_search.recruiters.hiring_network rank
+python3 -m career_job_search.recruiters.hiring_network dispatch --dry-run --max 3
 ```
 
 ## Acceptance checklist before live sends
@@ -148,6 +148,6 @@ python3 tools/hiring_network_workflow.py dispatch --dry-run --max 3
 ## Legacy single-chain (still supported)
 
 ```bash
-python3 tools/hiring_network_workflow.py daily --headed --dry-run
-python3 tools/recruiter_orchestrate.py daily --mode hiring_network --headed --dry-run
+python3 -m career_job_search.recruiters.hiring_network daily --headed --dry-run
+python3 -m career_job_search.recruiters.orchestrator daily --mode hiring_network --headed --dry-run
 ```

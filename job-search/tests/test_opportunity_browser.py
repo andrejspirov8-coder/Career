@@ -8,14 +8,14 @@ from pathlib import Path
 
 import pytest
 
-import opportunity_orchestrate as orchestrate
-from opportunity_browser import (
+from career_job_search.opportunities import orchestrator as orchestrate
+from career_job_search.opportunities.browser import (
     BrowserJobPayloadError,
     canonical_linkedin_job_url,
     load_browser_job_payloads,
     opportunity_from_browser_job,
 )
-from opportunity_models import OpportunitySourceKind
+from career_job_search.opportunities.models import OpportunitySourceKind
 
 NOW = datetime(2026, 7, 10, 16, 30, tzinfo=UTC)
 

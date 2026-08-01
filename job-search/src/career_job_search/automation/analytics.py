@@ -312,4 +312,7 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    from career_job_search.core.entrypoint import entry
+    from career_job_search.core.schema import ANALYTICS_OVERVIEW_SCHEMA
+
+    entry(ANALYTICS_OVERVIEW_SCHEMA, main)

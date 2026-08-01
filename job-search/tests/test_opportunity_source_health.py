@@ -2,8 +2,12 @@ from __future__ import annotations
 
 from typing import Any
 
-import opportunity_sources as sources
-from opportunity_models import Opportunity, OpportunitySourceKind, OpportunityStatus
+from career_job_search.opportunities import sources as sources
+from career_job_search.opportunities.models import (
+    Opportunity,
+    OpportunitySourceKind,
+    OpportunityStatus,
+)
 
 
 def test_discovery_reports_partial_ats_failure_without_hiding_good_source(

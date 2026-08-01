@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import pytest
 
-from opportunity_eligibility import (
+from career_job_search.opportunities.eligibility import (
     EligibilityResult,
     LocationEligibility,
     WorkMode,
     classify_location_eligibility,
     is_eligible,
 )
-from opportunity_models import Opportunity, OpportunitySourceKind
+from career_job_search.opportunities.models import Opportunity, OpportunitySourceKind
 
 
 def make_opportunity(

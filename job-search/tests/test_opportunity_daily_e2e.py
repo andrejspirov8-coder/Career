@@ -6,16 +6,16 @@ import sys
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-import opportunity_orchestrate as orchestrate
-from opportunity_models import (
+from career_job_search.opportunities import orchestrator as orchestrate
+from career_job_search.opportunities.models import (
     Opportunity,
     OpportunityMatch,
     OpportunitySourceKind,
     OpportunityStatus,
     utc_now_iso,
 )
-from opportunity_sources import DiscoveryBatch, SourceResult
-from opportunity_state import upsert_opportunities
+from career_job_search.opportunities.repository import upsert_opportunities
+from career_job_search.opportunities.sources import DiscoveryBatch, SourceResult
 
 
 def alert_payload(message_id: str = "gmail-e2e-1") -> str:

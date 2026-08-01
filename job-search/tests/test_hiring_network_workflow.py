@@ -8,17 +8,13 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 import tempfile
 import unittest
 from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
 
-TOOLS_DIR = Path(__file__).resolve().parents[1] / "tools"
-sys.path.insert(0, str(TOOLS_DIR))
-
-import hiring_network_workflow as hn  # noqa: E402
+from career_job_search.recruiters import hiring_network as hn  # noqa: E402
 
 
 class TestHiringNetworkSchemas(unittest.TestCase):

@@ -297,7 +297,7 @@ def build_langgraph_workflow(stage: str = "all") -> Any:
     """Build the LangGraph workflow for the three-agent pipeline."""
     from importlib import import_module
 
-    build_graph = import_module("recruiter_graph_workflow").build_langgraph_workflow
+    build_graph = import_module("career_job_search.recruiters.graph_workflow").build_langgraph_workflow
 
     return build_graph(stage)  # type: ignore[arg-type]
 
@@ -644,7 +644,7 @@ def cmd_dispatch(args: argparse.Namespace) -> int:
         raise SystemExit(
             "Live dispatch requires a matching SQLite approval ledger entry for "
             "each profile and exact note hash. Run:\n"
-            f"  python3 tools/recruiter_approval.py approve-session --session {Path(args.output)}\n"
+            f"  python3 -m career_job_search.recruiters.approval approve-session --session {Path(args.output)}\n"
             f"Gate reason: {gate.reason}\n"
             f"Missing approvals:\n{preview or '(none)'}{more}"
         )
@@ -762,7 +762,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "graph":
         from importlib import import_module
 
-        cmd_graph_run = import_module("recruiter_graph_workflow").cmd_graph_run
+        cmd_graph_run = import_module("career_job_search.recruiters.graph_workflow").cmd_graph_run
 
         if args.graph_cmd == "run":
             apply_full_auto_graph_args(args)

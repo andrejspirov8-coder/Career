@@ -561,4 +561,7 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    from career_job_search.core.entrypoint import entry
+    from career_job_search.core.schema import CV_STUDIO_SCHEMA
+
+    entry(CV_STUDIO_SCHEMA, main)

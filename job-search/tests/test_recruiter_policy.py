@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-import recruiter_state as rs
-from recruiter_policy import (
+from career_job_search.recruiters import repository as rs
+from career_job_search.recruiters.policy import (
     MAX_LIVE_DISPATCH,
     can_attempt_live_dispatch,
     can_dispatch_live,

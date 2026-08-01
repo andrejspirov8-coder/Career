@@ -93,3 +93,10 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     json_response({"ok": True, "data": payload})
     return 0
+
+
+if __name__ == "__main__":
+    from career_job_search.core.entrypoint import entry
+    from career_job_search.core.schema import OPPORTUNITY_OVERVIEW_SCHEMA
+
+    entry(OPPORTUNITY_OVERVIEW_SCHEMA, main)

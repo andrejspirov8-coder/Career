@@ -2,18 +2,17 @@
 
 from __future__ import annotations
 
-import sys
 import tempfile
 import unittest
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-TOOLS_DIR = Path(__file__).resolve().parents[1] / "tools"
-sys.path.insert(0, str(TOOLS_DIR))
-
-from recruiter_web_cache import get_cached, put  # noqa: E402
-from recruiter_web_research import WebResearchResult, WebSearchHit  # noqa: E402
+from career_job_search.recruiters.web_cache import get_cached, put  # noqa: E402
+from career_job_search.recruiters.web_research import (  # noqa: E402
+    WebResearchResult,
+    WebSearchHit,
+)
 
 
 def _sample_result(query: str = "test query") -> WebResearchResult:
@@ -91,9 +90,9 @@ class TestWebSearchCache(unittest.TestCase):
         )
         self.assertIsNone(cached)
 
-    @patch("recruiter_web_research.pick_backend")
+    @patch("career_job_search.recruiters.web_research.pick_backend")
     def test_web_search_uses_cache(self, mock_pick: MagicMock) -> None:
-        from recruiter_web_research import web_search
+        from career_job_search.recruiters.web_research import web_search
 
         backend = MagicMock()
         backend.name = "offline_stub"

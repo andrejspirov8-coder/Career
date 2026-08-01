@@ -7,25 +7,28 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from opportunity_dashboard import build_opportunity_overview, record_opportunity_action
-from opportunity_models import (
+from career_job_search.opportunities.dashboard_adapter import (
+    build_opportunity_overview,
+    record_opportunity_action,
+)
+from career_job_search.opportunities.models import (
     Opportunity,
     OpportunityMatch,
     OpportunitySourceKind,
     OpportunityStatus,
     utc_now_iso,
 )
-from opportunity_state import (
-    actions_for_opportunity,
-    get_opportunity,
-    upsert_opportunities,
-)
-from search_preferences import (
+from career_job_search.opportunities.preferences import (
     SearchPreferences,
     apply_search_preferences,
     evaluate_search_preferences,
     load_search_preferences,
     save_search_preferences,
+)
+from career_job_search.opportunities.repository import (
+    actions_for_opportunity,
+    get_opportunity,
+    upsert_opportunities,
 )
 
 

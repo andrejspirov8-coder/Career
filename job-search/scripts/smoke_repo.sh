@@ -55,7 +55,7 @@ echo "[smoke] cv build"
 uv run python cv/build_cv_pdf.py --all
 
 echo "[smoke] recruiter preflight"
-uv run python tools/recruiter_orchestrate.py preflight --browse-status
+uv run python -m career_job_search.recruiters.orchestrator preflight --browse-status
 
 echo "[smoke] batch match dry-run"
 cat > "$TMP_JOB" <<'EOF'
@@ -73,7 +73,7 @@ Requirements:
 * operations management
 * Vilnius or Lithuania context
 EOF
-uv run python tools/batch_match_and_pack.py --dry-run --pattern "$(basename "$TMP_JOB")"
+uv run python -m career_job_search.opportunities.batch --dry-run --pattern "$(basename "$TMP_JOB")"
 
 echo "[smoke] mcp payload shape"
 uv run python - <<'PY'

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from recruiter_graph_workflow import workflow_core_for_stage
-from recruiter_models import WorkflowStage
+from career_job_search.recruiters.graph_workflow import workflow_core_for_stage
+from career_job_search.recruiters.workflow_models import WorkflowStage
 
 
 def test_workflow_core_full_stage_sequence() -> None:

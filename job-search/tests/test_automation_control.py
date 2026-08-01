@@ -5,8 +5,8 @@ from datetime import UTC, datetime
 
 import pytest
 
-import automation_control as automation
-from opportunity_orchestrate import apply_daily_source_policy
+from career_job_search.automation import control as automation
+from career_job_search.opportunities.orchestrator import apply_daily_source_policy
 
 
 def test_enqueue_deduplicates_active_runs(tmp_path):

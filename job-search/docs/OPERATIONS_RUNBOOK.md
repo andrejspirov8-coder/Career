@@ -122,10 +122,10 @@ use the approval-ledger flow:
 ```bash
 cd job-search
 uv sync --all-groups
-uv run python tools/recruiter_orchestrate.py preflight
-uv run python tools/recruiter_orchestrate.py scout --headed
-uv run python tools/recruiter_orchestrate.py plan --tier tier_1
-uv run python tools/recruiter_orchestrate.py dispatch --headed --tier tier_1 --dry-run --max 3
+uv run python -m career_job_search.recruiters.orchestrator preflight
+uv run python -m career_job_search.recruiters.orchestrator scout --headed
+uv run python -m career_job_search.recruiters.orchestrator plan --tier tier_1
+uv run python -m career_job_search.recruiters.orchestrator dispatch --headed --tier tier_1 --dry-run --max 3
 ```
 
 Review generated files:
@@ -151,7 +151,7 @@ Only after reviewing the queue and approving the exact notes:
 ```bash
 make approve-session
 make check-approvals
-LINKEDIN_SEND_MODE=cli_gated uv run python tools/recruiter_orchestrate.py dispatch --headed --tier tier_1 --max 3 --allow-live-dispatch
+LINKEDIN_SEND_MODE=cli_gated uv run python -m career_job_search.recruiters.orchestrator dispatch --headed --tier tier_1 --max 3 --allow-live-dispatch
 ```
 
 Use the smallest batch first. Stop after any platform warning, CAPTCHA, unexpected modal, or repeated selector failure.
@@ -213,11 +213,11 @@ sources, scores them against CV variants, and writes local state under
 
 ```bash
 cd job-search
-uv run python tools/opportunity_orchestrate.py --config config/opportunities.example.yaml discover --dry-run
-uv run python tools/opportunity_orchestrate.py --config config/opportunities.example.yaml discover
-uv run python tools/opportunity_orchestrate.py match
-uv run python tools/opportunity_orchestrate.py --config config/opportunities.example.yaml daily-queue
-uv run python tools/opportunity_orchestrate.py report
+uv run python -m career_job_search.opportunities.orchestrator --config config/opportunities.example.yaml discover --dry-run
+uv run python -m career_job_search.opportunities.orchestrator --config config/opportunities.example.yaml discover
+uv run python -m career_job_search.opportunities.orchestrator match
+uv run python -m career_job_search.opportunities.orchestrator --config config/opportunities.example.yaml daily-queue
+uv run python -m career_job_search.opportunities.orchestrator report
 ```
 
 Review `/opportunities` in the dashboard. Safe actions are limited to local
@@ -269,7 +269,7 @@ make plan
 make dispatch-dry
 make approve-session
 make check-approvals
-LINKEDIN_SEND_MODE=cli_gated uv run python tools/recruiter_orchestrate.py dispatch --headed --tier tier_1 --max 3 --allow-live-dispatch
+LINKEDIN_SEND_MODE=cli_gated uv run python -m career_job_search.recruiters.orchestrator dispatch --headed --tier tier_1 --max 3 --allow-live-dispatch
 ```
 
 The approval check hashes the final note text. If a note is regenerated or edited after approval, the approval no longer matches and live dispatch is blocked until the updated note is approved again.

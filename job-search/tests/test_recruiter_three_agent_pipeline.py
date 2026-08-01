@@ -3,23 +3,19 @@
 from __future__ import annotations
 
 import json
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-TOOLS_DIR = Path(__file__).resolve().parents[1] / "tools"
-sys.path.insert(0, str(TOOLS_DIR))
-
-import hiring_network_workflow as hn  # noqa: E402
-import recruiter_company_validate as rcv  # noqa: E402
-import recruiter_discovery_csv as rdc  # noqa: E402
-from recruiter_discovery_bridge import (  # noqa: E402
+from career_job_search.recruiters import company_validation as rcv  # noqa: E402
+from career_job_search.recruiters import discovery_csv as rdc  # noqa: E402
+from career_job_search.recruiters import hiring_network as hn  # noqa: E402
+from career_job_search.recruiters.discovery_bridge import (  # noqa: E402
     rows_for_bridge,
     validated_to_scout_records,
 )
-from recruiter_web_discover import run_discovery  # noqa: E402
-from recruiter_web_research import OfflineStubBackend  # noqa: E402
+from career_job_search.recruiters.web_discovery import run_discovery  # noqa: E402
+from career_job_search.recruiters.web_research import OfflineStubBackend  # noqa: E402
 
 
 class TestDiscoveryCsv(unittest.TestCase):
