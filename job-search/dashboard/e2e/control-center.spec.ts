@@ -119,7 +119,7 @@ test('the local control center exposes safe automation, CV, and recruiter workfl
   await expect(page.getByText('Manage', { exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: /Run today's search/ })).toBeVisible()
   await expect(page.getByRole('button', { name: /Rebuild all CVs/ })).toBeVisible()
-  await expect(page.getByText('Human-controlled LinkedIn')).toBeVisible()
+  await expect(page.getByText('Read-only LinkedIn jobs')).toBeVisible()
   await expect(page.getByText(/LinkedIn review remains manual/)).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Can the search see fresh jobs?' })).toBeVisible()
 

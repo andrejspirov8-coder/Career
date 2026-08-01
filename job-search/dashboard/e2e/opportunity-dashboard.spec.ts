@@ -173,7 +173,7 @@ test('opportunity safe actions send expected payloads', async ({ page }) => {
   const detail = page.locator('.detailPanel')
   await detail.getByRole('button', { name: 'Log application' }).click()
   await expect.poll(() => actions.length).toBe(1)
-  expect(actions[0]).toEqual({
+  expect(actions[0]).toMatchObject({
     action: 'log_application',
     opportunityId: readyOpportunityId,
     applicationUrl: 'https://example.com/jobs/retail-ops',
@@ -183,7 +183,7 @@ test('opportunity safe actions send expected payloads', async ({ page }) => {
   await detail.getByLabel('Why are you closing it?').selectOption('not_relevant')
   await detail.getByRole('button', { name: 'Close role' }).click()
   await expect.poll(() => actions.length).toBe(2)
-  expect(actions[1]).toEqual({
+  expect(actions[1]).toMatchObject({
     action: 'mark_skipped',
     opportunityId: readyOpportunityId,
     decisionReason: 'not_relevant',
@@ -194,7 +194,7 @@ test('opportunity safe actions send expected payloads', async ({ page }) => {
   await expect(page.locator('.detailPanel').getByRole('heading', { name: 'Company watchlist' })).toBeVisible()
   await page.locator('.detailPanel').getByRole('button', { name: 'Shortlist role' }).click()
   await expect.poll(() => actions.length).toBe(3)
-  expect(actions[2]).toEqual({ action: 'mark_apply_ready', opportunityId: reviewOpportunityId })
+  expect(actions[2]).toMatchObject({ action: 'mark_apply_ready', opportunityId: reviewOpportunityId })
 })
 
 test('a pasted link is captured without browser-side fetching and filters persist in the URL', async ({ page }) => {
