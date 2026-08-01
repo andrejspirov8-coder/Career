@@ -56,7 +56,7 @@ After a full audit of your Cline setup, here are the findings and prioritized re
 
 ### 1.3 GitHub Token Scope
 
-**Problem:** The PAT `REDACTED` is a fine-grained token. Verify it has **minimum required scopes** — it should only need `repo`, `pull_requests`, `issues`, `contents`. If it has admin scopes, reduce them.
+**Problem:** The PAT `[REDACTED]` is a fine-grained token. Verify it has **minimum required scopes** — it should only need `repo`, `pull_requests`, `issues`, `contents`. If it has admin scopes, reduce them.
 
 ---
 
