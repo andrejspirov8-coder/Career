@@ -33,6 +33,7 @@ from career_job_search.recruiters.repository import (
     mark_sent,
     record_operator_action,
 )
+from career_job_search.recruiters.session_dashboard import materialize_session_profiles
 
 MAX_NOTE_CHARS = 280
 UNSAFE_COMMAND_TOKENS = frozenset(
@@ -83,11 +84,17 @@ def update_action_plan_note(
     note: str,
     action_plan_path: Path = HIRING_NETWORK_ACTION_PLAN_JSONL,
     action_history_path: Path = ACTION_HISTORY_JSONL,
+    session_state_path: Path | None = None,
 ) -> dict[str, Any]:
     canon = lis.canonical_profile_url(profile_url)
     if not canon:
         raise ValueError("A valid LinkedIn profile URL is required.")
     clean_note = validate_dashboard_note(note)
+    materialize_session_profiles(
+        [canon],
+        action_plan_path=action_plan_path,
+        session_state_path=session_state_path,
+    )
     rows, _malformed = read_jsonl_records(action_plan_path)
     updated = False
     for row in rows:
@@ -167,6 +174,7 @@ def bulk_update_profile_status(
     action_plan_path: Path = HIRING_NETWORK_ACTION_PLAN_JSONL,
     action_history_path: Path = ACTION_HISTORY_JSONL,
     operator_source: str = "dashboard",
+    session_state_path: Path | None = None,
 ) -> dict[str, Any]:
     next_tier, next_decision, action_type = _target_state(target_status)
     wanted = {
@@ -175,6 +183,11 @@ def bulk_update_profile_status(
     if not wanted:
         raise ValueError("At least one valid LinkedIn profile URL is required.")
 
+    materialize_session_profiles(
+        sorted(wanted),
+        action_plan_path=action_plan_path,
+        session_state_path=session_state_path,
+    )
     rows, _malformed = read_jsonl_records(action_plan_path)
     updated: list[str] = []
     history_events: list[tuple[str, str, str]] = []

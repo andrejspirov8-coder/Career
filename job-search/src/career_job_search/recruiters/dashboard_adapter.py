@@ -22,6 +22,7 @@ from career_job_search.integrations.linkedin.paths import (
     JOB_ROOT,
     RECRUITERS_CSV,
 )
+from career_job_search.opportunities.repository import DEFAULT_OPPORTUNITY_DB
 from career_job_search.recruiters.dashboard_actions import (
     SAFE_ACTIONS,
     SAFE_OPERATOR_ACTIONS,
@@ -48,12 +49,21 @@ from career_job_search.recruiters.dashboard_storage import (
     read_dashboard_action_history as read_dashboard_action_history,
 )
 from career_job_search.recruiters.dispatch_guard import validate_note_integrity
+from career_job_search.recruiters.opportunity_targets import (
+    opportunity_target_query_rows,
+    opportunity_target_settings,
+    safe_load_opportunity_targets,
+)
 from career_job_search.recruiters.policy import current_send_mode, risk_stop_state
 from career_job_search.recruiters.repository import (
     DEFAULT_STATE_DB,
     approval_check,
     approval_metadata,
     latest_approval_metadata,
+)
+from career_job_search.recruiters.session_dashboard import (
+    merge_session_queue_rows,
+    resolve_session_state_path,
 )
 
 SCHEMA = "recruiter_dashboard_overview_v1"
@@ -231,6 +241,10 @@ def _dashboard_record(
         "note": str(row.get("note") or ""),
         "note_reason": str(row.get("note_reason") or ""),
         "source_backend": str(row.get("source_backend") or ""),
+        "target_company": str(row.get("target_company") or ""),
+        "target_opportunity_id": str(row.get("target_opportunity_id") or ""),
+        "target_role_title": str(row.get("target_role_title") or ""),
+        "target_company_verified": bool(row.get("target_company_verified")),
         "approval": _approval_payload(row, db_path),
         "score_details": _score_details(row),
         "score_explanation": _score_explanation(row),
@@ -363,6 +377,37 @@ def build_metrics(
     }
 
 
+def _opportunity_targets_overview(
+    opportunity_db_path: Path | str,
+) -> dict[str, Any]:
+    settings = opportunity_target_settings({})
+    targets, error = safe_load_opportunity_targets(
+        db_path=opportunity_db_path,
+        settings=settings,
+    )
+    query_rows = opportunity_target_query_rows(
+        targets,
+        queries_per_company=settings.queries_per_company,
+    )
+    return {
+        "enabled": settings.enabled,
+        "count": len(targets),
+        "query_count": len(query_rows),
+        "error": error,
+        "companies": [
+            {
+                "company": target.company,
+                "opportunity_id": target.opportunity_id,
+                "title": target.title,
+                "cv_variant": target.cv_variant,
+                "fit_score": target.fit_score,
+                "live_status": target.live_status,
+            }
+            for target in targets
+        ],
+    }
+
+
 def build_overview(
     *,
     action_plan_path: Path = HIRING_NETWORK_ACTION_PLAN_JSONL,
@@ -372,8 +417,15 @@ def build_overview(
     persona_stats_path: Path = PERSONA_STATS_JSON,
     runtime_dir: Path = RUNTIME_DIR,
     action_history_path: Path = ACTION_HISTORY_JSONL,
+    session_state_path: Path | None = None,
+    opportunity_db_path: Path | str = DEFAULT_OPPORTUNITY_DB,
 ) -> dict[str, Any]:
     action_rows, malformed_rows = read_jsonl_records(action_plan_path)
+    session_path = resolve_session_state_path(action_plan_path, session_state_path)
+    merged_rows, session_queue_count = merge_session_queue_rows(
+        action_rows, session_path
+    )
+    action_rows = merged_rows
     recruiter_rows = read_recruiter_rows(recruiters_csv_path)
     queues = {"auto_send": [], "review": [], "skipped": [], "sent": []}
     histories = _history_by_profile(action_history_path)
@@ -486,10 +538,12 @@ def build_overview(
             "accepted": accepted_count,
             "reply": reply_count,
             "interview": interview_count,
+            "session_queue": session_queue_count,
             "malformed_action_rows": malformed_rows,
         },
         "queues": queues,
         "metrics": build_metrics(action_rows, recruiter_rows),
+        "opportunity_targets": _opportunity_targets_overview(opportunity_db_path),
         "run_state": run_state,
         "persona_stats": _load_json(persona_stats_path) or {},
         "active_run": _active_run(runtime_dir),
