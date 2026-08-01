@@ -25,6 +25,11 @@ from career_job_search.integrations.linkedin.campaign_config import (
 )
 from career_job_search.integrations.linkedin.paths import PROFILE_DIR, RECRUITERS_CSV
 from career_job_search.recruiters.log import append_recruiter_row, recruiter_row_partial
+from career_job_search.recruiters.opportunity_targets import (
+    opportunity_target_query_rows,
+    opportunity_target_settings,
+    safe_load_opportunity_targets,
+)
 from career_job_search.recruiters.search import merged_queries_for_variant
 
 
@@ -179,12 +184,33 @@ def wait_for_manual_login_automation(
     return False
 
 
+def _search_result_cards(html: str) -> dict[str, str]:
+    """Best-effort map of canonical profile URL -> visible search-card text."""
+    cards: dict[str, str] = {}
+    if not html:
+        return cards
+    for raw in re.findall(r'href="(https://[^"]*?/in/[^"?#]+)"', html):
+        canon = lis.canonical_profile_url(raw.split("?", 1)[0])
+        if not canon:
+            continue
+        idx = html.find(raw)
+        if idx < 0:
+            continue
+        window = html[max(0, idx - 4000) : idx + 4000]
+        text = re.sub(r"<[^>]+>", " ", window)
+        text = re.sub(r"\s+", " ", text).strip()
+        if text and (canon not in cards or len(text) > len(cards[canon])):
+            cards[canon] = text[:2000]
+    return cards
+
+
 def harvest_profile_urls(
     automation: LinkedInAutomatorBase,
     *,
     max_new: int,
     seed_seen: set[str],
     cfg_limits: dict[str, Any],
+    evidence_by_url: dict[str, str] | None = None,
 ) -> list[str]:
     rounds = int(cfg_limits.get("scroll_result_pages_max", 6))
     scroll_px = int(cfg_limits.get("scroll_step_px", 900))
@@ -194,6 +220,10 @@ def harvest_profile_urls(
     for _ in range(rounds):
         hrefs = automation.eval_on_selector_all_hrefs('a[href*="/in/"]')
 
+        cards: dict[str, str] = {}
+        if evidence_by_url is not None:
+            cards = _search_result_cards(sample_automation_html(automation))
+
         for raw in hrefs:
             canon = lis.canonical_profile_url(raw.split("?", 1)[0])
             if not canon:
@@ -202,6 +232,8 @@ def harvest_profile_urls(
                 continue
             dup_guard.add(canon)
             collected.append(canon)
+            if evidence_by_url is not None:
+                evidence_by_url[canon] = cards.get(canon, "")
             if len(collected) >= max_new:
                 return collected[:max_new]
 
@@ -447,11 +479,60 @@ def _warmup_and_maybe_login(
     return None
 
 
-def _unpack_queue_item(item: tuple[str, ...]) -> tuple[str, str, str]:
-    """(profile_url, variant_slug, search_intent)."""
-    if len(item) >= 3:
-        return item[0], item[1], item[2]
-    return item[0], item[1], ""
+_SEARCH_EVIDENCE_RELATIONSHIP_RE = re.compile(
+    r"\b(mutual connections?|followers?|connections?)\b", re.IGNORECASE
+)
+
+
+def current_company_evidence_from_search_result(search_result_text: str) -> str:
+    """Return visible lines naming the recruiter's current company/headline."""
+    lines = [ln.strip() for ln in re.split(r"\n+", search_result_text) if ln.strip()]
+    kept: list[str] = []
+    for line in lines[:12]:
+        if line.startswith("Past:"):
+            continue
+        if _SEARCH_EVIDENCE_RELATIONSHIP_RE.search(line):
+            continue
+        kept.append(line)
+    return "\n".join(kept)[:1000]
+
+
+def headline_from_search_result(search_result_text: str) -> str:
+    """Extract the search-card headline line (title, company) from card text."""
+    lines = [ln.strip() for ln in re.split(r"\n+", search_result_text) if ln.strip()]
+    for index, line in enumerate(lines[:10]):
+        if index == 0:
+            continue
+        if re.match(r"^•?\s*(1st|2nd|3rd)\b", line, re.IGNORECASE):
+            continue
+        if re.match(r"^(Current|Past):", line):
+            continue
+        if _SEARCH_EVIDENCE_RELATIONSHIP_RE.search(line):
+            continue
+        if line.strip() in {"Follow", "Connect", "Message"}:
+            continue
+        if line.count(",") < 1:
+            continue
+        if re.search(r"\b(Vilnius|Kaunas|Lithuania|Lietuva)\b", line, re.IGNORECASE):
+            continue
+        if len(re.findall(r"[^\W\d_]", line)) < 3:
+            continue
+        return line[:500]
+    return ""
+
+
+def _unpack_queue_item(
+    item: tuple[str, ...],
+) -> tuple[str, str, str, str, str, str, str]:
+    """(profile_url, variant_slug, search_intent, company, opp_id, title, evidence)."""
+    url = item[0]
+    variant = item[1] if len(item) > 1 else ""
+    intent = item[2] if len(item) > 2 else ""
+    company = item[3] if len(item) > 3 else ""
+    opp_id = item[4] if len(item) > 4 else ""
+    title = item[5] if len(item) > 5 else ""
+    evidence = item[6] if len(item) > 6 else ""
+    return (url, variant, intent, company, opp_id, title, evidence)
 
 
 def collect_discovery_queue_for_session(
@@ -465,14 +546,26 @@ def collect_discovery_queue_for_session(
     base_url: str,
     shutdown_browser: Callable[[], None],
     seen_profiles: set[str],
-) -> list[tuple[str, str, str]] | None:
-    """Harvest People-search URLs (+ retry queue ordering). ``None`` = fatal blocker."""
+) -> list[tuple[str, str, str, str, str, str, str]] | None:
+    """Harvest People-search URLs (company targets, retries, generic ordering).
+
+    Queue rows are 7-tuples ``(profile_url, variant_slug, search_intent, company,
+    opportunity_id, title, current_company_evidence)``. ``None`` = fatal blocker.
+    """
     queries_map = search.get("queries_by_variant") or {}
     if not isinstance(queries_map, dict) or not queries_map:
         return []
 
-    queued: list[tuple[str, str, str]] = []
-    local_seen = set(seen_profiles)
+    target_rows: list[Any] = []
+    targets: list[Any] = []
+    settings = opportunity_target_settings(raw_cfg)
+    if settings.enabled:
+        targets, _err = safe_load_opportunity_targets(settings=settings)
+        target_rows = opportunity_target_query_rows(
+            targets,
+            queries_per_company=settings.queries_per_company,
+        )
+
     variants = list(queries_map.keys())
 
     if args.variant_filter:
@@ -484,15 +577,87 @@ def collect_discovery_queue_for_session(
             return []
         variants = [args.variant_filter]
 
+    queued: list[tuple[str, str, str, str, str, str, str]] = []
+    generic: list[tuple[str, str, str, str, str, str, str]] = []
+    local_seen = set(seen_profiles)
+
+    def visit_and_harvest(
+        url: str,
+        *,
+        slug: str,
+        ql: str,
+        evidence_by_url: dict[str, str] | None,
+        max_new: int,
+    ) -> list[str] | None:
+        if not automation_goto_or_closed(automation, url):
+            shutdown_browser()
+            return None
+        dwell_navigation(limits)
+        block2 = assert_blocked_automation(automation, scan_html=False)
+        if block2:
+            append_recruiter_row(
+                recruiter_row_partial(
+                    date_iso=date.today().isoformat(),
+                    profile_url=automation.current_url()[:390],
+                    name="__meta__discovery_blocked",
+                    variant_slug=slug,
+                    confidence=block2,
+                    status="blocked",
+                    skip_reason=block2,
+                    note_preview=ql[:180],
+                )
+            )
+            shutdown_browser()
+            print(f"Halted discovery (variant={slug}): {block2}", flush=True)
+            return None
+        return harvest_profile_urls(
+            automation,
+            max_new=max_new,
+            seed_seen=local_seen,
+            cfg_limits=limits,
+            evidence_by_url=evidence_by_url,
+        )
+
+    for row in target_rows:
+        if len(queued) >= scoring_cap:
+            break
+        evidence_by_url: dict[str, str] = {}
+        url = people_search_url(row.query, base_url)
+        new_urls = visit_and_harvest(
+            url,
+            slug=row.cv_variant,
+            ql=row.query,
+            evidence_by_url=evidence_by_url,
+            max_new=1,
+        )
+        if new_urls is None:
+            return None
+        for u in new_urls[:1]:
+            evidence = current_company_evidence_from_search_result(
+                evidence_by_url.get(u, "")
+            )
+            queued.append(
+                (
+                    u,
+                    row.cv_variant,
+                    row.search_intent,
+                    row.target_company,
+                    row.target_opportunity_id,
+                    row.target_role_title,
+                    evidence,
+                )
+            )
+            local_seen.add(u)
+
     for slug in variants:
         merged = merged_queries_for_variant(raw_cfg, slug)
         if not merged:
             continue
-        need = scoring_cap - len(queued)
+        need = scoring_cap - len(queued) - len(generic)
         if need <= 0:
             break
         for qline, search_intent in merged:
-            need_inner = scoring_cap - len(queued)
+            need_inner = scoring_cap - len(queued) - len(generic)
             if need_inner <= 0:
                 break
             ql = str(qline or "").strip()
@@ -500,56 +665,48 @@ def collect_discovery_queue_for_session(
                 continue
 
             url = people_search_url(ql, base_url)
-
-            if not automation_goto_or_closed(automation, url):
-                shutdown_browser()
-                return None
-            dwell_navigation(limits)
-            block2 = assert_blocked_automation(automation, scan_html=False)
-            if block2:
-                append_recruiter_row(
-                    recruiter_row_partial(
-                        date_iso=date.today().isoformat(),
-                        profile_url=automation.current_url()[:390],
-                        name="__meta__discovery_blocked",
-                        variant_slug=slug,
-                        confidence=block2,
-                        status="blocked",
-                        skip_reason=block2,
-                        note_preview=ql[:180],
-                    )
-                )
-                shutdown_browser()
-                print(f"Halted discovery (variant={slug}): {block2}", flush=True)
-                return None
-
-            new_urls = harvest_profile_urls(
-                automation,
+            evidence_by_url = {}
+            new_urls = visit_and_harvest(
+                url,
+                slug=slug,
+                ql=ql,
+                evidence_by_url=evidence_by_url,
                 max_new=max(need_inner * 10, 32),
-                seed_seen=local_seen,
-                cfg_limits=limits,
             )
+            if new_urls is None:
+                return None
 
             for u in new_urls:
-                if len(queued) >= scoring_cap:
+                if len(queued) + len(generic) >= scoring_cap:
                     break
-                queued.append((u, slug, search_intent))
+                evidence = current_company_evidence_from_search_result(
+                    evidence_by_url.get(u, "")
+                )
+                generic.append((u, slug, search_intent, "", "", "", evidence))
                 local_seen.add(u)
 
     retry_first = read_retry_connect_queue(RECRUITERS_CSV)
     pilot_mode = args.max_connections_override is not None
 
     if retry_first:
-        retry_urls = {u for u, _ in retry_first}
-        retry_triples = [(u, v, "") for u, v in retry_first]
-        queued = retry_triples + [
-            (u, v, i) for u, v, i in queued if u not in retry_urls
+        already_queued = {item[0] for item in queued} | {
+            item[0] for item in generic
+        }
+        retry_sevens = [
+            (u, v, "", "", "", "", "")
+            for u, v in retry_first
+            if u not in already_queued
         ]
+        queued = queued + retry_sevens + generic
+        queued = queued[:scoring_cap]
         print(
             f"Retrying {len(retry_first)} profile(s) with prior Connect failures first.",
             flush=True,
         )
     elif pilot_mode and not getattr(args, "dry_run", False):
-        queued = queued[: min(len(queued), 8)]
+        queued = (queued + generic)[: min(len(queued) + len(generic), 8)]
+    else:
+        queued = queued + generic
+        queued = queued[:scoring_cap]
 
     return queued
