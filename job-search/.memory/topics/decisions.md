@@ -1,0 +1,1 @@
+- 2026-07-27 — 2026-07-27: Adopted post-todo memory save discipline + make checkpoint target. Highest-ROI automation is auto-save at todo completion boundaries. Added checkpoint target to Makefile that saves to worklog-YYYY-MM-DD topic.

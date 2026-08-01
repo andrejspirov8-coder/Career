@@ -1,0 +1,40 @@
+# Auto-detect text vs binary
+* text=auto eol=lf
+
+# Binary files
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.woff2 binary
+*.woff binary
+*.ttf binary
+*.eot binary
+
+# Generated / vendored paths — exclude from diffs
+job-search/output/** linguist-generated=true
+job-search/tmp/** linguist-generated=true
+job-search/pipeline/applications.csv linguist-generated=true
+job-search/pipeline/recruiters.csv linguist-generated=true
+job-search/pipeline/recruiter_outreach_log.csv linguist-generated=true
+job-search/runtime/** linguist-generated=true
+node_modules/** linguist-vendored
+
+# Markdown — preserve intentional trailing spaces for line breaks
+*.md whitespace=trailing-space,space-before-tab
+
+# Python
+*.py text diff=python
+
+# Shell scripts — must stay LF
+*.sh text eol=lf
+*.bash text eol=lf
+
+# YAML / YML
+*.yml text
+*.yaml text
+
+# JSON
+*.json text
+*.jsonl text

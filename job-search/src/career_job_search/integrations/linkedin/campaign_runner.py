@@ -56,6 +56,7 @@ from career_job_search.recruiters.matching import (
     match_recruiter_profile,
     matched_hiring_gate_terms,
     prepare_outreach_note_bundle,
+    profile_has_outreach_exclude,
     should_send_recruiter_connection,
 )
 from career_job_search.recruiters.policy import (
@@ -63,6 +64,42 @@ from career_job_search.recruiters.policy import (
     live_dispatch_slots_remaining,
 )
 from career_job_search.recruiters.repository import live_dispatch_ledger_lock, mark_sent
+
+
+def verified_target_company_outreach_allowed(
+    result: dict[str, Any],
+    *,
+    target_company_verified: bool,
+    current_search_evidence: str,
+    full_cfg: dict[str, Any],
+) -> bool:
+    """Allow outreach to a verified hiring-company contact despite low generic CV fit.
+
+    Keeps current-role exclusions intact: a verified company match does not
+    override outreach_exclude_terms (e.g. staffing agencies).
+    """
+    if not target_company_verified:
+        return False
+    meta = result.get("recruiter_meta") or {}
+    if not meta.get("recruiter_gate_ok") or meta.get("sales_only_no_hiring"):
+        return False
+    blob = (current_search_evidence or "").lower()
+    if profile_has_outreach_exclude(blob, full_cfg):
+        return False
+    return True
+
+
+def target_aware_variant_slug(
+    recommendation: dict[str, Any],
+    *,
+    search_variant_slug: str,
+    verified_target_allowed: bool,
+) -> str:
+    """Pick the CV variant for outreach: the job's variant when a verified target
+    company is allowed, otherwise the profile-matched recommendation variant."""
+    if verified_target_allowed:
+        return search_variant_slug or ""
+    return str(recommendation.get("variant_slug") or search_variant_slug or "")
 
 
 def run_recruiter_campaign(

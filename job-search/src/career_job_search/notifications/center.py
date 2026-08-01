@@ -46,7 +46,14 @@ INDIVIDUAL_ACTIONS = frozenset(
     {"read", "unread", "dismiss", "restore", "snooze_day", "snooze_week", "clear_snooze"}
 )
 
+SCHEMA_VERSION = 1
+
 SCHEMA_SQL = """
+CREATE TABLE IF NOT EXISTS schema_meta (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS notifications (
   notification_id TEXT PRIMARY KEY,
   scope TEXT NOT NULL,
@@ -114,6 +121,10 @@ def init_db(db_path: Path | str = DEFAULT_NOTIFICATION_DB) -> Path:
     now = utc_now_iso()
     with connect(path) as con:
         con.executescript(SCHEMA_SQL)
+        con.execute(
+            "INSERT OR REPLACE INTO schema_meta(key, value) VALUES (?, ?)",
+            ("schema_version", str(SCHEMA_VERSION)),
+        )
         con.execute(
             """
             INSERT OR IGNORE INTO notification_settings(id, desktop_enabled, updated_at)

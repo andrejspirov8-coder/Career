@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Any
 
@@ -55,3 +56,21 @@ def load_settings(path: Path | str = DEFAULT_SETTINGS) -> Settings:
         if isinstance(loaded, dict):
             raw = loaded
     return Settings.model_validate(raw)
+
+
+def save_settings(settings: Settings, path: Path | str = DEFAULT_SETTINGS) -> None:
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    temporary = target.with_suffix(target.suffix + ".tmp")
+    temporary.write_text(
+        yaml.dump(
+            settings.model_dump(mode="json"),
+            default_flow_style=False,
+            allow_unicode=True,
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+    os.chmod(temporary, 0o600)
+    temporary.replace(target)
+    os.chmod(target, 0o600)

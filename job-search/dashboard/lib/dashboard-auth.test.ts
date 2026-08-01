@@ -1,16 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import {
-  DASHBOARD_REMEMBERED_SESSION_MAX_AGE_SECONDS,
-  DASHBOARD_SESSION_COOKIE,
-  DASHBOARD_SESSION_MAX_AGE_SECONDS,
   dashboardAuthFailure,
-  dashboardCookieFromHeaders,
+  dashboardTokenFromEnv,
   dashboardJsonResponse,
   dashboardMutationAuthErrorResponse,
-  dashboardSessionValue,
   dashboardTokenFromRequest,
   isDashboardHeadersAuthorized,
-  isDashboardSessionAuthorized,
   isDashboardTokenAuthorized,
   isSameOriginLogoutRequest,
   isSameOriginRequest,
@@ -35,6 +30,16 @@ describe('dashboard recruiter API auth', () => {
     })
   })
 
+  it('rejects all headers when the expected token is empty', () => {
+    expect(isDashboardHeadersAuthorized('', new Headers())).toBe(false)
+    expect(isDashboardHeadersAuthorized('', new Headers({ 'x-career-dashboard-token': 'dev-disabled-auth' }))).toBe(false)
+  })
+
+  it('does not invent an authentication token when configuration is missing', () => {
+    expect(dashboardTokenFromEnv({})).toBe('')
+    expect(dashboardTokenFromEnv({ CAREER_DASHBOARD_TOKEN: '  secret  ' })).toBe('secret')
+  })
+
   it('accepts either the dashboard token header or a bearer token', () => {
     const headerRequest = new Request('http://127.0.0.1/api/recruiter/overview', {
       headers: { 'x-career-dashboard-token': 'secret' },
@@ -48,51 +53,11 @@ describe('dashboard recruiter API auth', () => {
     expect(isDashboardTokenAuthorized('secret', dashboardTokenFromRequest(headerRequest))).toBe(true)
   })
 
-  it('accepts a derived session cookie without storing the original token', () => {
-    const sessionValue = dashboardSessionValue('secret')
-    const headers = new Headers({ cookie: `${DASHBOARD_SESSION_COOKIE}=${sessionValue}` })
-
-    expect(sessionValue).not.toContain('secret')
-    expect(dashboardCookieFromHeaders(headers)).toBe(sessionValue)
-    expect(isDashboardSessionAuthorized('secret', sessionValue)).toBe(true)
-    expect(isDashboardSessionAuthorized('secret', 'wrong')).toBe(false)
-    expect(isDashboardHeadersAuthorized('secret', headers)).toBe(true)
-  })
-
-  it('rejects a copied session value after eight hours', () => {
-    const now = 2_000_000_000
-    const valid = dashboardSessionValue('secret', now - DASHBOARD_SESSION_MAX_AGE_SECONDS)
-    const expired = dashboardSessionValue('secret', now - DASHBOARD_SESSION_MAX_AGE_SECONDS - 1)
-
-    expect(isDashboardSessionAuthorized('secret', valid, now)).toBe(true)
-    expect(isDashboardSessionAuthorized('secret', expired, now)).toBe(false)
-  })
-
-  it('supports an explicitly remembered browser for 30 days', () => {
-    const now = 2_000_000_000
-    const valid = dashboardSessionValue(
-      'secret',
-      now - DASHBOARD_REMEMBERED_SESSION_MAX_AGE_SECONDS,
-      DASHBOARD_REMEMBERED_SESSION_MAX_AGE_SECONDS,
-    )
-    const expired = dashboardSessionValue(
-      'secret',
-      now - DASHBOARD_REMEMBERED_SESSION_MAX_AGE_SECONDS - 1,
-      DASHBOARD_REMEMBERED_SESSION_MAX_AGE_SECONDS,
-    )
-
-    expect(isDashboardSessionAuthorized('secret', valid, now)).toBe(true)
-    expect(isDashboardSessionAuthorized('secret', expired, now)).toBe(false)
-    expect(dashboardSessionValue('secret', now, 365 * 24 * 60 * 60)).toBe('')
-  })
-
   it('requires same-origin browser mutations while retaining header-token clients', async () => {
     process.env.CAREER_DASHBOARD_TOKEN = 'secret'
-    const sessionValue = dashboardSessionValue('secret')
-    const crossOrigin = new Request('http://127.0.0.1:3000/api/recruiter/actions', {
+    const noAuth = new Request('http://127.0.0.1:3000/api/recruiter/actions', {
       method: 'POST',
       headers: {
-        cookie: `${DASHBOARD_SESSION_COOKIE}=${sessionValue}`,
         origin: 'https://attacker.example',
       },
     })
@@ -101,8 +66,8 @@ describe('dashboard recruiter API auth', () => {
       headers: { 'x-career-dashboard-token': 'secret' },
     })
 
-    const denied = dashboardMutationAuthErrorResponse(crossOrigin)
-    expect(denied?.status).toBe(403)
+    const denied = dashboardMutationAuthErrorResponse(noAuth)
+    expect(denied?.status).toBe(401)
     await expect(denied?.json()).resolves.toMatchObject({ ok: false })
     expect(dashboardMutationAuthErrorResponse(tokenClient)).toBeNull()
     delete process.env.CAREER_DASHBOARD_TOKEN

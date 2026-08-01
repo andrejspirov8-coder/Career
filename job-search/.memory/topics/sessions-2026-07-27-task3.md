@@ -1,0 +1,1 @@
+- 2026-07-27: Task 3 complete: created routers/__init__.py, helpers.py (generic proxy endpoint with 16-helper registry), registered in server.py, added 2 tests. 6/6 API server tests pass, 0 new lint errors.

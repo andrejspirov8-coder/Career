@@ -119,6 +119,39 @@ def discovery_queries(cfg: dict[str, Any]) -> list[tuple[str, str]]:
     return out
 
 
+def discovery_query_plan(
+    cfg: dict[str, Any],
+    *,
+    opportunity_db_path: Path | str,
+    now: Any | None = None,
+) -> list[tuple[str, str]]:
+    """Return (variant_slug, query) plan: opportunity targets first, then generic.
+
+    Opportunity-company queries (with their CV variant) are placed ahead of the
+    configured generic per-variant queries so verified hiring companies are
+    discovered first, within the configured company/queries budget.
+    """
+    from career_job_search.recruiters.opportunity_targets import (
+        opportunity_target_queries,
+        opportunity_target_settings,
+        safe_load_opportunity_targets,
+    )
+
+    plan: list[tuple[str, str]] = []
+    settings = opportunity_target_settings(cfg)
+    if settings.enabled:
+        targets, _ = safe_load_opportunity_targets(
+            db_path=opportunity_db_path,
+            settings=settings,
+            now=now,
+        )
+        plan = opportunity_target_queries(
+            targets,
+            queries_per_company=settings.queries_per_company,
+        )
+    return plan + discovery_queries(cfg)
+
+
 def extract_linkedin_url(text: str) -> str:
     match = _LINKEDIN_IN_RE.search(text or "")
     if not match:

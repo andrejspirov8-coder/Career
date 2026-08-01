@@ -13,6 +13,23 @@ from career_job_search.recruiters.web_models import WebResearchResult, WebSearch
 
 DEFAULT_CACHE_PATH = PIPELINE_DIR / "web_search_cache.sqlite"
 
+SCHEMA_VERSION = 1
+
+SCHEMA_SQL = """
+CREATE TABLE IF NOT EXISTS schema_meta (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS searches (
+    backend TEXT NOT NULL,
+    query TEXT NOT NULL,
+    fetched_at TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    PRIMARY KEY (backend, query)
+)
+"""
+
 
 def _cache_path(full_cfg: dict[str, Any] | None = None) -> Path:
     if full_cfg:
@@ -37,17 +54,7 @@ def cache_ttl_hours(full_cfg: dict[str, Any]) -> float:
 def _connect(path: Path) -> sqlite3.Connection:
     path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(path))
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS searches (
-            backend TEXT NOT NULL,
-            query TEXT NOT NULL,
-            fetched_at TEXT NOT NULL,
-            payload_json TEXT NOT NULL,
-            PRIMARY KEY (backend, query)
-        )
-        """
-    )
+    conn.executescript(SCHEMA_SQL)
     return conn
 
 

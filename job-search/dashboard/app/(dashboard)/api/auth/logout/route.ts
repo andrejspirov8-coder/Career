@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 
 import {
-  DASHBOARD_SESSION_COOKIE,
+  DASHBOARD_SESSION_SUPABASE_TOKEN_COOKIE,
   applyDashboardPrivateHeaders,
   isSameOriginLogoutRequest,
 } from '@/lib/server/auth'
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
 
   const response = NextResponse.json({ ok: true })
   response.cookies.set({
-    name: DASHBOARD_SESSION_COOKIE,
+    name: DASHBOARD_SESSION_SUPABASE_TOKEN_COOKIE,
     value: '',
     httpOnly: true,
     sameSite: 'strict',

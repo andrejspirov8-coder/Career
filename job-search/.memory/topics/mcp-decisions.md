@@ -1,0 +1,1 @@
+- 2026-07-28 — 2026-07-28: Decided NOT to add Desktop Commander MCP. Reason: redundant with existing Playwright (browser) and opencode CLI built-in tools (terminal/files). No gap to fill.

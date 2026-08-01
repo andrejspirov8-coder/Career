@@ -1,0 +1,1 @@
+- 2026-07-27 — Fixed 30+ test files with stale imports from deleted tools/ shim modules (career_job_search canonical paths). Workflow: 304 pass, 4 fail — 2 pre-existing (contract_gen, contract_e2e), 2 from remaining shim references in source code (hiring_network.py import_module('recruiter_graph_workflow') and test_schema_export.py hardcoded tools/ path)

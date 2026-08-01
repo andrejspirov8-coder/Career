@@ -32,8 +32,15 @@ STALE_RUN_MINUTES = 35
 SOURCE_STALE_HOURS = 36
 CATCH_UP_AFTER_MINUTES = 30
 
+SCHEMA_VERSION = 1
+
 SCHEMA_SQL = """
 PRAGMA foreign_keys = ON;
+
+CREATE TABLE IF NOT EXISTS schema_meta (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
 
 CREATE TABLE IF NOT EXISTS automation_runs (
   run_id TEXT PRIMARY KEY,
@@ -125,6 +132,10 @@ def init_db(db_path: Path | str = DEFAULT_AUTOMATION_DB) -> Path:
     now = utc_now_iso()
     with connect(path) as con:
         con.executescript(SCHEMA_SQL)
+        con.execute(
+            "INSERT OR REPLACE INTO schema_meta(key, value) VALUES (?, ?)",
+            ("schema_version", str(SCHEMA_VERSION)),
+        )
         con.execute(
             """
             INSERT OR IGNORE INTO automation_settings(

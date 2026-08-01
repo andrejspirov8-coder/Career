@@ -1,16 +1,8 @@
-import { createHmac, timingSafeEqual } from 'node:crypto'
-
 export const DASHBOARD_TOKEN_ENV_VAR = 'CAREER_DASHBOARD_TOKEN'
 export const DASHBOARD_TOKEN_HEADER = 'x-career-dashboard-token'
-export const DASHBOARD_SESSION_COOKIE = 'career_dashboard_session'
-export const DASHBOARD_SESSION_MAX_AGE_SECONDS = 8 * 60 * 60
+export const DASHBOARD_SESSION_SUPABASE_TOKEN_COOKIE = 'career_sb_token'
 export const DASHBOARD_REMEMBERED_SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60
-
-const dashboardSessionPurpose = 'career-dashboard-session-v2'
-const allowedSessionMaxAges = new Set([
-  DASHBOARD_SESSION_MAX_AGE_SECONDS,
-  DASHBOARD_REMEMBERED_SESSION_MAX_AGE_SECONDS,
-])
+export const DASHBOARD_SESSION_MAX_AGE_SECONDS = 8 * 60 * 60
 
 export type DashboardAuthFailure = {
   status: 401 | 503
@@ -66,32 +58,9 @@ export function dashboardTokenFromRequest(request: Request): string | null {
   return dashboardTokenFromHeaders(request.headers)
 }
 
-export function dashboardSessionValue(
-  expectedToken: string,
-  issuedAtSeconds = Math.floor(Date.now() / 1000),
-  maxAgeSeconds = DASHBOARD_SESSION_MAX_AGE_SECONDS,
-): string {
-  if (!expectedToken || !allowedSessionMaxAges.has(maxAgeSeconds)) return ''
-  const issuedAt = Math.floor(issuedAtSeconds)
-  const signature = createHmac('sha256', expectedToken)
-    .update(`${dashboardSessionPurpose}:${issuedAt}:${maxAgeSeconds}`)
-    .digest('hex')
-  return `${issuedAt}.${maxAgeSeconds}.${signature}`
-}
-
-export function dashboardCookieFromHeaders(headers: Headers): string | null {
-  const cookieHeader = headers.get('cookie') || ''
-  for (const part of cookieHeader.split(';')) {
-    const [rawName, ...rawValue] = part.trim().split('=')
-    if (rawName !== DASHBOARD_SESSION_COOKIE) continue
-    const value = rawValue.join('=').trim()
-    return value ? decodeURIComponent(value) : null
-  }
-  return null
-}
-
 function safeStringEqual(expected: string, candidate: string | null): boolean {
   if (!expected || !candidate) return false
+  const { timingSafeEqual } = require('node:crypto') as typeof import('node:crypto')
   const expectedBuffer = Buffer.from(expected)
   const candidateBuffer = Buffer.from(candidate)
   return expectedBuffer.length === candidateBuffer.length && timingSafeEqual(expectedBuffer, candidateBuffer)
@@ -101,29 +70,8 @@ export function isDashboardTokenAuthorized(expectedToken: string, requestToken: 
   return safeStringEqual(expectedToken, requestToken)
 }
 
-export function isDashboardSessionAuthorized(
-  expectedToken: string,
-  sessionValue: string | null,
-  nowSeconds = Math.floor(Date.now() / 1000),
-): boolean {
-  if (!sessionValue) return false
-  const [rawIssuedAt, rawMaxAge, signature, ...extra] = sessionValue.split('.')
-  if (!rawIssuedAt || !rawMaxAge || !signature || extra.length) return false
-  const issuedAt = Number(rawIssuedAt)
-  const maxAge = Number(rawMaxAge)
-  if (!Number.isSafeInteger(issuedAt) || !Number.isSafeInteger(maxAge) || !allowedSessionMaxAges.has(maxAge)) {
-    return false
-  }
-  const age = Math.floor(nowSeconds) - issuedAt
-  if (age < 0 || age > maxAge) return false
-  return safeStringEqual(dashboardSessionValue(expectedToken, issuedAt, maxAge), sessionValue)
-}
-
 export function isDashboardHeadersAuthorized(expectedToken: string, headers: Headers): boolean {
-  return (
-    isDashboardTokenAuthorized(expectedToken, dashboardTokenFromHeaders(headers)) ||
-    isDashboardSessionAuthorized(expectedToken, dashboardCookieFromHeaders(headers))
-  )
+  return isDashboardTokenAuthorized(expectedToken, dashboardTokenFromHeaders(headers))
 }
 
 export function isSameOriginRequest(request: Request): boolean {
@@ -143,8 +91,6 @@ export function isSameOriginRequest(request: Request): boolean {
 }
 
 export function isSameOriginLogoutRequest(request: Request): boolean {
-  // The non-simple header cannot be sent by a cross-origin form and causes a
-  // browser CORS preflight for cross-origin fetches; this server grants none.
   return (
     isSameOriginRequest(request) ||
     request.headers.get('x-career-dashboard-action') === 'logout'

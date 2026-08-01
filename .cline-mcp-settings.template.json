@@ -1,0 +1,148 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "autoApprove": [
+        "list_allowed_directories",
+        "list_directory",
+        "directory_tree",
+        "read_text_file",
+        "read_multiple_files",
+        "read_file",
+        "read_media_file",
+        "write_file",
+        "edit_file",
+        "create_directory",
+        "list_directory_with_sizes",
+        "move_file",
+        "search_files",
+        "get_file_info"
+      ],
+      "disabled": false,
+      "timeout": 60,
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/Users/andrejspirov"]
+    },
+    "desktop-commander": {
+      "autoApprove": [
+        "read_file",
+        "read_multiple_files",
+        "list_directory",
+        "list_directory_with_sizes",
+        "directory_tree",
+        "get_file_info",
+        "get_config",
+        "start_search",
+        "stop_search",
+        "get_more_search_results",
+        "list_searches",
+        "get_usage_stats",
+        "get_recent_tool_calls",
+        "get_prompts",
+        "write_file",
+        "write_pdf",
+        "create_directory",
+        "move_file",
+        "edit_block",
+        "start_process",
+        "read_process_output",
+        "interact_with_process",
+        "list_sessions",
+        "list_processes"
+      ],
+      "disabled": false,
+      "timeout": 120,
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@wonderwhy-er/desktop-commander"]
+    },
+    "sequentialthinking": {
+      "autoApprove": ["sequentialthinking"],
+      "disabled": false,
+      "timeout": 120,
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+    },
+    "context7": {
+      "autoApprove": ["resolve-library-id", "query-docs"],
+      "disabled": false,
+      "timeout": 45,
+      "type": "stdio",
+      "command": "node",
+      "args": ["/Users/andrejspirov/Documents/Cline/MCP/node_modules/@upstash/context7-mcp/dist/index.js"]
+    },
+    "memory": {
+      "autoApprove": ["read_graph", "search_nodes", "open_nodes"],
+      "disabled": false,
+      "timeout": 20,
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"]
+    },
+    "firecrawl": {
+      "autoApprove": [
+        "firecrawl_scrape",
+        "firecrawl_map",
+        "firecrawl_search",
+        "firecrawl_crawl",
+        "firecrawl_check_crawl_status",
+        "firecrawl_extract",
+        "firecrawl_browser_create",
+        "firecrawl_browser_execute",
+        "firecrawl_browser_delete",
+        "firecrawl_browser_list"
+      ],
+      "disabled": false,
+      "timeout": 90,
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "firecrawl-mcp"],
+      "env": {
+        "FIRECRAWL_API_KEY": "${FIRECRAWL_API_KEY}"
+      }
+    },
+    "github": {
+      "autoApprove": [
+        "get_file_contents",
+        "get_me",
+        "get_commit",
+        "list_branches",
+        "list_commits",
+        "list_issues",
+        "list_pull_requests",
+        "search_code",
+        "search_issues",
+        "search_pull_requests",
+        "search_repositories",
+        "search_users",
+        "list_releases",
+        "list_tags",
+        "issue_read",
+        "pull_request_read",
+        "add_issue_comment",
+        "add_reply_to_pull_request_comment",
+        "create_branch",
+        "create_or_update_file",
+        "create_pull_request",
+        "get_label",
+        "get_latest_release",
+        "get_release_by_tag",
+        "get_tag",
+        "list_issue_types",
+        "push_files",
+        "request_copilot_review",
+        "update_pull_request",
+        "update_pull_request_branch"
+      ],
+      "disabled": false,
+      "timeout": 45,
+      "type": "stdio",
+      "command": "/Users/andrejspirov/Documents/Cline/MCP/github-mcp-server/github-mcp-server",
+      "args": ["stdio"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PAT}"
+      }
+    }
+  }
+}

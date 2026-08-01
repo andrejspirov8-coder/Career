@@ -23,6 +23,13 @@ from career_job_search.dev_agents.common import (
 from career_job_search.dev_agents.models import AgentTaskSpec, LocalAgentSettings
 from career_job_search.dev_agents.policy import validate_task_policy
 
+SCHEMA_VERSION = 1
+
+_SCHEMA_META_SQL = (
+    "CREATE TABLE IF NOT EXISTS schema_meta "
+    "(key TEXT PRIMARY KEY, value TEXT NOT NULL)"
+)
+
 
 def connect(db_path: Path | str = DEFAULT_DB_PATH) -> sqlite3.Connection:
     path = Path(db_path)
@@ -60,6 +67,12 @@ def init_db(
     now = utc_now_iso()
     with connect(path) as con:
         con.executescript(SCHEMA_SQL)
+        con.execute(_SCHEMA_META_SQL)
+        con.execute(
+            "INSERT INTO schema_meta (key, value) VALUES ('schema_version', ?) "
+            "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+            (str(SCHEMA_VERSION),),
+        )
         for column, definition in (
             ("model_digest", "TEXT"),
             ("proposal_id", "TEXT"),

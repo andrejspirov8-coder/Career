@@ -28,6 +28,14 @@ raycast-job-search-hub/dist/
 
 job-search/linkedin/config.yaml
 
+# Private per-user config (settings.yaml holds runtime policy; opportunities.yaml is private prefs)
+job-search/config/settings.yaml
+job-search/config/opportunities.yaml
+
+# Node modules at workspace root / job-search root (not tracked)
+node_modules/
+job-search/node_modules/
+
 # Browser automation scratch
 .playwright-cli/
 
