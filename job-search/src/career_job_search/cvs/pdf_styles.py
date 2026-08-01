@@ -102,7 +102,7 @@ def register_fonts() -> tuple[str, str]:
                 regular_name,
                 bold_name if bold_name in registered else regular_name,
             )
-    except Exception:
+    except Exception:  # noqa: S110
         pass
     return "Helvetica", "Helvetica-Bold"
 

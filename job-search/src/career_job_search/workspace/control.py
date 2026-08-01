@@ -30,8 +30,8 @@ from career_job_search.workspace import backups as _backups
 JOB_ROOT = project_path()
 DASHBOARD_DIR = JOB_ROOT / "dashboard"
 DASHBOARD_ENV_PATH = DASHBOARD_DIR / ".env.local"
-DASHBOARD_TOKEN_KEY = "CAREER_DASHBOARD_TOKEN"
-DASHBOARD_TOKEN_PLACEHOLDER = "replace-with-a-long-random-local-token"
+DASHBOARD_TOKEN_KEY = "CAREER_DASHBOARD_TOKEN"  # noqa: S105
+DASHBOARD_TOKEN_PLACEHOLDER = "replace-with-a-long-random-local-token"  # noqa: S105
 KEYCHAIN_SERVICE = "com.andrejspirov.career.dashboard"
 KEYCHAIN_ACCOUNT = getpass.getuser()
 SECURITY_BIN = Path("/usr/bin/security")
@@ -211,7 +211,7 @@ def _run(
         input=input_text,
         text=True,
         capture_output=True,
-        shell=False,
+        shell=False,  # noqa: S603
         timeout=timeout,
         check=False,
     )

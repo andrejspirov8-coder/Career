@@ -338,7 +338,7 @@ def run_dashboard_action(
         with fd:
             fd.write(json.dumps({"action": action, "started_at": started_at}) + "\n")
         completed = subprocess.run(
-            command,
+            command,  # noqa: S603
             cwd=JOB_ROOT,
             check=False,
             capture_output=True,

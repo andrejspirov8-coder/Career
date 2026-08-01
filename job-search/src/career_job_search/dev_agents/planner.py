@@ -67,7 +67,7 @@ def resource_status(
     pmset = shutil.which("pmset")
     if pmset:
         power = subprocess.run(
-            [pmset, "-g", "batt"],
+            [pmset, "-g", "batt"],  # noqa: S603
             text=True,
             capture_output=True,
             check=False,
@@ -139,7 +139,7 @@ def _planner_evidence(paths: CoordinatorPaths) -> dict[str, Any]:
     rg = shutil.which("rg")
     if rg:
         process = subprocess.run(
-            [
+            [  # noqa: S603
                 rg,
                 "-n",
                 "TODO|FIXME|XXX",

@@ -145,7 +145,7 @@ def chrome_debugger_reachable(cfg: dict[str, Any]) -> tuple[bool, str]:
     port = browse_debug_port(cfg)
     url = f"http://127.0.0.1:{port}/json/version"
     try:
-        with urlopen(url, timeout=2.5) as r:
+        with urlopen(url, timeout=2.5) as r:  # noqa: S310
             blob = json.loads(r.read())
         ws = blob.get("webSocketDebuggerUrl")
         if ws:
@@ -612,12 +612,12 @@ def cmd_followup(headed: bool, config_path: Path) -> int:
         "--config",
         str(config_path),
     ]
-    return subprocess.call(cli)
+    return subprocess.call(cli)  # noqa: S603
 
 
 def cmd_report() -> int:
     cli = [sys.executable, str(TOOLS_DIR / "recruiter_performance.py")]
-    return subprocess.call(cli)
+    return subprocess.call(cli)  # noqa: S603
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -701,7 +701,7 @@ def main(argv: list[str] | None = None) -> int:
                 cli.extend(["--browser-channel", parsed.browser_channel])
             if parsed.allow_live_dispatch:
                 cli.append("--allow-live-dispatch")
-            return subprocess.call(cli)
+            return subprocess.call(cli)  # noqa: S603
 
         login_timeout_seconds = parsed.login_timeout_seconds
         if parsed.dry_run and login_timeout_seconds is None:

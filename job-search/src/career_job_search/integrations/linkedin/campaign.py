@@ -253,7 +253,7 @@ def run_linked_in_campaign_backend(
             closed_ctx["done"] = True
             try:
                 ctx.close()
-            except Exception:
+            except Exception:  # noqa: S110
                 pass
 
         try:

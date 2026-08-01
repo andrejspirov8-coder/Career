@@ -49,7 +49,7 @@ class ExaBackend:
             method="POST",
         )
         try:
-            with urllib.request.urlopen(req, timeout=45) as resp:
+            with urllib.request.urlopen(req, timeout=45) as resp:  # noqa: S310
                 raw = json.loads(resp.read().decode("utf-8"))
         except urllib.error.URLError as exc:
             return WebResearchResult(query=query, backend=self.name, error=str(exc))
@@ -91,7 +91,7 @@ class ExaBackend:
             method="POST",
         )
         try:
-            with urllib.request.urlopen(req, timeout=60) as resp:
+            with urllib.request.urlopen(req, timeout=60) as resp:  # noqa: S310
                 raw = json.loads(resp.read().decode("utf-8"))
         except urllib.error.URLError:
             return {}
@@ -125,7 +125,7 @@ class FirecrawlBackend:
         ]
         try:
             proc = subprocess.run(
-                cmd,
+                cmd,  # noqa: S603
                 capture_output=True,
                 text=True,
                 timeout=90,
@@ -267,7 +267,7 @@ def web_search(
                 cached = get_cached(query, impl.name, full_cfg=full_cfg)
                 if cached is not None:
                     return cached
-        except Exception:
+        except Exception:  # noqa: S110
             pass
     result = impl.search(query, num_results=num_results)
     if use_cache and full_cfg and not result.error:
@@ -276,7 +276,7 @@ def web_search(
 
             if cache_enabled(full_cfg):
                 put(query, impl.name, result, full_cfg=full_cfg)
-        except Exception:
+        except Exception:  # noqa: S110
             pass
     return result
 

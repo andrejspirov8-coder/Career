@@ -204,7 +204,7 @@ def run_recruiter_campaign(
     print(f"Queued profiles: {len(queued)} / cap {scoring_cap}", flush=True)
 
     today_iso = date.today().isoformat()
-    idle_stride = random.randint(4, 5)
+    idle_stride = random.randint(4, 5)  # noqa: S311
 
     for profile_idx, queue_item in enumerate(queued):
         canonical_url, search_variant_slug, search_intent = _unpack_queue_item(

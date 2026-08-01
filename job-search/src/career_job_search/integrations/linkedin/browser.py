@@ -77,7 +77,7 @@ def chrome_executable(cfg: dict[str, Any]) -> str:
 
 
 def websocket_debugger_url(port: int) -> str:
-    with urlopen(f"http://127.0.0.1:{port}/json/version", timeout=30) as r:
+    with urlopen(f"http://127.0.0.1:{port}/json/version", timeout=30) as r:  # noqa: S310
         blob = json.loads(r.read())
     ws = blob.get("webSocketDebuggerUrl")
     if not ws:
@@ -278,7 +278,7 @@ class BrowseWsLinkedInAutomator(LinkedInAutomatorBase):
     def _run_raw(self, pieces: list[str]) -> subprocess.CompletedProcess[str]:
         full = [*self._cmd_base(), *pieces]
 
-        return subprocess.run(full, capture_output=True, text=True, timeout=180)
+        return subprocess.run(full, capture_output=True, text=True, timeout=180)  # noqa: S603
 
     def _run(self, pieces: list[str]) -> dict[str, Any]:
         proc = self._run_raw(pieces)
@@ -373,7 +373,7 @@ class BrowseWsLinkedInAutomator(LinkedInAutomatorBase):
                 '.scrollIntoView({block:"start"});}catch(_e){}})()'
             )
 
-        except Exception:
+        except Exception:  # noqa: S110
             pass
 
         connect_path = "none"
@@ -401,7 +401,7 @@ class BrowseWsLinkedInAutomator(LinkedInAutomatorBase):
 
                         break
 
-                except Exception:
+                except Exception:  # noqa: S112
                     continue
 
         if connect_path == "none":
@@ -416,7 +416,7 @@ class BrowseWsLinkedInAutomator(LinkedInAutomatorBase):
             try:
                 self.screenshot_file(shot)
 
-            except Exception:
+            except Exception:  # noqa: S110
                 pass
 
             return False, "connect_button_missing_or_hidden", connect_path
@@ -446,7 +446,7 @@ class BrowseWsLinkedInAutomator(LinkedInAutomatorBase):
 
                                 break
 
-                            except Exception:
+                            except Exception:  # noqa: S110
                                 pass
 
                 jitter_sleep_(0.2, 0.5)
@@ -467,7 +467,7 @@ class BrowseWsLinkedInAutomator(LinkedInAutomatorBase):
 
                         jitter_sleep_(0.35, 0.9)
 
-                    except Exception:
+                    except Exception:  # noqa: S110
                         pass
 
         snap2 = self.snapshot_compact()
@@ -636,7 +636,7 @@ class BrowseChromeDaemon:
         ]
 
         self.proc = subprocess.Popen(
-            argv, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+            argv, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL  # noqa: S603
         )
 
         self._owns = True
@@ -654,7 +654,7 @@ class BrowseChromeDaemon:
                 try:
                     self.proc.kill()
 
-                except Exception:
+                except Exception:  # noqa: S110
                     pass
 
             self.proc = None

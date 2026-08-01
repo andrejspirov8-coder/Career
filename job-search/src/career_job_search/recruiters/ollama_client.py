@@ -51,7 +51,7 @@ def _record_ollama_failure(full_cfg: dict[str, Any], error: str) -> None:
                 error=error,
                 meta={"fail_count": _OLLAMA_FAIL_COUNT},
             )
-        except Exception:
+        except Exception:  # noqa: S110
             pass
 
 
@@ -156,8 +156,8 @@ def prompt_version(system_prompt: str) -> str:
 
 def health_check(base_url: str = DEFAULT_BASE_URL) -> tuple[bool, str]:
     try:
-        req = urllib.request.Request(f"{base_url.rstrip('/')}/api/tags")
-        with urllib.request.urlopen(req, timeout=5) as resp:
+        req = urllib.request.Request(f"{base_url.rstrip('/')}/api/tags")  # noqa: S310
+        with urllib.request.urlopen(req, timeout=5) as resp:  # noqa: S310
             raw = json.loads(resp.read().decode("utf-8"))
         models = [m.get("name", "") for m in raw.get("models") or []]
         return True, f"ollama ok ({len(models)} model(s))"

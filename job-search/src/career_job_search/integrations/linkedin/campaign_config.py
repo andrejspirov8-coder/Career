@@ -159,8 +159,8 @@ def idle_feed_browse(page: Any, *, base_url: str, limits: dict[str, Any]) -> Non
         return
     jitter_sleep(lo, hi)
     try:
-        page.mouse.wheel(0, random.randint(320, 1100))
-    except Exception:
+        page.mouse.wheel(0, random.randint(320, 1100))  # noqa: S311
+    except Exception:  # noqa: S110
         pass
     jitter_sleep(2.0, 5.5)
 
@@ -249,7 +249,7 @@ def people_search_url(keywords: str, base_url: str) -> str:
 
 def jitter_sleep(seconds_min: float, seconds_max: float) -> None:
     lo, hi = min(seconds_min, seconds_max), max(seconds_min, seconds_max)
-    time.sleep(random.uniform(lo, hi))
+    time.sleep(random.uniform(lo, hi))  # noqa: S311
 
 
 def dwell_navigation(limits: dict[str, Any]) -> None:

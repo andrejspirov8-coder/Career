@@ -45,7 +45,7 @@ class CareerWorkflow:
         print("─" * 70)
 
         full_cmd = f"cd {self.base_dir} && {cmd}"
-        result = subprocess.run(full_cmd, shell=True, cwd=str(self.base_dir))
+        result = subprocess.run(full_cmd, shell=True, cwd=str(self.base_dir))  # noqa: S602
 
         if result.returncode == 0:
             self.log(f"{description} - Complete", "OK")

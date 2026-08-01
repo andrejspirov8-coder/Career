@@ -115,7 +115,7 @@ def _local_opener() -> urllib.request.OpenerDirector:
 
 
 def ollama_health() -> dict[str, Any]:
-    request = urllib.request.Request(
+    request = urllib.request.Request(  # noqa: S310
         OLLAMA_TAGS_URL,
         headers={"Accept": "application/json"},
         method="GET",
@@ -253,7 +253,7 @@ def _ollama_chat(*, model: str, system_prompt: str, user_prompt: str) -> str:
         },
         ensure_ascii=False,
     ).encode("utf-8")
-    request = urllib.request.Request(
+    request = urllib.request.Request(  # noqa: S310
         OLLAMA_CHAT_URL,
         data=body,
         headers={"Accept": "application/json", "Content-Type": "application/json"},

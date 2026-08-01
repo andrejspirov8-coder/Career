@@ -36,7 +36,7 @@ def _prompts_raw() -> dict[str, Any]:
             raw = yaml.safe_load(PROMPTS_PATH.read_text(encoding="utf-8")) or {}
             if isinstance(raw.get("agents"), dict):
                 return raw["agents"]
-        except Exception:
+        except Exception:  # noqa: S110
             pass
     return {}
 

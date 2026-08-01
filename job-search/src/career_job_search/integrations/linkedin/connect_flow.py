@@ -21,7 +21,7 @@ def jitter_sleep(seconds_min: float, seconds_max: float) -> None:
     lo, hi = min(seconds_min, seconds_max), max(seconds_min, seconds_max)
     import random
 
-    time.sleep(random.uniform(lo, hi))
+    time.sleep(random.uniform(lo, hi))  # noqa: S311
 
 
 def pick_textarea(dialog: Any) -> Any:
@@ -36,7 +36,7 @@ def pick_textarea(dialog: Any) -> Any:
         try:
             if locator.count() >= 1 and locator.first.is_visible(timeout=1500):
                 return locator.first
-        except Exception:
+        except Exception:  # noqa: S112
             continue
 
     tail = dialog.locator("textarea")
@@ -61,7 +61,7 @@ def _try_connect_click(locator: Any, *, timeout_ms: int = 7000) -> bool:
             if locator.is_visible(timeout=500):
                 locator.click(timeout=timeout_ms, force=True)
                 return True
-        except Exception:
+        except Exception:  # noqa: S110
             pass
 
     return False
@@ -82,10 +82,10 @@ def _profile_top_card_root(page: Any) -> Any:
                     if card.count() > 0 and card.is_visible(timeout=900):
                         return card
 
-                except Exception:
+                except Exception:  # noqa: S112
                     continue
 
-    except Exception:
+    except Exception:  # noqa: S110
         pass
 
     for selector in (
@@ -99,7 +99,7 @@ def _profile_top_card_root(page: Any) -> Any:
         try:
             if loc.count() > 0 and loc.is_visible(timeout=800):
                 return loc
-        except Exception:
+        except Exception:  # noqa: S112
             continue
     return page.locator("main").first
 
@@ -114,7 +114,7 @@ def _click_connect_candidates_in(root: Any, *, timeout_ms: int = 7000) -> bool:
             if _try_connect_click(invite_links.nth(idx), timeout_ms=timeout_ms):
                 return True
 
-    except Exception:
+    except Exception:  # noqa: S110
         pass
 
     for selector in lis.CONNECT_LINK_FALLBACK_SELECTORS:
@@ -123,7 +123,7 @@ def _click_connect_candidates_in(root: Any, *, timeout_ms: int = 7000) -> bool:
 
             if _try_connect_click(loc, timeout_ms=timeout_ms):
                 return True
-        except (PlaywrightTimeout, Exception):
+        except (PlaywrightTimeout, Exception):  # noqa: S112
             continue
 
     try:
@@ -138,7 +138,7 @@ def _click_connect_candidates_in(root: Any, *, timeout_ms: int = 7000) -> bool:
             if _try_connect_click(by_label.nth(idx), timeout_ms=timeout_ms):
                 return True
 
-    except Exception:
+    except Exception:  # noqa: S110
         pass
 
     try:
@@ -149,7 +149,7 @@ def _click_connect_candidates_in(root: Any, *, timeout_ms: int = 7000) -> bool:
             if _try_connect_click(buttons.nth(idx), timeout_ms=timeout_ms):
                 return True
 
-    except Exception:
+    except Exception:  # noqa: S110
         pass
 
     for selector in lis.CONNECT_BUTTON_FALLBACK_SELECTORS:
@@ -159,7 +159,7 @@ def _click_connect_candidates_in(root: Any, *, timeout_ms: int = 7000) -> bool:
             if _try_connect_click(loc, timeout_ms=timeout_ms):
                 return True
 
-        except (PlaywrightTimeout, Exception):
+        except (PlaywrightTimeout, Exception):  # noqa: S112
             continue
 
     try:
@@ -168,7 +168,7 @@ def _click_connect_candidates_in(root: Any, *, timeout_ms: int = 7000) -> bool:
         if exact.count() > 0 and _try_connect_click(exact.first, timeout_ms=timeout_ms):
             return True
 
-    except Exception:
+    except Exception:  # noqa: S110
         pass
 
     try:
@@ -179,7 +179,7 @@ def _click_connect_candidates_in(root: Any, *, timeout_ms: int = 7000) -> bool:
         if _try_connect_click(text_btn, timeout_ms=timeout_ms):
             return True
 
-    except Exception:
+    except Exception:  # noqa: S110
         pass
 
     return False
@@ -194,7 +194,7 @@ def _click_visible_connect_in(root: Any, *, timeout_ms: int = 7000) -> bool:
                 if _click_connect_candidates_in(bar, timeout_ms=timeout_ms):
                     return True
 
-        except Exception:
+        except Exception:  # noqa: S112
             continue
 
     return _click_connect_candidates_in(root, timeout_ms=timeout_ms)
@@ -224,7 +224,7 @@ def click_profile_connect(
     except Exception:
         try:
             page.locator("main").first.scroll_into_view_if_needed(timeout=4000)
-        except Exception:
+        except Exception:  # noqa: S110
             pass
 
     sleep_j(0.35, 0.75)
@@ -236,7 +236,7 @@ def click_profile_connect(
         page.get_by_role("link", name=connect_re).first.wait_for(
             state="visible", timeout=12_000
         )
-    except Exception:
+    except Exception:  # noqa: S110
         pass
 
     if _click_visible_connect_in(top):
@@ -276,7 +276,7 @@ def click_profile_connect(
 
                 return "more_menu"
 
-    except Exception:
+    except Exception:  # noqa: S110
         pass
 
     run_logs_dir.mkdir(parents=True, exist_ok=True)
@@ -290,7 +290,7 @@ def click_profile_connect(
     try:
         page.screenshot(path=str(shot), full_page=False)
 
-    except Exception:
+    except Exception:  # noqa: S110
         pass
 
     return "none"
@@ -308,7 +308,7 @@ def playwright_try_send_invitation(
 
     try:
         page.locator("main").first.scroll_into_view_if_needed(timeout=4000)
-    except Exception:
+    except Exception:  # noqa: S110
         pass
 
     connect_path = click_profile_connect(
@@ -346,7 +346,7 @@ def playwright_try_send_invitation(
             add_note_candidates.first.click(timeout=7000)
             jitter_cb(0.3, 0.9)
 
-    except Exception:
+    except Exception:  # noqa: S110
         pass
 
     try:
@@ -387,7 +387,7 @@ def playwright_try_send_invitation(
 
                 break
 
-            except Exception:
+            except Exception:  # noqa: S112
                 continue
 
         if not clicked:

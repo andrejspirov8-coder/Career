@@ -237,7 +237,7 @@ def _spawn_service_child(
     log = log_path.open("ab")
     try:
         return subprocess.Popen(
-            list(command),
+            list(command),  # noqa: S603
             cwd=paths.repo_root,
             stdin=subprocess.DEVNULL,
             stdout=log,
@@ -437,7 +437,7 @@ def spawn_worker(*, paths: CoordinatorPaths) -> int:
     ]
     with log_path.open("ab") as log:
         process = subprocess.Popen(
-            command,
+            command,  # noqa: S603
             cwd=paths.repo_root,
             stdin=subprocess.DEVNULL,
             stdout=log,

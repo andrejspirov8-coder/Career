@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import json
 
-from career_job_search.core.contracts import HELPER_ENVELOPE_SCHEMA, helper_envelope, helper_json
+from career_job_search.core.contracts import (
+    HELPER_ENVELOPE_SCHEMA,
+    helper_envelope,
+    helper_json,
+)
 
 
 def test_helper_envelope_adds_schema():
@@ -17,7 +21,7 @@ def test_helper_envelope_raises_on_incompatible_schema():
     payload = {"schema": "some_other_v2", "ok": True}
     try:
         helper_envelope(payload)
-        assert False, "Expected ValueError"
+        raise AssertionError("Expected ValueError")
     except ValueError as exc:
         assert "incompatible" in str(exc).lower()
 

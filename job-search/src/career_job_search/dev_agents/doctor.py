@@ -34,7 +34,7 @@ def _ollama_models(settings: LocalAgentSettings) -> set[str]:
 
 def _ollama_model_context(model: str, settings: LocalAgentSettings) -> int:
     body = json.dumps({"model": model}).encode("utf-8")
-    request = urllib.request.Request(
+    request = urllib.request.Request(  # noqa: S310
         f"{settings.ollama_host}/api/show",
         data=body,
         headers={"Content-Type": "application/json"},
@@ -157,7 +157,7 @@ def doctor(*, settings: LocalAgentSettings, paths: CoordinatorPaths) -> dict[str
             ),
         )
         worktree_probe = subprocess.run(
-            [sandbox_exec, "-f", str(profile_path), "/bin/cat", str(probe_file)],
+            [sandbox_exec, "-f", str(profile_path), "/bin/cat", str(probe_file)],  # noqa: S603
             capture_output=True,
             check=False,
         )
@@ -169,7 +169,7 @@ def doctor(*, settings: LocalAgentSettings, paths: CoordinatorPaths) -> dict[str
             )
         )
         active_probe = subprocess.run(
-            [
+            [  # noqa: S603
                 sandbox_exec,
                 "-f",
                 str(profile_path),
@@ -187,7 +187,7 @@ def doctor(*, settings: LocalAgentSettings, paths: CoordinatorPaths) -> dict[str
             )
         )
         local_probe = subprocess.run(
-            [
+            [  # noqa: S603
                 sandbox_exec,
                 "-f",
                 str(profile_path),
@@ -208,7 +208,7 @@ def doctor(*, settings: LocalAgentSettings, paths: CoordinatorPaths) -> dict[str
             )
         )
         external_probe = subprocess.run(
-            [
+            [  # noqa: S603
                 sandbox_exec,
                 "-f",
                 str(profile_path),
@@ -233,7 +233,7 @@ def doctor(*, settings: LocalAgentSettings, paths: CoordinatorPaths) -> dict[str
         sensitive = Path.home() / ".codex" / "config.toml"
         if sensitive.exists():
             read_probe = subprocess.run(
-                [
+                [  # noqa: S603
                     sandbox_exec,
                     "-f",
                     str(profile_path),

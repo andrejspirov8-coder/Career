@@ -2,7 +2,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from career_job_search.core.paths import PROJECT_ROOT, project_path, resolve_project_root
+from career_job_search.core.paths import (
+    PROJECT_ROOT,
+    project_path,
+    resolve_project_root,
+)
 
 
 def test_resolve_project_root_returns_path():

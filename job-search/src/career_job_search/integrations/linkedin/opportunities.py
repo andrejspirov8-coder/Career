@@ -135,7 +135,7 @@ def _first_text(container: Any, selectors: tuple[str, ...]) -> str:
                 value = _clean_text(locator.first.inner_text(timeout=900))
                 if value:
                     return value
-        except Exception:
+        except Exception:  # noqa: S112
             continue
     return ""
 
@@ -149,7 +149,7 @@ def _card_container(anchor: Any) -> Any:
             candidate = anchor.locator(selector)
             if candidate.count() > 0:
                 return candidate.first
-        except Exception:
+        except Exception:  # noqa: S112
             continue
     return anchor
 
@@ -167,7 +167,7 @@ def extract_job_cards(
         anchor = anchors.nth(index)
         try:
             href = str(anchor.get_attribute("href") or "")
-        except Exception:
+        except Exception:  # noqa: S112
             continue
         url = canonical_job_url(href)
         job_id = job_id_from_url(url)
@@ -232,7 +232,7 @@ def _detail_description(page: Any, url: str, *, timeout_ms: int) -> str:
                     text = _clean_text(locator.first.inner_text(timeout=1200))
                     if text:
                         return text[:6000]
-            except Exception:
+            except Exception:  # noqa: S112
                 continue
         return body[:6000]
     except Exception:

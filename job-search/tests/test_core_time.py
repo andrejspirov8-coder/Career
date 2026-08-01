@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from zoneinfo import ZoneInfo
 
 from career_job_search.core.time import (
@@ -21,13 +21,13 @@ def test_utc_now_returns_aware_datetime():
     now = utc_now()
     assert isinstance(now, datetime)
     assert now.tzinfo is not None
-    assert now.tzinfo.utcoffset(now) == timezone.utc.utcoffset(now)
+    assert now.tzinfo.utcoffset(now) == UTC.utcoffset(now)
 
 
 def test_utc_now_is_close_to_real_time():
-    before = datetime.now(timezone.utc)
+    before = datetime.now(UTC)
     now = utc_now()
-    after = datetime.now(timezone.utc)
+    after = datetime.now(UTC)
     assert before <= now <= after
 
 

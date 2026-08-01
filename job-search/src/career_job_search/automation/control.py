@@ -281,7 +281,7 @@ def execute_run(
                 stdout=stdout_handle,
                 stderr=stderr_handle,
                 text=True,
-                shell=False,
+                shell=False,  # noqa: S603
                 start_new_session=True,
                 close_fds=True,
             )
@@ -446,7 +446,7 @@ def spawn_worker(*, db_path: Path | str = DEFAULT_AUTOMATION_DB) -> int:
         stdin=subprocess.DEVNULL,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
-        shell=False,
+        shell=False,  # noqa: S603
         start_new_session=True,
         close_fds=True,
     )

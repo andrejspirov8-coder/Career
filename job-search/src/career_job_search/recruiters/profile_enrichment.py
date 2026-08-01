@@ -268,7 +268,7 @@ def enrich_rows_with_browser(
                 by_url[url] = parse_playwright_payload(payload)
         try:
             ctx.close()
-        except Exception:
+        except Exception:  # noqa: S110
             pass
 
     updated: list[dict[str, str]] = []

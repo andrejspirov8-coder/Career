@@ -22,8 +22,8 @@ from career_job_search.workspace.control import read_env_token, read_keychain_to
 DASHBOARD_DIR = JOB_ROOT / "dashboard"
 AUTOMATION_CONTROL = JOB_ROOT / "tools" / "automation_control.py"
 LOCAL_DEV_AGENTS = JOB_ROOT / "tools" / "local_dev_agents.py"
-DASHBOARD_TOKEN_KEY = "CAREER_DASHBOARD_TOKEN"
-DASHBOARD_TOKEN_PLACEHOLDER = "replace-with-a-long-random-local-token"
+DASHBOARD_TOKEN_KEY = "CAREER_DASHBOARD_TOKEN"  # noqa: S105
+DASHBOARD_TOKEN_PLACEHOLDER = "replace-with-a-long-random-local-token"  # noqa: S105
 SERVICE_STATUS_PATH = JOB_ROOT / "state" / "dashboard_service.json"
 RESTART_REQUEST_PATH = JOB_ROOT / "state" / "dashboard_restart.request.json"
 
@@ -138,10 +138,10 @@ def rebuild_production_dashboard(
         os.replace(build_dir, previous_dir)
     try:
         result = subprocess.run(
-            ["npm", "run", "build"],
+            ["npm", "run", "build"],  # noqa: S607
             cwd=dashboard_dir,
             env=environment,
-            shell=False,
+            shell=False,  # noqa: S603
             check=False,
             timeout=300,
         )
@@ -287,7 +287,7 @@ def run_service(mode: str, *, poll_seconds: float = 5) -> int:
                 "Created dashboard/.env.local with a private dashboard login secret.",
                 file=sys.stderr,
             )
-        elif token_storage == "keychain":
+        elif token_storage == "keychain":  # noqa: S105
             print(
                 "Loaded the dashboard login secret from macOS Keychain.",
                 file=sys.stderr,
@@ -318,14 +318,14 @@ def run_service(mode: str, *, poll_seconds: float = 5) -> int:
         worker = subprocess.Popen(
             worker_command,
             cwd=JOB_ROOT,
-            shell=False,
+            shell=False,  # noqa: S603
             start_new_session=True,
             close_fds=True,
         )
         development_agent = subprocess.Popen(
             development_command,
             cwd=JOB_ROOT,
-            shell=False,
+            shell=False,  # noqa: S603
             start_new_session=True,
             close_fds=True,
         )
@@ -347,7 +347,7 @@ def run_service(mode: str, *, poll_seconds: float = 5) -> int:
             dashboard_command,
             cwd=DASHBOARD_DIR,
             env=dashboard_environment,
-            shell=False,
+            shell=False,  # noqa: S603
             start_new_session=True,
             close_fds=True,
         )
@@ -394,7 +394,7 @@ def run_service(mode: str, *, poll_seconds: float = 5) -> int:
                     dashboard_command,
                     cwd=DASHBOARD_DIR,
                     env=dashboard_environment,
-                    shell=False,
+                    shell=False,  # noqa: S603
                     start_new_session=True,
                     close_fds=True,
                 )

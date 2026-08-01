@@ -5,7 +5,11 @@ from pathlib import Path
 
 import pytest
 
-from career_job_search.core.process import ProcessResult, ProcessTimeoutError, run_process
+from career_job_search.core.process import (
+    ProcessResult,
+    ProcessTimeoutError,
+    run_process,
+)
 
 
 def test_process_result_ok_true_on_zero():

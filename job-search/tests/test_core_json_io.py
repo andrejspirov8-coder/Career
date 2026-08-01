@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 import stat
 from pathlib import Path
 
@@ -56,7 +55,7 @@ def test_write_json_atomic_temp_file_cleaned_on_failure(tmp_path: Path) -> None:
         pass
     try:
         write_json_atomic(path, {"bad": Unserializable()})
-        assert False, "Expected TypeError"
+        raise AssertionError("Expected TypeError")
     except TypeError:
         pass
     assert not path.exists()

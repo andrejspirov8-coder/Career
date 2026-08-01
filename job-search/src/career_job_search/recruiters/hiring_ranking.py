@@ -96,7 +96,7 @@ def match_candidate_to_cv(
             from career_job_search.recruiters.ollama_embed import blend_cv_score
 
             score = blend_cv_score(score, candidate.text_blob(), best, full_cfg)
-        except Exception:
+        except Exception:  # noqa: S110
             pass
 
         return CvMatchDecision(
@@ -289,7 +289,7 @@ def write_personalized_note(
                 )
             elif llm_issues:
                 reason = f"{reason}:llm_rejected:{','.join(llm_issues)}"
-    except Exception:
+    except Exception:  # noqa: S110
         pass
     return note, reason
 

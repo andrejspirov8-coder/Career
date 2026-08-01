@@ -171,7 +171,7 @@ def fetch_public_page_text(
     timeout: int = DEFAULT_LIVE_CHECK_TIMEOUT_SECONDS,
     max_bytes: int = 500_000,
 ) -> tuple[int, str]:
-    request = Request(
+    request = Request(  # noqa: S310
         url,
         headers={
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -179,7 +179,7 @@ def fetch_public_page_text(
         },
     )
     try:
-        with urlopen(request, timeout=timeout) as response:
+        with urlopen(request, timeout=timeout) as response:  # noqa: S310
             charset = response.headers.get_content_charset() or "utf-8"
             raw = response.read(max_bytes)
             return int(response.status), html_to_visible_text(raw.decode(charset, errors="replace"))

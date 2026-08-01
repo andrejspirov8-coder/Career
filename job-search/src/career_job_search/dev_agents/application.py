@@ -223,7 +223,7 @@ def apply_run(
     if release_check:
         started = time.monotonic()
         process = subprocess.run(
-            [str(paths.repo_root / "scripts" / "verify_release.sh")],
+            [str(paths.repo_root / "scripts" / "verify_release.sh")],  # noqa: S603
             cwd=paths.repo_root,
             text=True,
             capture_output=True,

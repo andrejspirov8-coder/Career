@@ -383,7 +383,7 @@ def _run_scout(args: argparse.Namespace) -> int:
         cli.extend(["--browser-channel", args.browser_channel])
     if args.variant:
         cli.extend(["--variant", args.variant])
-    return subprocess.call(cli)
+    return subprocess.call(cli)  # noqa: S603
 
 
 def cmd_daily(args: argparse.Namespace) -> int:
@@ -708,7 +708,7 @@ def cmd_report(args: argparse.Namespace) -> int:
             f"{row.get('persona')} {row.get('cv_variant')} {row.get('name')}"
         )
     perf = subprocess.call(
-        [
+        [  # noqa: S603
             sys.executable,
             str(Path(__file__).resolve().parent / "recruiter_performance.py"),
             "--by-persona",

@@ -77,9 +77,9 @@ def assert_blocked_automation(
                 try:
                     if page.locator(sel).first.is_visible(timeout=450):
                         return "login_wall_visible"
-                except Exception:
+                except Exception:  # noqa: S112
                     continue
-        except Exception:
+        except Exception:  # noqa: S110
             pass
         return None
     try:
@@ -164,7 +164,7 @@ def wait_for_manual_login_automation(
         jitter_sleep(4.0, 7.0)
         try:
             automation.goto(feed_url)
-        except Exception:
+        except Exception:  # noqa: S110
             pass
         dwell_navigation(dwell)
         blocker = assert_blocked_automation(automation)
@@ -212,7 +212,7 @@ def harvest_profile_urls(
                 automation.evaluate(
                     f"(function(){{window.scrollBy(0, {int(scroll_px)});}})()"
                 )
-            except Exception:
+            except Exception:  # noqa: S110
                 pass
         jitter_sleep(1.6, 2.8)
 
@@ -351,8 +351,8 @@ def idle_feed_automation(
         return
     jitter_sleep(lo, hi)
     try:
-        automation.mouse_wheel(random.randint(320, 1100))
-    except Exception:
+        automation.mouse_wheel(random.randint(320, 1100))  # noqa: S311
+    except Exception:  # noqa: S110
         pass
     jitter_sleep(2.0, 5.5)
 
@@ -368,7 +368,7 @@ def looks_pending_automation(automation: LinkedInAutomatorBase) -> bool:
             try:
                 if loc.is_visible(timeout=500):
                     return True
-            except Exception:
+            except Exception:  # noqa: S112
                 continue
     blob = sample_automation_html(automation, 280_000).lower()
     return bool(blob and ("pending invitation" in blob or "\npending\n" in blob))

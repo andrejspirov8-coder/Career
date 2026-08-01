@@ -72,14 +72,14 @@ def _enabled(block: dict[str, Any], default: bool = False) -> bool:
 
 
 def fetch_json(url: str, *, timeout: int = DEFAULT_FETCH_TIMEOUT_SECONDS) -> Any:
-    request = Request(
+    request = Request(  # noqa: S310
         url,
         headers={
             "Accept": "application/json",
             "User-Agent": "career-job-search-opportunity-scout/1.0",
         },
     )
-    with urlopen(request, timeout=timeout) as response:
+    with urlopen(request, timeout=timeout) as response:  # noqa: S310
         return json.loads(response.read().decode("utf-8"))
 
 
@@ -347,7 +347,7 @@ def discover_ats_opportunities(config: dict[str, Any]) -> list[Opportunity]:
             continue
         try:
             rows.extend(discover_live_ats_provider(provider_config, timeout=timeout))
-        except Exception:
+        except Exception:  # noqa: S112
             continue
     return rows
 

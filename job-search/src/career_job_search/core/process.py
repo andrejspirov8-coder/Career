@@ -38,7 +38,7 @@ def run_process(
         raise ValueError("argv cannot be empty")
     try:
         completed = subprocess.run(
-            command,
+            command,  # noqa: S603
             cwd=cwd,
             env=dict(env) if env is not None else None,
             capture_output=True,

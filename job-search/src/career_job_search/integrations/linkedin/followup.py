@@ -269,7 +269,7 @@ def run_followup(args: argparse.Namespace, raw_cfg: dict[str, Any]) -> int:
         from career_job_search.recruiters.persona_stats import write_persona_stats
 
         write_persona_stats()
-    except Exception:
+    except Exception:  # noqa: S110
         pass
     print("Wrote pipeline/recruiters.csv", flush=True)
     return 0

@@ -182,6 +182,7 @@ def test_tracked_top_level_structure_is_expected() -> None:
     expected = {
         ".cursor",
         ".github",
+        ".memory",
         "archive",
         "config",
         "cv",
@@ -192,6 +193,8 @@ def test_tracked_top_level_structure_is_expected() -> None:
         "mcp",
         "packs",
         "pipeline",
+        "plans",
+        "prompts",
         "raycast-job-search-hub",
         "scripts",
         "src",

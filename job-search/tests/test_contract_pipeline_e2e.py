@@ -1,6 +1,7 @@
 # tests/test_contract_pipeline_e2e.py
-import subprocess
 import json
+import subprocess
+
 
 def test_contract_pipeline_e2e():
     """Verify: Python schema -> TS generation -> TypeScript compiles -> runtime works"""

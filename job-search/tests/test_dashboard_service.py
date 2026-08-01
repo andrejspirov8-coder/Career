@@ -96,7 +96,7 @@ def test_service_prefers_keychain_without_writing_env_file(tmp_path, monkeypatch
 
     environment, storage, created = dashboard_process_environment(env_path)
 
-    assert environment["CAREER_DASHBOARD_TOKEN"] == "keychain-secret"
+    assert environment["CAREER_DASHBOARD_TOKEN"] == "keychain-secret"  # noqa: S105
     assert storage == "keychain"
     assert created is False
     assert not env_path.exists()
@@ -109,7 +109,7 @@ def test_service_keeps_an_explicit_environment_secret(tmp_path, monkeypatch):
 
     environment, storage, created = dashboard_process_environment(env_path)
 
-    assert environment["CAREER_DASHBOARD_TOKEN"] == "inherited-secret"
+    assert environment["CAREER_DASHBOARD_TOKEN"] == "inherited-secret"  # noqa: S105
     assert storage == "environment"
     assert created is False
     assert not env_path.exists()
