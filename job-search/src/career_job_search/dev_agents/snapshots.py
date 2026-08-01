@@ -436,6 +436,16 @@ def build_patch(
             raise CoordinatorError(
                 f"Patch changes {len(statuses)} files; the limit is {task.max_changed_files}."
             )
+        # Architectural boundary validation runs before the protected-path check so
+        # that inner-layer violations are reported precisely even when the changed
+        # file is also write-protected (e.g. domain importing infrastructure).
+        repo_root = snapshot.worktree
+        arch_violations = validate_architectural_boundaries(statuses.keys(), repo_root)
+        if arch_violations:
+            raise CoordinatorError(
+                "Patch violates architectural boundaries:\n" + "\n".join(arch_violations)
+            )
+
         for path, status in statuses.items():
             if status.startswith("D") or status.startswith("T"):
                 raise CoordinatorError(
@@ -445,14 +455,6 @@ def build_patch(
                 raise CoordinatorError(f"Patch changed an out-of-scope path: {path}")
             if is_snapshot_forbidden(path, settings) or is_write_forbidden(path):
                 raise CoordinatorError(f"Patch changed a protected path: {path}")
-
-        # Architectural boundary validation
-        repo_root = snapshot.worktree
-        arch_violations = validate_architectural_boundaries(statuses.keys(), repo_root)
-        if arch_violations:
-            raise CoordinatorError(
-                "Patch violates architectural boundaries:\n" + "\n".join(arch_violations)
-            )
 
         numstat = _git(
             ["diff", "--cached", "--numstat", "--no-renames", "HEAD"],

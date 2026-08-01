@@ -122,17 +122,17 @@ def test_build_patch_allows_valid_architecture():
         (repo_root / ".gitignore").write_text("runtime/\n.venv/\nnode_modules/\n*.pdf\n")
 
         # Create directory structure
-        domain_dir = repo_root / "src/career_job_search/domain"
-        infra_dir = repo_root / "src/career_job_search/infrastructure"
-        domain_dir.mkdir(parents=True)
-        infra_dir.mkdir(parents=True)
+        dev_agents_dir = repo_root / "src/career_job_search/dev_agents"
+        core_dir = repo_root / "src/career_job_search/core"
+        dev_agents_dir.mkdir(parents=True)
+        core_dir.mkdir(parents=True)
 
         # Create initial files
-        domain_file = domain_dir / "models.py"
-        domain_file.write_text("class User: pass\n")
+        core_file = core_dir / "contracts.py"
+        core_file.write_text("class Contract: pass\n")
 
-        infra_file = infra_dir / "database.py"
-        infra_file.write_text("# Infrastructure module\n")
+        dev_agents_file = dev_agents_dir / "adapter.py"
+        dev_agents_file.write_text("# Dev agents module\n")
 
         # Commit initial state
         subprocess.run(["git", "add", "-A"], cwd=repo_root, check=True)
@@ -143,7 +143,7 @@ def test_build_patch_allows_valid_architecture():
         task = AgentTaskSpec(
             objective="Test valid architecture",
             role="implementer",
-            allowed_paths=["src/career_job_search/infrastructure/database.py"],
+            allowed_paths=["src/career_job_search/dev_agents/adapter.py"],
             acceptance_checks=[],
             risk="low",
             context_notes="",
@@ -157,12 +157,14 @@ def test_build_patch_allows_valid_architecture():
         snapshot = create_snapshot(task_id, settings=settings, paths=paths)
 
         # Modify the file IN THE WORKTREE with valid inward import
-        worktree_infra_file = snapshot.worktree / "src/career_job_search/infrastructure/database.py"
-        worktree_infra_file.write_text("from career_job_search.domain.models import User\n")
+        worktree_dev_agents_file = snapshot.worktree / "src/career_job_search/dev_agents/adapter.py"
+        worktree_dev_agents_file.write_text(
+            "from career_job_search.core.contracts import Contract\n"
+        )
 
         # This should NOT raise an error
         run_dir = paths.runtime_root / "runs" / task_id
         patch_info = build_patch(task, snapshot, settings=settings, run_dir=run_dir)
 
         assert patch_info is not None
-        assert "src/career_job_search/infrastructure/database.py" in patch_info.changed_files
+        assert "src/career_job_search/dev_agents/adapter.py" in patch_info.changed_files
