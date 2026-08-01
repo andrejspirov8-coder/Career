@@ -41,3 +41,11 @@ Next: Remove legacy HMAC code after migration validated in production use
 - Legacy HMAC Bearer token still works as fallback (returns `local-user`)
 - Removed one-shot migration scripts: `generate_table_sql.py`, `migrate_to_supabase.py`, `migrate_to_supabase_sql.py`
 - Cleaned `/tmp/mig_*` artifacts (132 files)
+
+## 2026-08-01: RLS Hardening + Migration Versioning
+
+- Versioned all remote migrations into `supabase/migrations/` (was empty): `20260728164841_20260728_career_schema.sql`, `20260728165729_20260728_move_to_public_schema.sql`, `20260728171844_add_rls_policies.sql`.
+- Closed the RLS hole: all 22 tables had `anon SELECT USING (true)` policies exposing every row to the publishable anon key. Dropped all 22; added owner-scoped `authenticated` SELECT policies on the 3 tables that carry `user_id` (`opportunities`, `recruiter_profiles`, `user_settings`).
+- Applied via Management API `POST /database/migrations` (body `{"name": ..., "query": <sql string>}`) as `20260801114516_harden_rls.sql`. Supabase MCP server was down (network errors); Management API with `SUPABASE_ACCESS_TOKEN` works directly. Cloudflare 1010 blocks were transient rate-limiting — pace requests.
+- Verified: anon `GET /rest/v1/opportunities` now returns `[]` (was full data); service_role key still returns rows (bypasses RLS). All 1187 opportunities tagged `user_id='local-user'` (SQLite remains canonical; Supabase repos `integrations/supabase/` are dormant scaffolding, never imported at runtime).
+- Advisor findings from 2026-07-28 are stale: `opportunity_status_counts` is a plain view (not SECURITY DEFINER), the two count functions have `prosecdef=false` and null `proconfig` (no mutable search_path).
