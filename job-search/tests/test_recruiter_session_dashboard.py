@@ -3,11 +3,14 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from career_job_search.recruiters.dashboard_adapter import (
     build_overview,
     bulk_update_profile_status,
     update_action_plan_note,
 )
+from career_job_search.recruiters.opportunity_targets import OpportunityRecruiterTarget
 
 
 def write_json(path: Path, value: object) -> None:
@@ -171,3 +174,44 @@ def test_bulk_status_change_materializes_only_requested_session_profiles(
     assert saved[0]["profile_url"] == "https://www.linkedin.com/in/jane-recruiter/"
     assert saved[0]["send_tier"] == "skip"
     assert saved[0]["decision"] == "skip"
+
+
+def test_overview_opportunity_targets_include_priority_reason_and_location(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import career_job_search.recruiters.dashboard_adapter as adapter
+
+    target = OpportunityRecruiterTarget(
+        opportunity_id="opp-1",
+        company="Hiring Now UAB",
+        title="Operations Manager",
+        location="Vilnius, Lithuania",
+        cv_variant="operations-management",
+        role_track="operations leadership",
+        fit_score=18.0,
+        status="review",
+        live_status="live",
+        live_checked_at="2026-07-24T08:00:00+00:00",
+        source_url="https://example.com/job",
+        priority_reason="fresh_live_match",
+    )
+    monkeypatch.setattr(
+        adapter,
+        "safe_load_opportunity_targets",
+        lambda db_path, settings: ([target], None),
+    )
+
+    overview = build_overview(
+        action_plan_path=tmp_path / "hiring_network_action_plan.jsonl",
+        recruiters_csv_path=tmp_path / "recruiters.csv",
+        state_db_path=tmp_path / "state.sqlite3",
+        run_state_path=tmp_path / "run.json",
+        persona_stats_path=tmp_path / "persona.json",
+        opportunity_db_path=tmp_path / "opportunities.db",
+    )
+
+    companies = overview["opportunity_targets"]["companies"]
+    assert companies[0]["company"] == "Hiring Now UAB"
+    assert companies[0]["location"] == "Vilnius, Lithuania"
+    assert companies[0]["priority_reason"] == "fresh_live_match"

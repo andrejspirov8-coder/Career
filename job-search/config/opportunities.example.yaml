@@ -158,6 +158,10 @@ opportunities:
         - implementation manager
         - retail operations
         - store manager
+    cvmarket_rss:
+      enabled: false
+      feed_url: https://www.cvmarket.lt/rss-listings.xml
+      network_timeout_seconds: 20
     job_board:
       enabled: false
       links: []

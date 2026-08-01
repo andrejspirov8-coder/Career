@@ -399,9 +399,11 @@ def _opportunity_targets_overview(
                 "company": target.company,
                 "opportunity_id": target.opportunity_id,
                 "title": target.title,
+                "location": target.location,
                 "cv_variant": target.cv_variant,
                 "fit_score": target.fit_score,
                 "live_status": target.live_status,
+                "priority_reason": target.priority_reason,
             }
             for target in targets
         ],

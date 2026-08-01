@@ -231,7 +231,7 @@ def dashboard_process_environment(
 
 
 def service_commands(
-    mode: str, poll_seconds: float
+    mode: str, poll_seconds: float, port: int | None = None
 ) -> tuple[list[str], list[str] | None]:
     worker = [
         sys.executable,
@@ -242,10 +242,11 @@ def service_commands(
     ]
     if mode == "worker":
         return worker, None
+    port_args = [] if port is None else ["--", "--port", str(int(port))]
     if mode == "production":
-        return worker, ["npm", "run", "start"]
+        return worker, ["npm", "run", "start", *port_args]
     if mode == "dev":
-        return worker, ["npm", "run", "dev"]
+        return worker, ["npm", "run", "dev", *port_args]
     raise ValueError(f"Unsupported dashboard service mode: {mode}")
 
 
@@ -276,8 +277,10 @@ def _terminate(process: subprocess.Popen[bytes] | None) -> None:
         process.wait(timeout=5)
 
 
-def run_service(mode: str, *, poll_seconds: float = 5) -> int:
-    worker_command, dashboard_command = service_commands(mode, poll_seconds)
+def run_service(
+    mode: str, *, poll_seconds: float = 5, port: int | None = None
+) -> int:
+    worker_command, dashboard_command = service_commands(mode, poll_seconds, port)
     development_command = development_agent_command(poll_seconds)
     dashboard_environment: dict[str, str] | None = None
     if dashboard_command is not None:
@@ -441,13 +444,16 @@ def build_parser() -> argparse.ArgumentParser:
         default="dev",
     )
     parser.add_argument("--poll-seconds", type=float, default=5)
+    parser.add_argument("--port", type=int, default=None)
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
-        return run_service(args.mode, poll_seconds=args.poll_seconds)
+        return run_service(
+            args.mode, poll_seconds=args.poll_seconds, port=args.port
+        )
     except Exception as exc:
         print(f"Dashboard service failed: {exc}", file=sys.stderr)
         return 1

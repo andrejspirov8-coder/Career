@@ -410,7 +410,7 @@ def test_match_opportunities_adds_fit_components_and_risk_flags() -> None:
         company="Vinted",
         location="Remote Europe",
         salary_text="EUR 4,000-5,000 gross monthly",
-        deadline="2026-07-30",
+        deadline="2026-12-30",
         description=(
             "Lead customer operations, SLA ownership, workflow improvement, "
             "quality management, stakeholder communication, and French language support."
