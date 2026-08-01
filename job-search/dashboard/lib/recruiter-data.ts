@@ -79,6 +79,22 @@ export type RecruiterQueueRow = {
   note_quality?: NoteQuality
   action_history?: DashboardActionHistory[]
   status?: string
+  target_company?: string
+  target_company_verified?: boolean
+}
+
+export type OpportunityTargetRow = {
+  opportunity_id: string
+  company: string
+  title: string
+  location?: string
+  cv_variant: string
+  role_track?: string
+  fit_score: number
+  status?: string
+  live_status?: string
+  source_url?: string
+  priority_reason: string
 }
 
 export type SavedViews = {
@@ -154,6 +170,10 @@ export type RecruiterOverview = {
     approved_notes: number
     ready_for_cli_dispatch: boolean
     ready_for_manual_send?: number
+  }
+  opportunity_targets?: {
+    companies?: OpportunityTargetRow[]
+    error?: string
   }
   safe_actions?: SafeActionCommands
   helperError?: string

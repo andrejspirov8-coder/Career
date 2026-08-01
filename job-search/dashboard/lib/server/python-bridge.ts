@@ -11,6 +11,7 @@ const helperScripts = {
   localDrafting: 'tools/local_drafting.py',
   notifications: 'tools/notification_center.py',
   opportunities: 'tools/opportunity_dashboard.py',
+  opportunityOrchestrate: 'tools/opportunity_orchestrate.py',
   recruiters: 'tools/recruiter_dashboard.py',
   searchPreferences: 'tools/search_preferences.py',
   workspace: 'tools/workspace_control.py',

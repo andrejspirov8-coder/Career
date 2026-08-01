@@ -36,6 +36,13 @@ export type CareerAnalyticsOverview = {
   }
   by_source: AnalyticsPerformanceRow[]
   by_variant: AnalyticsPerformanceRow[]
+  by_tailoring?: AnalyticsPerformanceRow[]
+  by_match_score?: AnalyticsPerformanceRow[]
+  outcome_history?: {
+    events: number
+    invalid_records: number
+    transitions: Array<{ [key: string]: unknown }>
+  }
   weekly_trend: Array<{ week_start: string; submitted: number; interviews: number }>
   recruiters: {
     profiles_logged: number

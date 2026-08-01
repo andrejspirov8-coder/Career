@@ -1,11 +1,20 @@
 import { NextResponse } from 'next/server'
 
-import { applyDashboardPrivateHeaders } from '@/lib/server/auth'
+import {
+  applyDashboardPrivateHeaders,
+  isSameOriginRequest,
+} from '@/lib/server/auth'
 import { runFastApiEndpoint } from '@/lib/server/fastapi-bridge'
 
 export const runtime = 'nodejs'
 
 export async function POST(request: Request) {
+  if (!isSameOriginRequest(request)) {
+    return applyDashboardPrivateHeaders(
+      NextResponse.json({ ok: false, error: 'Signup requires a same-origin request.' }, { status: 403 }),
+    )
+  }
+
   let body: { email?: string; password?: string } = {}
   try {
     body = (await request.json()) as typeof body

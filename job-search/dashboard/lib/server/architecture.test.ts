@@ -4,7 +4,7 @@ import { join, relative, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 const dashboardRoot = resolve(process.cwd())
-const apiRoot = join(dashboardRoot, 'app', 'api')
+const apiRoot = join(dashboardRoot, 'app', '(dashboard)', 'api')
 
 function filesBelow(root: string): string[] {
   return readdirSync(root).flatMap((name) => {
@@ -25,10 +25,13 @@ describe('dashboard server architecture', () => {
         continue
       }
 
-      const isLogin = name === 'app/api/auth/login/route.ts'
-      const isLogout = name === 'app/api/auth/logout/route.ts'
-      if (isLogin || isLogout) {
-        if (!source.includes(isLogin ? 'isSameOriginRequest' : 'isSameOriginLogoutRequest')) {
+      const isLogin = name === 'app/(dashboard)/api/auth/login/route.ts'
+      const isLogout = name === 'app/(dashboard)/api/auth/logout/route.ts'
+      const isSignup = name === 'app/(dashboard)/api/auth/signup/route.ts'
+      if (isLogin || isLogout || isSignup) {
+        if (
+          !source.includes(isLogin ? 'isSameOriginRequest' : isLogout ? 'isSameOriginLogoutRequest' : 'isSameOriginRequest')
+        ) {
           violations.push(`${name}: does not enforce its same-origin auth flow`)
         }
         continue

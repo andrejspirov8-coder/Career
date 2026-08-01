@@ -35,6 +35,9 @@ function unavailableAnalytics(): CareerAnalyticsOverview {
 export default async function InsightsPage() {
   await requireDashboardPageAuth('/insights')
   const analytics = await getCareerAnalytics().catch(unavailableAnalytics)
+  const tailoringRows = analytics.by_tailoring || []
+  const matchScoreRows = analytics.by_match_score || []
+  const outcomeHistory = analytics.outcome_history || { events: 0, invalid_records: 0, transitions: [] }
   const maxWeek = Math.max(1, ...analytics.weekly_trend.map((week) => week.submitted))
   const funnel = [
     ['Submitted', analytics.funnel.submitted],
@@ -96,8 +99,8 @@ export default async function InsightsPage() {
       </div>
 
       <div className="insightsGrid">
-        <PerformancePanel title="Tailoring effect" subtitle="Whether tailored CVs are converting better" rows={analytics.by_tailoring} />
-        <PerformancePanel title="Match-score signal" subtitle="Whether stronger matches are converting better" rows={analytics.by_match_score} />
+        <PerformancePanel title="Tailoring effect" subtitle="Whether tailored CVs are converting better" rows={tailoringRows} />
+        <PerformancePanel title="Match-score signal" subtitle="Whether stronger matches are converting better" rows={matchScoreRows} />
       </div>
 
       <div className="insightsGrid">
@@ -129,7 +132,7 @@ export default async function InsightsPage() {
 
       <section className="workspacePanel insightQuality">
         <div><span>Outcome coverage</span><strong>{percentage(analytics.data_quality.outcome_coverage_rate)}</strong><small>{analytics.data_quality.missing_outcome} missing or still marked applied</small></div>
-        <p>{analytics.privacy.message} Rates stay labelled as early until at least {analytics.data_quality.minimum_reliable_sample} applications exist. {analytics.outcome_history.events} outcome transitions are preserved for audit.{analytics.outcome_history.invalid_records ? ` ${analytics.outcome_history.invalid_records} invalid event records were ignored.` : ''}</p>
+        <p>{analytics.privacy.message} Rates stay labelled as early until at least {analytics.data_quality.minimum_reliable_sample} applications exist. {outcomeHistory.events} outcome transitions are preserved for audit.{outcomeHistory.invalid_records ? ` ${outcomeHistory.invalid_records} invalid event records were ignored.` : ''}</p>
       </section>
     </main>
   )

@@ -110,6 +110,7 @@ export type OpportunityFilters = {
 export type OpportunityActionPayload = {
   action: OpportunityActionName
   opportunityId?: string
+  requestId?: string
   applicationUrl?: string
   applicationNotes?: string
   applicationOutcome?: string

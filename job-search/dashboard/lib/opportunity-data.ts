@@ -557,6 +557,7 @@ export async function runOpportunityAction(
     applicationOutcome?: string
     decisionReason?: string
     decisionNote?: string
+    requestId?: string
   } = {},
 ): Promise<OpportunityActionResult> {
   const args = ['action', '--name', action, '--opportunity-id', opportunityId]
