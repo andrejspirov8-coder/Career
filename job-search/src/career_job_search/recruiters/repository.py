@@ -479,7 +479,7 @@ def approval_check(
     init_db(db_path)
     canon = canonical_profile_url(profile_url)
     nh = compute_note_hash(note)
-    if not canon:
+    if not canon or "/in/" not in canon:
         return ApprovalCheck(canon, nh, False, "missing_profile_url")
     if not (note or "").strip():
         return ApprovalCheck(canon, nh, False, "missing_note")
