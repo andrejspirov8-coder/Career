@@ -21,9 +21,9 @@ MAX_INPUT_BYTES = 1_000_000
 MAX_CANDIDATES = 200
 MAX_DESKTOP_IDS = 50
 
-SCOPES = frozenset({"automation", "opportunity", "application", "development"})
+SCOPES = frozenset({"automation", "opportunity", "application"})
 CATEGORIES = frozenset(
-    {"automation", "opportunity", "application", "development", "system"}
+    {"automation", "opportunity", "application", "system"}
 )
 KINDS = frozenset(
     {
@@ -33,11 +33,6 @@ KINDS = frozenset(
         "follow_up_due",
         "source_health",
         "schedule_missed",
-        "dev_proposals_ready",
-        "dev_agent_failed",
-        "dev_auto_apply_succeeded",
-        "dev_autonomy_paused",
-        "dev_model_requalification",
     }
 )
 PRIORITIES = frozenset({"urgent", "attention", "info"})

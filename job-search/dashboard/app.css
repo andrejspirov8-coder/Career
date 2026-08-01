@@ -1,7 +1,6 @@
 @import './features/applications/application.css';
 @import './features/automation/automation.css';
 @import './features/cvs/cvs.css';
-@import './features/dev-agents/dev-agents.css';
 @import './features/insights/insights.css';
 @import './features/navigation/navigation.css';
 @import './features/notifications/notifications.css';
@@ -385,15 +384,6 @@ h2, h3 { margin: 0 0 10px; }
   .todayHeadingStatus { width: 100%; }
   .todayNotificationShortcut { flex: 1; justify-items: start; }
   .controlStrip, .homeWorkspaceGrid, .operationsLayout, .cvLibraryLayout, .cvStudioWorkGrid, .cvPreviewGrid, .systemColumns, .scheduleForm, .briefingHero, .briefingGrid, .settingsGrid, .sourceHealthGrid, .insightsGrid, .insightQuality, .notificationWorkspace, .desktopAlertSettings { grid-template-columns: 1fr; }
-  .devAgentWorkspace, .devAgentInspectorGrid, .devAgentEvidence, .devAgentFormRow { grid-template-columns: 1fr; }
-  .devAgentInspector > .panelHeading { align-items: flex-start; flex-direction: column; }
-  .devAgentLauncher, .devAgentQueue { min-height: 0; }
-  .devAgentEvidence { border-left: 0; border-top: 1px solid var(--border-soft); padding: 22px 0 0; }
-  .devAgentSafetyBand { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .devAgentSafetyBand > div:nth-child(2) { border-right: 0; }
-  .devAgentSafetyBand > div:nth-child(-n+2) { border-bottom: 1px solid var(--border-soft); }
-  .devAgentModelStrip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .devAgentProposalList article { align-items: flex-start; flex-direction: column; }
   .insightMetricBand { grid-template-columns: repeat(2, 1fr); }
   .controlStrip .safetyNote { grid-column: auto; }
   .statusBand { grid-template-columns: 1fr 1fr; }

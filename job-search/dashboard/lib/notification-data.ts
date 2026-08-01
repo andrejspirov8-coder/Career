@@ -4,8 +4,6 @@ import { getApplicationWorkspaceOverview } from './application-data'
 import type { ApplicationWorkspaceOverview } from './application-types'
 import { getAutomationOverview } from './automation-data'
 import type { AutomationOverview, AutomationRun } from './automation-data'
-import { getDevAgentOverview } from './dev-agent-data'
-import type { DevAgentOverview } from './dev-agent-data'
 import { getOpportunityOverview } from './opportunity-data'
 import type { OpportunityOverview } from './opportunity-data'
 import type {
@@ -27,7 +25,6 @@ type NotificationInputs = {
   automation?: AutomationOverview | null
   applications?: ApplicationWorkspaceOverview | null
   opportunities?: OpportunityOverview | null
-  development?: DevAgentOverview | null
   now?: Date
 }
 
@@ -262,110 +259,16 @@ function applicationCandidates(applications: ApplicationWorkspaceOverview, now: 
   return candidates
 }
 
-function developmentCandidates(development: DevAgentOverview, now: Date): NotificationCandidate[] {
-  const candidates: NotificationCandidate[] = []
-  const proposed = development.proposals.filter((proposal) => proposal.status === 'proposed')
-  if (proposed.length) {
-    const latest = proposed.reduce((current, proposal) => (
-      new Date(proposal.updated_at) > new Date(current.updated_at) ? proposal : current
-    ))
-    candidates.push({
-      notification_id: notificationId(`dev-proposals:${latest.proposal_id}:${proposed.length}`),
-      scope: 'development',
-      category: 'development',
-      kind: 'dev_proposals_ready',
-      priority: 'attention',
-      lifecycle: 'condition',
-      title: `${proposed.length} local development ${proposed.length === 1 ? 'proposal is' : 'proposals are'} ready`,
-      body: 'Review the evidence, paths, and fixed checks before approving up to two tasks today.',
-      href: '/dev-agents',
-      occurred_at: safeIso(latest.updated_at, now),
-      source_updated_at: safeIso(latest.updated_at, now),
-      desktop_eligible: true,
-    })
-  }
-  for (const run of development.recent_runs.slice(0, 20)) {
-    if (!run.finished_at) continue
-    if (['failed', 'timed_out', 'blocked', 'stale'].includes(run.status)) {
-      candidates.push({
-        notification_id: notificationId(`dev-run-failed:${run.task_id}:${run.status}`),
-        scope: 'development',
-        category: 'development',
-        kind: 'dev_agent_failed',
-        priority: run.status === 'stale' ? 'attention' : 'info',
-        lifecycle: 'event',
-        title: `Local development run ${run.status.replaceAll('_', ' ')}`,
-        body: bounded(run.error, 'Open Development Agents to review the safe failure.', 500),
-        href: `/dev-agents?run=${encodeURIComponent(run.task_id)}`,
-        occurred_at: safeIso(run.finished_at, now),
-        source_updated_at: safeIso(run.finished_at, now),
-        desktop_eligible: false,
-      })
-    }
-    if (run.status === 'applied' && run.approval_policy === 'career_local_auto_apply_v1') {
-      candidates.push({
-        notification_id: notificationId(`dev-auto-applied:${run.task_id}`),
-        scope: 'development',
-        category: 'development',
-        kind: 'dev_auto_apply_succeeded',
-        priority: 'info',
-        lifecycle: 'event',
-        title: 'A documentation or test patch was applied locally',
-        body: bounded(run.task.objective, 'Open Development Agents to inspect the receipt and checks.', 500),
-        href: `/dev-agents?run=${encodeURIComponent(run.task_id)}`,
-        occurred_at: safeIso(run.finished_at, now),
-        source_updated_at: safeIso(run.finished_at, now),
-        desktop_eligible: true,
-      })
-    }
-  }
-  if (development.autonomy.manually_paused && development.autonomy.paused_reason) {
-    candidates.push({
-      notification_id: notificationId(`dev-autonomy-paused:${development.autonomy.paused_reason}`),
-      scope: 'development',
-      category: 'system',
-      kind: 'dev_autonomy_paused',
-      priority: 'attention',
-      lifecycle: 'condition',
-      title: 'Local development auto-apply is paused',
-      body: bounded(development.autonomy.paused_reason, 'Review Development Agents before resuming.', 500),
-      href: '/dev-agents',
-      occurred_at: safeIso(development.autonomy.evaluated_at, now),
-      source_updated_at: safeIso(development.autonomy.evaluated_at, now),
-      desktop_eligible: true,
-    })
-  }
-  if (!development.rollout.qualified_at) {
-    candidates.push({
-      notification_id: notificationId('dev-model-requalification'),
-      scope: 'development',
-      category: 'system',
-      kind: 'dev_model_requalification',
-      priority: 'attention',
-      lifecycle: 'condition',
-      title: 'Local coding model needs qualification',
-      body: 'Writing remains locked until the exact installed model digest passes the benchmark.',
-      href: '/dev-agents',
-      occurred_at: now.toISOString(),
-      source_updated_at: development.generated_at,
-      desktop_eligible: true,
-    })
-  }
-  return candidates
-}
-
 export function createNotificationCandidates({
   automation,
   applications,
   opportunities,
-  development,
   now = new Date(),
 }: NotificationInputs): NotificationCandidate[] {
   return [
     ...(automation ? automationCandidates(automation, now) : []),
     ...(opportunities ? opportunityCandidates(opportunities, now) : []),
     ...(applications ? applicationCandidates(applications, now) : []),
-    ...(development ? developmentCandidates(development, now) : []),
   ].slice(0, 200)
 }
 
@@ -379,16 +282,14 @@ function runHelper<T>(command: 'sync' | 'action', input: unknown): Promise<T> {
 }
 
 async function refreshNotificationOverview(): Promise<NotificationOverview> {
-  const [automationResult, opportunityResult, developmentResult] = await Promise.allSettled([
+  const [automationResult, opportunityResult] = await Promise.allSettled([
     getAutomationOverview(),
     getOpportunityOverview(),
-    getDevAgentOverview(),
   ])
   const automation = automationResult.status === 'fulfilled' ? automationResult.value : null
   const opportunities = opportunityResult.status === 'fulfilled' && !opportunityResult.value.helperError
     ? opportunityResult.value
     : null
-  const development = developmentResult.status === 'fulfilled' ? developmentResult.value : null
   let applications: ApplicationWorkspaceOverview | null = null
   if (opportunities) {
     try {
@@ -401,9 +302,8 @@ async function refreshNotificationOverview(): Promise<NotificationOverview> {
   if (automation) syncedScopes.push('automation')
   if (opportunities) syncedScopes.push('opportunity')
   if (applications) syncedScopes.push('application')
-  if (development) syncedScopes.push('development')
   return runHelper<NotificationOverview>('sync', {
-    candidates: createNotificationCandidates({ automation, applications, opportunities, development }),
+    candidates: createNotificationCandidates({ automation, applications, opportunities }),
     synced_scopes: syncedScopes,
   })
 }

@@ -11,17 +11,15 @@ import dashboard_service as service
 from dashboard_service import (
     AUTOMATION_CONTROL,
     DASHBOARD_TOKEN_PLACEHOLDER,
-    LOCAL_DEV_AGENTS,
     consume_restart_request,
     dashboard_process_environment,
-    development_agent_command,
     ensure_dashboard_token,
     rebuild_production_dashboard,
     service_commands,
 )
 
 
-def test_development_service_uses_fixed_argument_arrays():
+def test_service_uses_fixed_argument_arrays():
     worker, dashboard = service_commands("dev", 5)
 
     assert worker == [
@@ -32,13 +30,6 @@ def test_development_service_uses_fixed_argument_arrays():
         "5.0",
     ]
     assert dashboard == ["npm", "run", "dev"]
-    assert development_agent_command(5) == [
-        sys.executable,
-        str(LOCAL_DEV_AGENTS),
-        "service",
-        "--poll-seconds",
-        "5.0",
-    ]
 
 
 def test_worker_only_mode_has_no_dashboard_process():

@@ -1,6 +1,6 @@
 export type NotificationPriority = 'urgent' | 'attention' | 'info'
-export type NotificationCategory = 'automation' | 'opportunity' | 'application' | 'development' | 'system'
-export type NotificationScope = 'automation' | 'opportunity' | 'application' | 'development'
+export type NotificationCategory = 'automation' | 'opportunity' | 'application' | 'system'
+export type NotificationScope = 'automation' | 'opportunity' | 'application'
 export type NotificationKind =
   | 'automation_completed'
   | 'strong_role'
@@ -8,11 +8,6 @@ export type NotificationKind =
   | 'follow_up_due'
   | 'source_health'
   | 'schedule_missed'
-  | 'dev_proposals_ready'
-  | 'dev_agent_failed'
-  | 'dev_auto_apply_succeeded'
-  | 'dev_autonomy_paused'
-  | 'dev_model_requalification'
 
 export type NotificationCandidate = {
   notification_id: string

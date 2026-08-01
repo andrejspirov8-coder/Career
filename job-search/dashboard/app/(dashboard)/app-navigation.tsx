@@ -23,7 +23,6 @@ const navigationGroups = [
     label: 'Manage',
     items: [
       { href: '/automation', label: 'Automation' },
-      { href: '/dev-agents', label: 'Development Agents' },
       { href: '/cvs', label: 'CV Studio' },
       { href: '/insights', label: 'Insights' },
       { href: '/settings', label: 'Settings' },

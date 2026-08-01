@@ -7,7 +7,6 @@ const helperScripts = {
   automation: 'tools/automation_control.py',
   cvCatalogue: 'tools/cv_catalogue.py',
   cvStudio: 'tools/cv_studio.py',
-  developmentAgents: 'tools/local_dev_agents.py',
   localDrafting: 'tools/local_drafting.py',
   notifications: 'tools/notification_center.py',
   opportunities: 'tools/opportunity_dashboard.py',

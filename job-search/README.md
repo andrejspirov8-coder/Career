@@ -296,31 +296,6 @@ Older planning, implementation, and execution snapshots are preserved under
 `archive/`. They are historical evidence, not current setup or operating
 instructions.
 
-## Local development agents
-
-Routine development can be delegated to local Ollama models without giving an
-agent access to private state, the live workspace, or the internet. Main Codex
-still plans sensitive work, reviews the exact generated patch, and controls
-application. Start with:
-
-```bash
-make dev-agent-doctor
-make dev-agent-benchmark
-make dev-agent-model-benchmark
-make dev-agent-status
-```
-
-The supervised local planner can produce up to five proposals at 19:00 on
-weekdays. You approve at most two implementations per day from **Development
-Agents** in the dashboard. Qwen 3.6 is used only after its exact downloaded
-model passes the repository benchmark; Qwen 3.5 remains the qualified fallback.
-
-The first ten checked patches remain an explicit pilot. Automatic application
-does not begin until a 20-run safe streak, and even then is restricted to small
-documentation and test patches with two local reviews. Full setup, proposal,
-task JSON, review, and apply instructions are in
-[`docs/LOCAL_DEVELOPMENT_AGENTS.md`](docs/LOCAL_DEVELOPMENT_AGENTS.md).
-
 ## Development checks
 
 Run these exact checks before expanding automation or calling the workspace stable:

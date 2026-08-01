@@ -23,7 +23,6 @@ HELPER_SCHEMA_MAP = [
     ("recruiter_dashboard", "RecruiterOverview"),
     ("cv_catalogue", "CvCatalogue"),
     ("cv_studio", "CvStudioStatus"),
-    ("local_dev_agents", "DevAgentOverview"),
     ("local_drafting", "LocalDraftingStatus"),
     ("notification_center", "NotificationOverview"),
     ("search_preferences", "SearchPreferences"),

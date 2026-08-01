@@ -1,7 +1,7 @@
 PY ?= uv run python
 DASHBOARD_PORT ?= $(if $(CAREER_DASHBOARD_PORT),$(CAREER_DASHBOARD_PORT),3001)
 
-.PHONY: bootstrap lock test lint format preflight doctor scout plan approve-session check-approvals dispatch-dry daily-dry daily-queue weekly-review rebuild-cvs smoke verify-patch verify-release dashboard-dev dashboard-build dashboard-start dashboard-open dashboard-worker dashboard-status dashboard-backup dashboard-restore dashboard-test dashboard-e2e audit-runtime dev-agent-doctor dev-agent-benchmark dev-agent-model-benchmark dev-agent-plan dev-agent-proposals dev-agent-proposal-approve dev-agent-proposal-reject dev-agent-autonomy dev-agent-service dev-agent-status dev-agent-run dev-agent-show dev-agent-verify dev-agent-approve dev-agent-apply dev-agent-cleanup remember save precommit-setup handoff
+.PHONY: bootstrap lock test lint format preflight doctor scout plan approve-session check-approvals dispatch-dry daily-dry daily-queue weekly-review rebuild-cvs smoke verify-patch verify-release dashboard-dev dashboard-build dashboard-start dashboard-open dashboard-worker dashboard-status dashboard-backup dashboard-restore dashboard-test dashboard-e2e audit-runtime remember save precommit-setup handoff
 
 bootstrap:
 	./scripts/bootstrap.sh
@@ -98,61 +98,6 @@ dashboard-test:
 
 dashboard-e2e:
 	cd dashboard && CAREER_DASHBOARD_TOKEN=local-e2e-token npm run e2e
-
-dev-agent-doctor:
-	$(PY) tools/local_dev_agents.py doctor
-
-dev-agent-benchmark:
-	$(PY) tools/local_dev_agents.py benchmark
-
-dev-agent-model-benchmark:
-	$(PY) tools/local_dev_agents.py model-benchmark --candidate qwen3.6:35b-a3b-coding-nvfp4
-
-dev-agent-plan:
-	$(PY) tools/local_dev_agents.py plan --trigger-source manual
-
-dev-agent-proposals:
-	$(PY) tools/local_dev_agents.py proposals
-
-dev-agent-proposal-approve:
-	@test -n "$(ID)" || (echo "Use: make dev-agent-proposal-approve ID=proposal_<id>" && exit 2)
-	$(PY) tools/local_dev_agents.py proposal-approve --proposal-id "$(ID)" --spawn-worker
-
-dev-agent-proposal-reject:
-	@test -n "$(ID)" || (echo "Use: make dev-agent-proposal-reject ID=proposal_<id>" && exit 2)
-	$(PY) tools/local_dev_agents.py proposal-reject --proposal-id "$(ID)"
-
-dev-agent-autonomy:
-	$(PY) tools/local_dev_agents.py autonomy
-
-dev-agent-service:
-	$(PY) tools/local_dev_agents.py service
-
-dev-agent-status:
-	$(PY) tools/local_dev_agents.py status
-
-dev-agent-run:
-	@test -n "$(TASK)" || (echo "Use: make dev-agent-run TASK=runtime/local-task.json" && exit 2)
-	$(PY) tools/local_dev_agents.py run --task-file "$(TASK)"
-
-dev-agent-show:
-	@test -n "$(ID)" || (echo "Use: make dev-agent-show ID=agent_<id>" && exit 2)
-	$(PY) tools/local_dev_agents.py show --task-id "$(ID)"
-
-dev-agent-verify:
-	@test -n "$(ID)" || (echo "Use: make dev-agent-verify ID=agent_<id>" && exit 2)
-	$(PY) tools/local_dev_agents.py verify --task-id "$(ID)"
-
-dev-agent-approve:
-	@test -n "$(ID)" || (echo "Use: make dev-agent-approve ID=agent_<id>" && exit 2)
-	$(PY) tools/local_dev_agents.py approve --task-id "$(ID)" --reviewed-by main-codex
-
-dev-agent-apply:
-	@test -n "$(ID)" || (echo "Use: make dev-agent-apply ID=agent_<id>" && exit 2)
-	$(PY) tools/local_dev_agents.py apply --task-id "$(ID)"
-
-dev-agent-cleanup:
-	$(PY) tools/local_dev_agents.py cleanup
 
 precommit-setup:
 	cd "$(shell git rev-parse --show-toplevel)" && pre-commit install

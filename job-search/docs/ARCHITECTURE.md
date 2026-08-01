@@ -51,15 +51,13 @@ SQLite database; the architecture does not merge databases or migrate data.
 - Safe daily search: `make daily-queue`.
 - CV generation: `make rebuild-cvs`.
 - Recruiter review: `tools/recruiter_orchestrate.py` through `uv run python`.
-- Local development agents: `tools/local_dev_agents.py` through the documented
-  Make targets.
 - Complete verification: `make verify-release`.
 
 ## Historical material
 
 Files under `archive/` are preserved evidence only. They are excluded from
-runtime imports, dependency setup, lint targets, CI decisions, and local-agent
-work proposals. Current instructions always take precedence over archived
+runtime imports, dependency setup, lint targets, CI decisions, and work
+proposals. Current instructions always take precedence over archived
 content.
 
 

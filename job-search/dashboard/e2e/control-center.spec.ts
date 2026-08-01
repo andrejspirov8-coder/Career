@@ -5,8 +5,8 @@ import { opportunityOverviewFixture } from './fixtures/opportunity-overview'
 
 const dashboardToken = 'e2e-token'
 
-test('automation, notification, CV, and development-agent APIs stay private and non-cacheable', async ({ request }) => {
-  for (const path of ['/api/automation/overview', '/api/dev-agents/overview', '/api/notifications/overview', '/api/cvs/overview', '/api/cvs/studio/business-process-operations', '/api/preferences', '/api/applications/overview', '/api/settings/overview', '/api/insights/overview', '/api/ai/status']) {
+test('automation, notification, CV, and dashboard APIs stay private and non-cacheable', async ({ request }) => {
+  for (const path of ['/api/automation/overview', '/api/notifications/overview', '/api/cvs/overview', '/api/cvs/studio/business-process-operations', '/api/preferences', '/api/applications/overview', '/api/settings/overview', '/api/insights/overview', '/api/ai/status']) {
     const unauthenticated = await request.get(path)
     expect(unauthenticated.status()).toBe(401)
 
@@ -23,11 +23,6 @@ test('automation, notification, CV, and development-agent APIs stay private and 
     headers: { 'x-career-dashboard-token': dashboardToken },
   })
   expect(invalidRun.status()).toBe(400)
-
-  const invalidAgentRun = await request.get('/api/dev-agents/runs/not-an-agent-id', {
-    headers: { 'x-career-dashboard-token': dashboardToken },
-  })
-  expect(invalidAgentRun.status()).toBe(400)
 
   const unknownCv = await request.get('/api/cvs/not-a-variant/visual', {
     headers: { 'x-career-dashboard-token': dashboardToken },
@@ -79,17 +74,6 @@ test('automation, notification, CV, and development-agent APIs stay private and 
   })
   expect(privateNotificationAction.status()).toBe(401)
 
-  const privateAgentAction = await request.post('/api/dev-agents/actions', {
-    data: { action: 'start', objective: 'Run anything' },
-  })
-  expect(privateAgentAction.status()).toBe(401)
-
-  const invalidAgentAction = await request.post('/api/dev-agents/actions', {
-    headers: { 'x-career-dashboard-token': dashboardToken },
-    data: { action: 'run_command', command: 'open the shell' },
-  })
-  expect(invalidAgentAction.status()).toBe(400)
-
   const invalidNotificationAction = await request.post('/api/notifications/actions', {
     headers: { 'x-career-dashboard-token': dashboardToken },
     data: { action: 'run_command' },
@@ -122,14 +106,6 @@ test('the local control center exposes safe automation, CV, and recruiter workfl
   await expect(page.getByText('Read-only LinkedIn jobs')).toBeVisible()
   await expect(page.getByText(/LinkedIn review remains manual/)).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Can the search see fresh jobs?' })).toBeVisible()
-
-  await page.getByRole('link', { name: 'Development Agents', exact: true }).click()
-  await expect(page).toHaveURL(/\/dev-agents$/)
-  await expect(page.getByRole('heading', { name: 'Development Agents' })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Queue local work' })).toBeVisible()
-  await expect(
-    page.getByText('No free-form shell commands, installs, Git actions, or online fallback.'),
-  ).toBeVisible()
 
   await page.getByRole('link', { name: /Notifications/ }).click()
   await expect(page).toHaveURL(/\/notifications$/)

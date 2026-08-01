@@ -142,7 +142,6 @@ def test_core_and_domain_models_respect_dependency_direction() -> None:
                 if target.startswith(
                     (
                         "career_job_search.automation.",
-                        "career_job_search.dev_agents.",
                         "career_job_search.integrations.",
                         "career_job_search.workspace.",
                     )

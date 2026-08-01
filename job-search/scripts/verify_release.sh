@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 RUNTIME_REQUIREMENTS="$(mktemp /tmp/job-search-runtime-requirements.XXXXXX.txt)"
-RELEASE_LOCK="$ROOT_DIR/runtime/local-dev-agents/release-check.lock"
+RELEASE_LOCK="$ROOT_DIR/runtime/release-check.lock"
 mkdir -p "$(dirname "$RELEASE_LOCK")"
 if ! mkdir "$RELEASE_LOCK" 2>/dev/null; then
   echo "[verify] another release gate is already running" >&2

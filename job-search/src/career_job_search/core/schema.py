@@ -167,23 +167,6 @@ CV_STUDIO_SCHEMA: dict[str, Any] = {
 }
 
 
-DEV_AGENTS_OVERVIEW_SCHEMA: dict[str, Any] = {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "DevAgentOverview",
-    "type": "object",
-    "properties": {
-        "schema": {"const": "career_local_dev_agent_overview_v1"},
-        "generated_at": {"type": "string", "format": "date-time"},
-        "runs": {"type": "array"},
-        "proposals": {"type": "array"},
-        "rollout": {"type": "object"},
-        "models": {"type": "object"},
-        "autonomy": {"type": "object"},
-    },
-    "required": ["schema", "generated_at", "runs", "proposals", "rollout", "models", "autonomy"],
-}
-
-
 LOCAL_DRAFTING_SCHEMA: dict[str, Any] = {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "LocalDraftingStatus",
@@ -278,7 +261,6 @@ __all__ = [
     "RECRUITER_OVERVIEW_SCHEMA",
     "CV_CATALOGUE_SCHEMA",
     "CV_STUDIO_SCHEMA",
-    "DEV_AGENTS_OVERVIEW_SCHEMA",
     "LOCAL_DRAFTING_SCHEMA",
     "NOTIFICATIONS_OVERVIEW_SCHEMA",
     "SEARCH_PREFERENCES_SCHEMA",

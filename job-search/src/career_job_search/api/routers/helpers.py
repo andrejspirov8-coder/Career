@@ -29,7 +29,6 @@ HELPER_REGISTRY: dict[str, str] = {
     "setupChecklist": "career_job_search.setup.checklist",
     "workspace": "tools.workspace_control",
     "automation": "tools.automation_control",
-    "developmentAgents": "tools.local_dev_agents",
 }
 
 router = APIRouter(prefix="/api/v1/helpers", dependencies=[Depends(verify_token)])

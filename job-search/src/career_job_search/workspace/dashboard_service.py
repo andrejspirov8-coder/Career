@@ -21,7 +21,6 @@ from career_job_search.workspace.control import read_env_token, read_keychain_to
 
 DASHBOARD_DIR = JOB_ROOT / "dashboard"
 AUTOMATION_CONTROL = JOB_ROOT / "tools" / "automation_control.py"
-LOCAL_DEV_AGENTS = JOB_ROOT / "tools" / "local_dev_agents.py"
 DASHBOARD_TOKEN_KEY = "CAREER_DASHBOARD_TOKEN"  # noqa: S105
 DASHBOARD_TOKEN_PLACEHOLDER = "replace-with-a-long-random-local-token"  # noqa: S105
 SERVICE_STATUS_PATH = JOB_ROOT / "state" / "dashboard_service.json"
@@ -250,16 +249,6 @@ def service_commands(
     raise ValueError(f"Unsupported dashboard service mode: {mode}")
 
 
-def development_agent_command(poll_seconds: float) -> list[str]:
-    return [
-        sys.executable,
-        str(LOCAL_DEV_AGENTS),
-        "service",
-        "--poll-seconds",
-        str(max(1.0, min(float(poll_seconds), 60.0))),
-    ]
-
-
 def _terminate(process: subprocess.Popen[bytes] | None) -> None:
     if process is None or process.poll() is not None:
         return
@@ -281,7 +270,6 @@ def run_service(
     mode: str, *, poll_seconds: float = 5, port: int | None = None
 ) -> int:
     worker_command, dashboard_command = service_commands(mode, poll_seconds, port)
-    development_command = development_agent_command(poll_seconds)
     dashboard_environment: dict[str, str] | None = None
     if dashboard_command is not None:
         dashboard_environment, token_storage, created = dashboard_process_environment()
@@ -301,7 +289,6 @@ def run_service(
         )
 
     worker: subprocess.Popen[bytes] | None = None
-    development_agent: subprocess.Popen[bytes] | None = None
     dashboard: subprocess.Popen[bytes] | None = None
     stopping = False
     started_at = utc_now_iso()
@@ -325,24 +312,11 @@ def run_service(
             start_new_session=True,
             close_fds=True,
         )
-        development_agent = subprocess.Popen(
-            development_command,
-            cwd=JOB_ROOT,
-            shell=False,  # noqa: S603
-            start_new_session=True,
-            close_fds=True,
-        )
         if dashboard_command is None:
             while not stopping:
                 worker_code = worker.poll()
-                development_code = development_agent.poll()
                 if worker_code is not None:
                     return int(worker_code)
-                if development_code is not None:
-                    raise RuntimeError(
-                        "Development-agent service stopped unexpectedly with "
-                        f"exit code {development_code}."
-                    )
                 time.sleep(0.5)
             return 0
 
@@ -413,23 +387,16 @@ def run_service(
 
             dashboard_code = dashboard.poll()
             worker_code = worker.poll()
-            development_code = development_agent.poll()
             if dashboard_code is not None:
                 return int(dashboard_code)
             if worker_code is not None:
                 raise RuntimeError(
                     f"Automation worker stopped unexpectedly with exit code {worker_code}."
                 )
-            if development_code is not None:
-                raise RuntimeError(
-                    "Development-agent service stopped unexpectedly with "
-                    f"exit code {development_code}."
-                )
             time.sleep(0.5)
         return 0
     finally:
         _terminate(dashboard)
-        _terminate(development_agent)
         _terminate(worker)
         _remove_owned_service_status()
         for signum, handler in previous_handlers.items():

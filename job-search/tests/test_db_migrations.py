@@ -74,18 +74,6 @@ def test_web_cache_db_fresh_init(tmp_path: Path) -> None:
     assert int(row[0]) == SCHEMA_VERSION
 
 
-def test_agent_runs_db_fresh_init(tmp_path: Path) -> None:
-    from career_job_search.dev_agents.runs import SCHEMA_VERSION, init_db
-
-    path = init_db(tmp_path / "agent_runs.sqlite3")
-    with sqlite3.connect(str(path)) as con:
-        row = con.execute(
-            "SELECT value FROM schema_meta WHERE key='schema_version'"
-        ).fetchone()
-    assert row is not None
-    assert int(row[0]) == SCHEMA_VERSION
-
-
 # ── Idempotent re-init ─────────────────────────────────────────────
 
 
@@ -149,19 +137,6 @@ def test_web_cache_db_idempotent_reinit(tmp_path: Path) -> None:
         migrate_schema(con, SCHEMA_SQL, SCHEMA_VERSION, db_name="web_cache")
     with connect_sqlite(p) as con:
         migrate_schema(con, SCHEMA_SQL, SCHEMA_VERSION, db_name="web_cache")
-    with sqlite3.connect(str(p)) as con:
-        row = con.execute(
-            "SELECT value FROM schema_meta WHERE key='schema_version'"
-        ).fetchone()
-    assert row is not None
-
-
-def test_agent_runs_db_idempotent_reinit(tmp_path: Path) -> None:
-    from career_job_search.dev_agents.runs import init_db
-
-    p = tmp_path / "agent_idem.sqlite3"
-    init_db(p)
-    init_db(p)
     with sqlite3.connect(str(p)) as con:
         row = con.execute(
             "SELECT value FROM schema_meta WHERE key='schema_version'"

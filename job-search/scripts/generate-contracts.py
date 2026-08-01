@@ -15,7 +15,6 @@ HELPERS = [
     ("recruiter_dashboard", "recruiters", "RecruiterOverview"),
     ("cv_catalogue", "cvCatalogue", "CvCatalogue"),
     ("cv_studio", "cvStudio", "CvStudioStatus"),
-    ("local_dev_agents", "developmentAgents", "DevAgentOverview"),
     ("local_drafting", "localDrafting", "LocalDraftingStatus"),
     ("notification_center", "notifications", "NotificationOverview"),
     ("search_preferences", "searchPreferences", "SearchPreferences"),
