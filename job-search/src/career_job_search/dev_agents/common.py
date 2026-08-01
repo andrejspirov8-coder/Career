@@ -100,8 +100,6 @@ WRITE_FORBIDDEN_PATHS = (
     "dashboard/app/api/auth",
     "dashboard/package.json",
     "dashboard/package-lock.json",
-    "raycast-job-search-hub/package.json",
-    "raycast-job-search-hub/package-lock.json",
     "scripts/verify_release.sh",
     "tools/linkedin",
     "linkedin",

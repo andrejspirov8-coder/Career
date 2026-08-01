@@ -374,7 +374,6 @@ export default function DevAgentConsole({ initialOverview }: { initialOverview: 
                   <option value="none">No test preset</option>
                   <option value="python">Python tests</option>
                   <option value="dashboard">Dashboard tests + typecheck</option>
-                  <option value="raycast">Raycast tests + typecheck</option>
                 </select>
               </label>
               <label>

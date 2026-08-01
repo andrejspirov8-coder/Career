@@ -178,10 +178,6 @@ def _link_dependencies(worktree: Path, repo_root: Path) -> None:
             repo_root / "dashboard" / "node_modules",
             worktree / "dashboard" / "node_modules",
         ),
-        (
-            repo_root / "raycast-job-search-hub" / "node_modules",
-            worktree / "raycast-job-search-hub" / "node_modules",
-        ),
     )
     for source, target in links:
         if not source.is_dir() or target.exists() or target.is_symlink():
@@ -339,7 +335,6 @@ def _validate_no_sensitive_artifacts(
     exempt_links = {
         ".venv",
         "dashboard/node_modules",
-        "raycast-job-search-hub/node_modules",
     }
     for root, directories, files in os.walk(worktree, followlinks=False):
         root_path = Path(root)

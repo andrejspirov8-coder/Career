@@ -218,21 +218,6 @@ def verification_checks_for_preset(preset: str) -> list[VerificationCheck]:
                 timeout_seconds=900,
             ),
         ]
-    if preset == "raycast":
-        return [
-            VerificationCheck(
-                name="Raycast tests",
-                argv=["npm", "test"],
-                cwd="raycast-job-search-hub",
-                timeout_seconds=900,
-            ),
-            VerificationCheck(
-                name="Raycast typecheck",
-                argv=["npm", "run", "typecheck"],
-                cwd="raycast-job-search-hub",
-                timeout_seconds=900,
-            ),
-        ]
     if preset == "architecture":
         return [
             VerificationCheck(

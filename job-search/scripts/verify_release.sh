@@ -45,18 +45,6 @@ echo "[verify] dashboard"
   npm audit --audit-level=high
 )
 
-echo "[verify] Raycast extension"
-(
-  cd raycast-job-search-hub
-  npm ci
-  npm run typecheck
-  npm run lint:ci
-  npm run lint
-  npm test
-  npm run build
-  npm audit --audit-level=high
-)
-
 echo "[verify] repository smoke test"
 ./scripts/smoke_repo.sh
 

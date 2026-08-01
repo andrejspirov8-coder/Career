@@ -58,6 +58,5 @@ Context:
 uv run ruff check tools cv tests
 uv run --group dev python -m pytest -q
 make dashboard-test
-make raycast-check
 make verify-release
 ```

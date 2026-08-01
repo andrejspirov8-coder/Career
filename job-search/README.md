@@ -18,8 +18,7 @@ Raycast is the macOS command launcher opened with a keyboard shortcut.
 ## Current repo ownership
 
 The active Git repository is the folder containing this README. Python tools,
-the dashboard, the Raycast extension, security policy, and GitHub checks all
-live here. The Raycast extension is under `raycast-job-search-hub/`. Adjacent
+the dashboard, security policy, and GitHub checks all live here. Adjacent
 legacy copies remain untouched until clean-clone verification and a separate
 deletion request.
 
@@ -331,14 +330,8 @@ Run these exact checks before expanding automation or calling the workspace stab
 uv run ruff check tools cv tests
 uv run pytest -q
 
-# Raycast extension checks
-cd raycast-job-search-hub
-npm test -- --run
-npm run typecheck
-npm run lint:ci
-
 # Dashboard build
-cd ../dashboard
+cd dashboard
 npm run typecheck
 npm run build
 ```

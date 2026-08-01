@@ -15,7 +15,6 @@ LAYERS = [
     ("infrastructure", "src/career_job_search/infrastructure"),
     ("dev_agents", "src/career_job_search/dev_agents"),
     ("ui_dashboard", "dashboard"),
-    ("ui_raycast", "raycast-job-search-hub"),
     ("tools_linkedin", "tools/linkedin"),
     ("tools_other", "tools"),
     ("cv", "cv"),
@@ -25,15 +24,12 @@ LAYERS = [
 FORBIDDEN_INWARD_IMPORTS = {
     ("domain", "infrastructure"),
     ("domain", "ui_dashboard"),
-    ("domain", "ui_raycast"),
     ("domain", "tools_linkedin"),
     ("application", "ui_dashboard"),
-    ("application", "ui_raycast"),
     ("core", "domain"),
     ("core", "application"),
     ("core", "infrastructure"),
     ("core", "ui_dashboard"),
-    ("core", "ui_raycast"),
 }
 
 IMPORT_PATTERN = re.compile(
@@ -75,8 +71,6 @@ def _module_to_layer(module: str) -> str | None:
         return "dev_agents"
     if module.startswith("dashboard"):
         return "ui_dashboard"
-    if module.startswith("raycast"):
-        return "ui_raycast"
     if module.startswith("tools.linkedin"):
         return "tools_linkedin"
     if module.startswith("tools."):

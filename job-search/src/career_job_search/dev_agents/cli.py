@@ -129,7 +129,7 @@ def build_parser() -> argparse.ArgumentParser:
     proposal_approve.add_argument("--objective")
     proposal_approve.add_argument("--allowed-path", action="append")
     proposal_approve.add_argument(
-        "--check-preset", choices=("none", "python", "dashboard", "raycast")
+        "--check-preset", choices=("none", "python", "dashboard", "architecture")
     )
     proposal_approve.add_argument("--spawn-worker", action="store_true")
 

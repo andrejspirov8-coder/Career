@@ -1,7 +1,7 @@
 PY ?= uv run python
 DASHBOARD_PORT ?= $(if $(CAREER_DASHBOARD_PORT),$(CAREER_DASHBOARD_PORT),3001)
 
-.PHONY: bootstrap lock test lint format preflight doctor scout plan approve-session check-approvals dispatch-dry daily-dry daily-queue weekly-review rebuild-cvs smoke verify-patch verify-release dashboard-dev dashboard-build dashboard-start dashboard-open dashboard-worker dashboard-status dashboard-backup dashboard-restore dashboard-test dashboard-e2e raycast-check audit-runtime dev-agent-doctor dev-agent-benchmark dev-agent-model-benchmark dev-agent-plan dev-agent-proposals dev-agent-proposal-approve dev-agent-proposal-reject dev-agent-autonomy dev-agent-service dev-agent-status dev-agent-run dev-agent-show dev-agent-verify dev-agent-approve dev-agent-apply dev-agent-cleanup remember save precommit-setup handoff
+.PHONY: bootstrap lock test lint format preflight doctor scout plan approve-session check-approvals dispatch-dry daily-dry daily-queue weekly-review rebuild-cvs smoke verify-patch verify-release dashboard-dev dashboard-build dashboard-start dashboard-open dashboard-worker dashboard-status dashboard-backup dashboard-restore dashboard-test dashboard-e2e audit-runtime dev-agent-doctor dev-agent-benchmark dev-agent-model-benchmark dev-agent-plan dev-agent-proposals dev-agent-proposal-approve dev-agent-proposal-reject dev-agent-autonomy dev-agent-service dev-agent-status dev-agent-run dev-agent-show dev-agent-verify dev-agent-approve dev-agent-apply dev-agent-cleanup remember save precommit-setup handoff
 
 bootstrap:
 	./scripts/bootstrap.sh
@@ -98,9 +98,6 @@ dashboard-test:
 
 dashboard-e2e:
 	cd dashboard && CAREER_DASHBOARD_TOKEN=local-e2e-token npm run e2e
-
-raycast-check:
-	cd raycast-job-search-hub && npm run typecheck && npm run lint:ci && npm run lint && npm test && npm run build && npm audit --audit-level=high
 
 dev-agent-doctor:
 	$(PY) tools/local_dev_agents.py doctor

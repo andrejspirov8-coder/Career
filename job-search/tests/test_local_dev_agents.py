@@ -505,9 +505,6 @@ def test_auto_apply_allowlist_is_limited_to_documentation_and_tests() -> None:
     assert agents._is_auto_apply_path(
         "tests", "dashboard/lib/feature.test.ts"
     )
-    assert agents._is_auto_apply_path(
-        "tests", "raycast-job-search-hub/src/__tests__/feature.test.ts"
-    )
     assert not agents._is_auto_apply_path("tests", "tools/feature.py")
 
 

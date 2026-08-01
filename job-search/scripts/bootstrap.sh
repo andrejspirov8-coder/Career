@@ -20,10 +20,4 @@ echo "[bootstrap] dashboard dependencies"
   npx playwright install chromium
 )
 
-echo "[bootstrap] Raycast dependencies"
-(
-  cd raycast-job-search-hub
-  npm ci
-)
-
 echo "[bootstrap] complete; run make preflight or make verify-release to verify the checkout"

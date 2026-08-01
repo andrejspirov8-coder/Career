@@ -146,7 +146,6 @@ def _planner_evidence(paths: CoordinatorPaths) -> dict[str, Any]:
                 "tools",
                 "tests",
                 "dashboard",
-                "raycast-job-search-hub/src",
                 "docs",
             ],
             cwd=paths.repo_root,
@@ -170,12 +169,12 @@ def build_planner_prompt(
             "Propose only work supported by concrete file, test, type, lint, or documentation evidence.",
             "Do not propose authentication, privacy, secrets, database migrations, dependencies, lockfiles, deployment, Git operations, security policy, agent policy, CV personal content, or live job-search/LinkedIn behavior.",
             "Every proposal must stay within the supplied scan paths and be small enough for one isolated implementation task.",
-            "Documentation and test proposals must select a deterministic python, dashboard, or raycast check preset; do not use none for them.",
+            "Documentation and test proposals must select a deterministic python, dashboard, or architecture check preset; do not use none for them.",
             "Return at most five proposals. Prefer tests and documentation, then reproducible bounded fixes.",
             "Return only one JSON object matching career_local_dev_planner_response_v1.",
         ],
         "allowed_scan_paths": settings.planner.scan_paths,
-        "check_presets": ["none", "python", "dashboard", "raycast"],
+        "check_presets": ["none", "python", "dashboard", "architecture"],
         "proposal_fields": {
             "objective": "10-2000 characters",
             "category": [

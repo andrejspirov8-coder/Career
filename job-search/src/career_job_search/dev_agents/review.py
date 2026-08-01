@@ -106,7 +106,6 @@ def _is_auto_apply_path(category: str, path: str) -> bool:
                 or clean.startswith("dashboard/e2e/")
             )
         )
-        or clean.startswith("raycast-job-search-hub/src/__tests__/")
     )
 
 

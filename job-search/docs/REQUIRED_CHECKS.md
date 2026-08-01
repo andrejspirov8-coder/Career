@@ -4,7 +4,6 @@ Configure the private GitHub repository's branch protection or ruleset so pull r
 
 - `Python / lock, lint, tests, PDFs, audit`
 - `Dashboard / unit, build, browser, audit`
-- `Raycast / typecheck, lint, tests, build, audit`
 - `Repository smoke test`
 - `CodeQL / Analyze (python)`
 - `CodeQL / Analyze (javascript-typescript)`
@@ -25,7 +24,5 @@ branch-protection rulesets:
 - `python-test`
 - `dashboard-build`
 
-> **NOTE:** There is no Raycast CI job. The Raycast extension
-> (`raycast-job-search-hub/`) is not wired into the CI workflow. If Raycast checks
-> should block merging, add a job to `.github/workflows/ci.yml` and include its
-> name here. Until then, run `make raycast-check` locally.
+> **NOTE:** The Raycast extension (`raycast-job-search-hub/`) was removed from the
+> repository and is no longer part of the release gate.

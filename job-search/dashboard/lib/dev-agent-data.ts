@@ -21,8 +21,6 @@ const protectedWritePaths = [
   'dashboard/app/api/auth',
   'dashboard/package.json',
   'dashboard/package-lock.json',
-  'raycast-job-search-hub/package.json',
-  'raycast-job-search-hub/package-lock.json',
   'scripts/verify_release.sh',
   'tools/linkedin',
   'linkedin',
@@ -31,7 +29,7 @@ const protectedWritePaths = [
 export type DevAgentRole = 'planner' | 'explorer' | 'implementer' | 'reviewer'
 export type DashboardDevAgentRole = Exclude<DevAgentRole, 'planner' | 'reviewer'>
 export type DevAgentRisk = 'low' | 'medium'
-export type DevAgentCheckPreset = 'none' | 'python' | 'dashboard' | 'raycast'
+export type DevAgentCheckPreset = 'none' | 'python' | 'dashboard'
 export type DevAgentStatus =
   | 'queued'
   | 'snapshotting'
@@ -268,15 +266,6 @@ const verificationChecks: Record<DevAgentCheckPreset, VerificationCheck[]> = {
   dashboard: [
     { name: 'Dashboard tests', argv: ['npm', 'test'], cwd: 'dashboard', timeout_seconds: 900 },
     { name: 'Dashboard typecheck', argv: ['npm', 'run', 'typecheck'], cwd: 'dashboard', timeout_seconds: 900 },
-  ],
-  raycast: [
-    { name: 'Raycast tests', argv: ['npm', 'test'], cwd: 'raycast-job-search-hub', timeout_seconds: 900 },
-    {
-      name: 'Raycast typecheck',
-      argv: ['npm', 'run', 'typecheck'],
-      cwd: 'raycast-job-search-hub',
-      timeout_seconds: 900,
-    },
   ],
 }
 

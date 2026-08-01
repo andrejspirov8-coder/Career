@@ -195,7 +195,6 @@ def test_tracked_top_level_structure_is_expected() -> None:
         "pipeline",
         "plans",
         "prompts",
-        "raycast-job-search-hub",
         "scripts",
         "src",
         "supabase",

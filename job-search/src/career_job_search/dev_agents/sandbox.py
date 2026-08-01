@@ -47,7 +47,6 @@ def build_sandbox_profile(
         run_dir.resolve(),
         (paths.repo_root / ".venv").resolve(),
         (paths.repo_root / "dashboard" / "node_modules").resolve(),
-        (paths.repo_root / "raycast-job-search-hub" / "node_modules").resolve(),
         (real_home / ".local" / "share" / "uv" / "python").resolve(),
     }
     write_paths = {run_dir.resolve()}

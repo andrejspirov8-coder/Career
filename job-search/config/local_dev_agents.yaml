@@ -52,7 +52,6 @@ snapshot:
     - tmp
     - dashboard/.next
     - dashboard/node_modules
-    - raycast-job-search-hub/node_modules
     - linkedin/.browser-profile
     - linkedin/.jobs-browser-profile
     - linkedin/run_logs
@@ -84,7 +83,6 @@ planner:
     - tools
     - tests
     - dashboard
-    - raycast-job-search-hub/src
     - docs
     - src/career_job_search/core
     - src/career_job_search/domain

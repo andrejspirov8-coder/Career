@@ -90,7 +90,6 @@ def doctor(*, settings: LocalAgentSettings, paths: CoordinatorPaths) -> dict[str
     dependency_paths = (
         paths.repo_root / ".venv" / "bin" / "python",
         paths.repo_root / "dashboard" / "node_modules",
-        paths.repo_root / "raycast-job-search-hub" / "node_modules",
     )
     for dependency in dependency_paths:
         checks.append(

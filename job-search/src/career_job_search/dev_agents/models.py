@@ -25,7 +25,7 @@ ProposalCategory = Literal[
     "refactor",
 ]
 ProposalPriority = Literal["high", "medium", "low"]
-ProposalCheckPreset = Literal["none", "python", "dashboard", "raycast", "architecture"]
+ProposalCheckPreset = Literal["none", "python", "dashboard", "architecture"]
 ProposalStatus = Literal[
     "proposed",
     "approved",
