@@ -117,9 +117,13 @@ export function dashboardAuthFailure(expectedToken: string, requestToken: string
 
 export function dashboardAuthErrorResponse(request: Request): Response | null {
   const expectedToken = dashboardTokenFromEnv()
+  const sessionCookie = request.headers.get('cookie')?.split(';').map((part) => part.trim())
+  const hasSessionCookie = Boolean(
+    sessionCookie?.some((part) => part.startsWith(`${DASHBOARD_SESSION_SUPABASE_TOKEN_COOKIE}=`) && part.length > DASHBOARD_SESSION_SUPABASE_TOKEN_COOKIE.length + 1),
+  )
   const failure = dashboardAuthFailure(
     expectedToken,
-    isDashboardHeadersAuthorized(expectedToken, request.headers) ? expectedToken : null,
+    isDashboardHeadersAuthorized(expectedToken, request.headers) || hasSessionCookie ? expectedToken : null,
   )
   if (!failure) return null
 

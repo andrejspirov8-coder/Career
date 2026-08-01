@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react'
 import { redirect } from 'next/navigation'
-import { cookies, headers } from 'next/headers'
-import { dashboardTokenFromEnv, isDashboardHeadersAuthorized, safeDashboardNextPath } from '@/lib/dashboard-auth'
+import { headers } from 'next/headers'
+import { safeDashboardNextPath } from '@/lib/dashboard-auth'
+import { isDashboardPageAuthenticated } from '@/lib/dashboard-page-auth'
 import AppNavigation from './app-navigation'
 
 export default async function DashboardLayout({
@@ -9,10 +10,9 @@ export default async function DashboardLayout({
 }: {
   children: ReactNode
 }) {
-  const expectedToken = dashboardTokenFromEnv()
   const headersList = await headers()
-  
-  if (!isDashboardHeadersAuthorized(expectedToken, headersList)) {
+
+  if (!(await isDashboardPageAuthenticated())) {
     const nextPath = safeDashboardNextPath(headersList.get('x-next-pathname') || '/')
     redirect(`/login?next=${encodeURIComponent(nextPath)}`)
   }

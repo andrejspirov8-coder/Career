@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  dashboardAuthErrorResponse,
   dashboardAuthFailure,
   dashboardTokenFromEnv,
   dashboardJsonResponse,
@@ -51,6 +52,22 @@ describe('dashboard recruiter API auth', () => {
     expect(dashboardTokenFromRequest(headerRequest)).toBe('secret')
     expect(dashboardTokenFromRequest(bearerRequest)).toBe('secret')
     expect(isDashboardTokenAuthorized('secret', dashboardTokenFromRequest(headerRequest))).toBe(true)
+  })
+
+  it('accepts the login session cookie on API routes', () => {
+    process.env.CAREER_DASHBOARD_TOKEN = 'secret'
+    const sessionRequest = new Request('http://127.0.0.1/api/recruiter/overview', {
+      headers: { cookie: 'career_sb_token=e2e-token; other=value' },
+    })
+    const emptyCookieRequest = new Request('http://127.0.0.1/api/recruiter/overview', {
+      headers: { cookie: 'career_sb_token=' },
+    })
+    const noCookieRequest = new Request('http://127.0.0.1/api/recruiter/overview')
+
+    expect(dashboardAuthErrorResponse(sessionRequest)).toBeNull()
+    expect(dashboardAuthErrorResponse(emptyCookieRequest)?.status).toBe(401)
+    expect(dashboardAuthErrorResponse(noCookieRequest)?.status).toBe(401)
+    delete process.env.CAREER_DASHBOARD_TOKEN
   })
 
   it('requires same-origin browser mutations while retaining header-token clients', async () => {
