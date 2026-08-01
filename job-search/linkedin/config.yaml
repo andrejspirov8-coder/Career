@@ -2,9 +2,13 @@
 #
 # limits.matching.*
 # -----------------
-# Uses the same scorer as job adverts (matching_lib.score_variant keywords),
-# combined with recruiter_matching sector keywords in tools/recruiter_match.py.
+# Uses the same scorer as job adverts (cvs/matching.py score_variant keywords),
+# combined with recruiter_matching sector keywords in career_job_search/recruiters/matching.py.
+#
+# schema_version is validated by campaign_config.load_config(); bump it only
+# when the structure changes (see docs/SCHEMAS.md).
 
+schema_version: "campaign_config_v1"
 linkedin_base_url: "https://www.linkedin.com"
 
 # Uses your installed Google Chrome (not Playwright's bundled Chromium).

@@ -44,6 +44,8 @@ Runtime and private data stay outside Git. This includes `.env*`, `state/`,
 `runtime/`, browser profiles, generated PDFs, application packs, pipeline
 records, logs, caches, and test/build output. Each capability owns its existing
 SQLite database; the architecture does not merge databases or migrate data.
+See [`docs/SCHEMAS.md`](SCHEMAS.md) for the schema of every SQLite database
+and persisted store under `state/`.
 
 ## Entry points
 

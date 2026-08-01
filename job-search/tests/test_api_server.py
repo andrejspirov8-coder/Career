@@ -212,3 +212,41 @@ def test_bearer_token_ignores_cookies(monkeypatch) -> None:
 
     resp_no_auth = client.get("/api/v1/me")
     assert resp_no_auth.status_code == 401
+
+
+def test_rate_limiter_rejects_over_limit() -> None:
+    from career_job_search.api.ratelimit import RateLimiter
+
+    limiter = RateLimiter(default_limit=3, auth_limit=3)
+    for _ in range(3):
+        assert limiter.allow("1.2.3.4", "/api/v1/me") is None
+    retry = limiter.allow("1.2.3.4", "/api/v1/me")
+    assert retry is not None
+    assert retry > 0
+    assert limiter.allow("other-ip", "/api/v1/me") is None
+
+
+def test_rate_limit_auth_has_own_budget() -> None:
+    from career_job_search.api.ratelimit import RateLimiter
+
+    limiter = RateLimiter(default_limit=3, auth_limit=2)
+    for _ in range(2):
+        assert limiter.allow("1.2.3.4", "/api/v1/auth/login") is None
+    assert limiter.allow("1.2.3.4", "/api/v1/auth/login") is not None
+    assert limiter.allow("1.2.3.4", "/api/v1/me") is None
+
+
+def test_rate_limit_middleware_returns_429() -> None:
+    from fastapi.testclient import TestClient
+
+    from career_job_search.api.ratelimit import RateLimiter
+    from career_job_search.api.server import create_app
+
+    app = create_app(rate_limiter=RateLimiter(default_limit=2, auth_limit=2))
+    client = TestClient(app)
+    for _ in range(2):
+        assert client.get("/health").status_code == 200
+        assert client.get("/api/v1/me").status_code == 401
+    resp = client.get("/api/v1/me")
+    assert resp.status_code == 429
+    assert int(resp.headers["retry-after"]) > 0

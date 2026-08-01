@@ -39,6 +39,11 @@ from career_job_search.recruiters.repository import (
 
 DEFAULT_CONFIG = DEFAULT_LINKEDIN_CONFIG
 
+# Version of the checked-in linkedin/config.yaml structure. Unknown future
+# versions are rejected at load time so schema drift fails loudly instead of
+# being silently ignored. See docs/SCHEMAS.md.
+CAMPAIGN_CONFIG_SCHEMA_VERSION = "campaign_config_v1"
+
 # Playwright channel names that map to browsers installed on the machine.
 SUPPORTED_BROWSER_CHANNELS = frozenset(
     {"chrome", "chrome-beta", "msedge", "msedge-beta", "msedge-dev"}
@@ -54,6 +59,13 @@ def load_config(config_path: Path) -> dict[str, Any]:
         cfg = yaml.safe_load(f)
     if not isinstance(cfg, dict):
         raise SystemExit("Config root must be a mapping")
+    version = cfg.get("schema_version")
+    if version is not None and version != CAMPAIGN_CONFIG_SCHEMA_VERSION:
+        raise SystemExit(
+            f"Unsupported linkedin/config.yaml schema_version {version!r} "
+            f"(expected {CAMPAIGN_CONFIG_SCHEMA_VERSION!r}). "
+            "See docs/SCHEMAS.md for the current schema."
+        )
     return cfg
 
 

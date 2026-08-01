@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import Depends, FastAPI
 
 from career_job_search.api.auth import verify_token
+from career_job_search.api.ratelimit import RateLimiter, RateLimitMiddleware
 from career_job_search.api.routers.agent import router as agent_router
 from career_job_search.api.routers.auth import router as auth_router
 from career_job_search.api.routers.checklist import router as checklist_router
@@ -24,7 +25,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     yield
 
 
-def create_app() -> FastAPI:
+def create_app(rate_limiter: RateLimiter | None = None) -> FastAPI:
     app = FastAPI(
         title="Career API",
         description="Backend API for job-search automation, CV management, recruiter scoring, and opportunity pipeline.",
@@ -33,6 +34,8 @@ def create_app() -> FastAPI:
         docs_url="/docs",
         openapi_url="/openapi.json",
     )
+
+    app.add_middleware(RateLimitMiddleware, limiter=rate_limiter or RateLimiter())
 
     app.include_router(helpers_router)
     app.include_router(sources_router)
