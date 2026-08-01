@@ -1,7 +1,7 @@
 PY ?= uv run python
 DASHBOARD_PORT ?= $(if $(CAREER_DASHBOARD_PORT),$(CAREER_DASHBOARD_PORT),3001)
 
-.PHONY: bootstrap lock test lint format preflight doctor scout plan approve-session check-approvals dispatch-dry daily-dry daily-queue weekly-review rebuild-cvs smoke verify-patch verify-release dashboard-dev dashboard-build dashboard-start dashboard-open dashboard-worker dashboard-status dashboard-backup dashboard-restore dashboard-test dashboard-e2e audit-runtime remember save precommit-setup handoff
+.PHONY: bootstrap lock test test-coverage lint format preflight doctor scout plan approve-session check-approvals dispatch-dry daily-dry daily-queue weekly-review rebuild-cvs smoke verify-patch verify-release dashboard-dev dashboard-build dashboard-start dashboard-open dashboard-worker dashboard-status dashboard-backup dashboard-restore dashboard-test dashboard-e2e audit-runtime remember save precommit-setup handoff
 
 bootstrap:
 	./scripts/bootstrap.sh
@@ -11,6 +11,9 @@ lock:
 
 test:
 	uv run --group dev python -m pytest
+
+test-coverage:
+	uv run --group dev python -m pytest --cov --cov-report=term-missing
 
 lint:
 	uv run ruff check src mcp tools cv tests

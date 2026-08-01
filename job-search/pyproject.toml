@@ -29,12 +29,23 @@ dev = [
   "pypdf>=5.0,<7",
   "ruff==0.4.2",
   "pytest==9.0.3",
+  "pytest-cov>=7.1.0",
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src", "tools", "cv"]
 addopts = "-q"
+
+[tool.coverage.run]
+source = ["career_job_search"]
+branch = true
+omit = ["*/__pycache__/*"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+fail_under = 0
 
 [tool.ruff]
 line-length = 88
