@@ -4,8 +4,7 @@ from datetime import date
 
 import pytest
 
-from career_job_search.opportunities.models import Opportunity, OpportunitySourceKind
-from career_job_search.opportunities.scoring import (
+from career_job_search.opportunities.matching import (
     _has_hard_title_mismatch,
     deadline_score,
     location_score,
@@ -13,6 +12,7 @@ from career_job_search.opportunities.scoring import (
     salary_score,
     source_score,
 )
+from career_job_search.opportunities.models import Opportunity, OpportunitySourceKind
 
 
 def make_opportunity(
@@ -90,6 +90,23 @@ def test_source_score(source_kind: OpportunitySourceKind, expected: float) -> No
     ],
 )
 def test_salary_score(salary_text: str, expected: float | pytest.approx) -> None:
+    assert salary_score(make_opportunity(salary_text=salary_text)) == expected
+
+
+@pytest.mark.parametrize(
+    ("salary_text", "expected"),
+    [
+        ("$4", 1.0),
+        ("$43", 1.0),
+        ("$38", 1.0),
+        ("3,400-4,500 EUR gross/month", pytest.approx(1.0 + 4500.0 / 5000.0)),
+        ("3.400-4.500 EUR gross/month", pytest.approx(1.0 + 4500.0 / 5000.0)),
+        ("3,4 EUR", 1.0),
+    ],
+)
+def test_salary_score_tiny_artifacts_not_boosted(
+    salary_text: str, expected: float | pytest.approx
+) -> None:
     assert salary_score(make_opportunity(salary_text=salary_text)) == expected
 
 

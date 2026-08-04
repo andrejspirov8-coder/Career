@@ -62,6 +62,7 @@ _SALARY_AMOUNT_FIRST_RE = re.compile(
     r"(?i)\b\d[\d\s,.]*(?:\s*[-–—]\s*\d[\d\s,.]*)?\s*"
     r"(?:€|eur|usd|\$|gbp|£)(?:\s*(?:gross|net|bruto|per\s+(?:hour|month|year)))?"
 )
+_AMOUNT_RE = re.compile(r"\d[\d\s,.]*")
 _ISO_DEADLINE_RE = re.compile(
     r"(?i)(?:deadline|apply\s+by|closing\s+date|valid\s+until|galioja\s+iki)\s*:?[ \t]*"
     r"(20\d{2}-\d{2}-\d{2})"
@@ -100,8 +101,17 @@ def extract_salary_text(value: str) -> str:
     text = clean_opportunity_text(value)
     for pattern in (_SALARY_RE, _SALARY_AMOUNT_FIRST_RE):
         match = pattern.search(text)
-        if match:
-            return _SPACE_RE.sub(" ", match.group(0)).strip(" :;,.-")[:160]
+        if not match:
+            continue
+        amounts: list[float] = []
+        for raw in _AMOUNT_RE.findall(match.group(0)):
+            try:
+                amounts.append(float(raw.replace(" ", "").replace(",", "")))
+            except ValueError:
+                continue
+        if not amounts or max(amounts) < 100:
+            continue
+        return _SPACE_RE.sub(" ", match.group(0)).strip(" :;,.-")[:160]
     return ""
 
 

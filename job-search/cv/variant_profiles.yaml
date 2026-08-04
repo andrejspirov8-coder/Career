@@ -84,9 +84,6 @@ variants:
       - closing routines
       - cashier
       - cash-wrap
-      - Russian
-      - English
-      - Lithuanian
       # Lithuanian JD tokens (Vilnius market); extend after more real inbox pastes.
       - prabangos
       - prabangi
@@ -123,7 +120,6 @@ variants:
       - Boutique vadovas
       - Premium parduotuvės vadovas
       - Prabangios prekybos vadovas
-      - Pamainos vadovas
       - Klientų aptarnavimo vadovas
       - Pardavimų vadovas
       - Salono vadovas
@@ -190,6 +186,15 @@ variants:
       - machine learning engineer
       - FPGA
       - devops engineer
+      - gamybos
+      - statybos
+      - vairuotojas
+      - kasininkas
+      - mėsininkas
+      - virėjas
+      - sandėlio
+      - valytojas
+      - pakuotojas
 
   operations-management:
     name: Operations & Commercial Management
@@ -309,8 +314,6 @@ variants:
       - Mažmeninės prekybos veiklos vadovas
       - Klientų patirties vadovas
       - Klientų aptarnavimo vadovas
-      - Komandos vadovas
-      - Padalinio vadovas
       - Pardavimų vadovas
       - Procesų koordinatorius
       - Procesų valdymo vadovas
@@ -370,6 +373,15 @@ variants:
       - microservices architecture
       - machine learning engineer
       - devops engineer
+      - gamybos
+      - statybos
+      - vairuotojas
+      - kasininkas
+      - mėsininkas
+      - virėjas
+      - sandėlio
+      - valytojas
+      - pakuotojas
 
   business-process-operations:
     name: Business Process Operations
@@ -565,8 +577,6 @@ variants:
       - liaison
       - coordination
       - retail systems
-      - admin
-      - administrator
       - Vilnius
       - junior
       - trainee
@@ -588,3 +598,8 @@ variants:
       - architect 10+ years
       - PhD computer science
       - kernel development
+      - gamybos
+      - statybos
+      - vairuotojas
+      - kasininkas
+      - virėjas

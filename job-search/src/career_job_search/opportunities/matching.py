@@ -385,17 +385,34 @@ def source_score(opportunity: Opportunity) -> float:
     return 1.0
 
 
+def _parse_salary_amounts(salary_text: str) -> list[float]:
+    """Extract numeric amounts, treating comma/dot as thousands separators
+    when they group exactly three digits (European notation, e.g. ``3,400``)
+    and as a decimal point otherwise (e.g. ``3.4``)."""
+    amounts: list[float] = []
+    for value in re.findall(r"\b\d[\d ]*(?:[.,]\d+)?\b", salary_text):
+        if not value.strip():
+            continue
+        cleaned = value.replace(" ", "")
+        try:
+            if re.fullmatch(r"\d{1,3}(?:[.,]\d{3})+", cleaned):
+                amounts.append(float(cleaned.replace(",", "").replace(".", "")))
+            else:
+                amounts.append(float(cleaned.replace(",", ".")))
+        except ValueError:
+            # Mixed separators (e.g. "1,234.56") are not cleanly parseable;
+            # skip rather than crash the whole match.
+            continue
+    return amounts
+
+
 def salary_score(opportunity: Opportunity) -> float:
     text = f"{opportunity.salary_text} {opportunity.description}".lower()
     if not opportunity.salary_text.strip() and not re.search(
         r"\b(eur|€|salary)\b", text
     ):
         return 0.0
-    amounts = [
-        float(value.replace(" ", "").replace(",", "."))
-        for value in re.findall(r"\b\d[\d ]*(?:[.,]\d+)?\b", opportunity.salary_text)
-        if value.strip()
-    ]
+    amounts = _parse_salary_amounts(opportunity.salary_text)
     monthly_amounts = [amount for amount in amounts if amount >= 500]
     if not monthly_amounts:
         return 1.0

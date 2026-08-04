@@ -35,7 +35,7 @@ Context:
 ## Verification commands
 
 ```bash
-uv run ruff check tools cv tests
+uv run ruff check src cv tests
 uv run --group dev python -m pytest -q
 make dashboard-test
 make verify-release
