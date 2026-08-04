@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Local-first CV, recruiter review, and job-search automation workspace."
 requires-python = ">=3.11,<3.12"
 dependencies = [
-  "cryptography>=48.0.1,<49",
+  "cryptography>=48.0.1,<51",
   "fastapi>=0.141.1",
   "httpx>=0.28,<1",
   "langchain-core>=1.4,<2",
