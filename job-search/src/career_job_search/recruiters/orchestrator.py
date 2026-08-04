@@ -43,6 +43,7 @@ from career_job_search.integrations.linkedin.profile_lock import (
     describe_profile_lock,
     release_stale_chrome_profile_lock,
 )
+from career_job_search.recruiters.config import load_settings
 from career_job_search.recruiters.policy import (
     can_attempt_live_dispatch,
     current_send_mode,
@@ -494,25 +495,30 @@ def cmd_dispatch(
     allow_live_dispatch: bool = False,
     login_timeout_seconds: int | None = None,
 ) -> int:
+    settings = load_settings()
+    effective_dry_run = bool(dry_run or (
+        not allow_live_dispatch
+        and (settings.runtime.mode == "dry_run" or settings.runtime.dry_run_default)
+    ))
     max_profiles = validate_live_dispatch_max(
         max_profiles,
-        dry_run=dry_run,
+        dry_run=effective_dry_run,
         option_name="--max",
     )
     cfg = campaign_config_with_overrides(
         load_yaml_config(cfg_path),
         login_timeout_seconds=login_timeout_seconds,
-        fast_dry_run=dry_run,
+        fast_dry_run=effective_dry_run,
     )
     send_mode = current_send_mode()
-    if not dry_run and send_mode == "manual":
+    if not effective_dry_run and send_mode == "manual":
         raise SystemExit(
             "Manual LinkedIn send mode is active. Open the profile, copy the "
             "approved note, and record the outcome instead of browser-clicking "
             "from automation. Set LINKEDIN_SEND_MODE=cli_gated only when you "
             "intend to use the CLI approval gate."
         )
-    if not dry_run and not allow_live_dispatch:
+    if not effective_dry_run and not allow_live_dispatch:
         raise SystemExit(
             "Live dispatch is blocked by default. Re-run with --dry-run for review "
             "or add --allow-live-dispatch after manually reviewing the queue."
@@ -549,12 +555,12 @@ def cmd_dispatch(
             break
 
     if not tuples:
-        if dry_run:
+        if effective_dry_run:
             print("Nothing to dispatch — queue empty after tier/max filters.")
             return 0
         raise SystemExit("Nothing to dispatch — queue empty after tier/max filters.")
 
-    if not dry_run:
+    if not effective_dry_run:
         invite_notes = [
             (url, str(planned_invites.get(url, {}).get("note") or ""))
             for url, _slug in tuples
@@ -586,7 +592,7 @@ def cmd_dispatch(
 
     dispatch_args = argparse.Namespace(
         headed=headed,
-        dry_run=dry_run,
+        dry_run=effective_dry_run,
         scout_jsonl_only=False,
         config=cfg_path,
         max_connections_override=max_profiles,
