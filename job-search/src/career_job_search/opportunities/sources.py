@@ -2,14 +2,29 @@
 
 from __future__ import annotations
 
+import logging
+import time
 import json
 import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from time import perf_counter
+from time import perf_counter, sleep
 from typing import Any
+from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
+
+logger = logging.getLogger(__name__)
+
+# Retry configuration for external API calls.
+# ATS providers (Greenhouse, Lever, Ashby, SmartRecruiters) throttle
+# aggressively; transient 5xx failures should not crash the entire batch.
+MAX_ATS_RETRIES = 3
+ATS_RETRY_BASE_DELAY_S = 1.0
+ATS_RETRY_MAX_DELAY_S = 8.0
+FETCH_RETRY_COUNT = 3
+FETCH_RETRY_BASE_DELAY_S = 0.5
+FETCH_RETRY_MAX_DELAY_S = 4.0
 
 from career_job_search.cvs.matching import JOB_ROOT, parse_job_file
 from career_job_search.integrations.linkedin.opportunities import (
@@ -54,44 +69,11 @@ DEFAULT_INBOX_JOBS = JOB_ROOT / "inbox" / "jobs"
 DEFAULT_FETCH_TIMEOUT_SECONDS = 20
 
 
-@dataclass
-class SourceResult:
-    source: str
-    status: str
-    snapshot_type: str
-    item_count: int
-    duration_ms: int
-    complete: bool
-    error: str = ""
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "source": self.source,
-            "status": self.status,
-            "snapshot_type": self.snapshot_type,
-            "item_count": self.item_count,
-            "duration_ms": self.duration_ms,
-            "complete": self.complete,
-            "error": self.error,
-        }
-
-
-@dataclass
-class DiscoveryBatch:
-    opportunities: list[Opportunity] = field(default_factory=list)
-    source_results: list[SourceResult] = field(default_factory=list)
-
-    @property
-    def partial(self) -> bool:
-        return any(result.status == "failed" for result in self.source_results)
-
-
-@dataclass
-class SourceDiscovery:
-    opportunities: list[Opportunity] = field(default_factory=list)
-    complete: bool = True
-    status: str | None = None
-    note: str = ""
+from career_job_search.opportunities.sources_package.base import (
+    DiscoveryBatch,
+    SourceDiscovery,
+    SourceResult,
+)
 
 
 def _source_cfg(config: dict[str, Any], name: str) -> dict[str, Any]:
@@ -104,28 +86,137 @@ def _enabled(block: dict[str, Any], default: bool = False) -> bool:
     return bool(block.get("enabled", default))
 
 
+def _retry_with_backoff(
+    fn,
+    *,
+    max_retries: int = FETCH_RETRY_COUNT,
+    base_delay: float = FETCH_RETRY_BASE_DELAY_S,
+    max_delay: float = FETCH_RETRY_MAX_DELAY_S,
+) -> Any:
+    """Call *fn* with exponential backoff on transient network failures.
+
+    Retries on ``HTTPError`` (5xx), ``URLError``, and ``TimeoutError``.
+    Constant backoff capped at *max_delay*.
+    """
+    last_exc: Exception | None = None
+    for attempt in range(1, max_retries + 1):
+        try:
+            return fn()
+        except (HTTPError, URLError, TimeoutError, OSError) as exc:
+            last_exc = exc
+            if attempt == max_retries:
+                raise
+            delay = min(base_delay * (2 ** (attempt - 1)), max_delay)
+            sleep(delay)
+    raise last_exc  # type: ignore[return-value]
+
+
 def fetch_json(url: str, *, timeout: int = DEFAULT_FETCH_TIMEOUT_SECONDS) -> Any:
-    request = Request(  # noqa: S310
+    """Fetch and parse JSON from *url* with retry via httpx (sync)."""
+    from career_job_search.core.http_client import fetch_text_sync
+
+    text = fetch_text_sync(
         url,
+        max_retries=3,
+        base_delay=1.0,
+        timeout=timeout,
         headers={
             "Accept": "application/json",
             "User-Agent": "career-job-search-opportunity-scout/1.0",
         },
     )
-    with urlopen(request, timeout=timeout) as response:  # noqa: S310
-        return json.loads(response.read().decode("utf-8"))
+    return json.loads(text)
+
+
+def fetch_json_limited(
+    url: str,
+    *,
+    timeout: int = DEFAULT_FETCH_TIMEOUT_SECONDS,
+    rate_limit_seconds: float = 0.0,
+    _last_call: list[float] = [0.0],  # noqa: B006 — mutable default, tracks last call time
+) -> Any:
+    """Rate-limited wrapper around ``fetch_json``.
+
+    Ensures at least *rate_limit_seconds* elapse between requests.
+    """
+    if rate_limit_seconds > 0:
+        now = time.time()
+        elapsed = now - _last_call[0]
+        if elapsed < rate_limit_seconds:
+            wait = rate_limit_seconds - elapsed
+            logger.debug("Rate limiting: sleeping %.2fs for %s", wait, url)
+            time.sleep(wait)
+        _last_call[0] = time.time()
+    return fetch_json(url, timeout=timeout)
 
 
 def fetch_text(url: str, *, timeout: int = DEFAULT_FETCH_TIMEOUT_SECONDS) -> str:
-    request = Request(  # noqa: S310
+    """Fetch text from *url* with retry via httpx (sync)."""
+    from career_job_search.core.http_client import fetch_text_sync
+
+    return fetch_text_sync(
         url,
+        max_retries=3,
+        base_delay=1.0,
+        timeout=timeout,
         headers={
             "Accept": "text/html,application/xhtml+xml,application/rss+xml",
             "User-Agent": "career-job-search-opportunity-scout/1.0",
         },
     )
-    with urlopen(request, timeout=timeout) as response:  # noqa: S310
-        return response.read().decode("utf-8")
+
+
+def fetch_text_limited(
+    url: str,
+    *,
+    timeout: int = DEFAULT_FETCH_TIMEOUT_SECONDS,
+    rate_limit_seconds: float = 0.0,
+    _last_call: list[float] = [0.0],  # noqa: B006 — mutable default, tracks last call time
+) -> str:
+    """Rate-limited wrapper around ``fetch_text``.
+
+    Ensures at least *rate_limit_seconds* elapse between requests.
+    The internal `_last_call` list persists state across calls.
+    """
+    if rate_limit_seconds > 0:
+        now = time.time()
+        elapsed = now - _last_call[0]
+        if elapsed < rate_limit_seconds:
+            wait = rate_limit_seconds - elapsed
+            logger.debug("Rate limiting: sleeping %.2fs for %s", wait, url)
+            time.sleep(wait)
+        _last_call[0] = time.time()
+    return fetch_text(url, timeout=timeout)
+
+
+def _rate_limited_fetcher(
+    config: dict[str, Any],
+    source_key: str,
+    *,
+    use_json: bool = False,
+) -> tuple[Callable[..., str], float]:
+    """Return a rate-limited fetcher bound to a source config.
+
+    Returns ``(fetcher, rate_limit_seconds)`` where *fetcher* is either
+    ``fetch_json_limited`` or ``fetch_text_limited`` with the configured
+    delay baked in.
+    """
+    block = _source_cfg(config, source_key)
+    rate = float(block.get("rate_limit_seconds") or 0.0)
+    timeout = int(block.get("network_timeout_seconds") or DEFAULT_FETCH_TIMEOUT_SECONDS)
+
+    if use_json:
+        def _json_limited(url: str, **kwargs: Any) -> Any:  # type: ignore[no-untyped-def]
+            return fetch_json_limited(
+                url, timeout=timeout, rate_limit_seconds=rate
+            )
+        return _json_limited, rate
+    else:
+        def _text_limited(url: str, **kwargs: Any) -> str:  # type: ignore[no-untyped-def]
+            return fetch_text_limited(
+                url, timeout=timeout, rate_limit_seconds=rate
+            )
+        return _text_limited, rate
 
 
 def discover_cvmarket_rss(
@@ -133,7 +224,8 @@ def discover_cvmarket_rss(
     *,
     now: datetime | None = None,
 ) -> SourceDiscovery:
-    return discover_cvmarket_rss_source(config, fetcher=fetch_text, now=now)
+    fetcher, _ = _rate_limited_fetcher(config, "cvmarket_rss")
+    return discover_cvmarket_rss_source(config, fetcher=fetcher, now=now)
 
 
 def discover_uzt_open_data(
@@ -141,10 +233,12 @@ def discover_uzt_open_data(
     *,
     now: datetime | None = None,
 ) -> SourceDiscovery:
+    fetcher, _ = _rate_limited_fetcher(config, "uzt", use_json=True)
+    live_fetcher, _ = _rate_limited_fetcher(config, "uzt", use_json=False)
     return discover_uzt_open_data_source(
         config,
-        fetcher=fetch_json,
-        live_fetcher=fetch_text,
+        fetcher=fetcher,
+        live_fetcher=live_fetcher,
         now=now,
     )
 
@@ -154,9 +248,10 @@ def discover_cvonline_public_search(
     *,
     now: datetime | None = None,
 ) -> SourceDiscovery:
+    fetcher, _ = _rate_limited_fetcher(config, "cvonline_public_search")
     return discover_cvonline_public_search_source(
         config,
-        fetcher=fetch_text,
+        fetcher=fetcher,
         now=now,
     )
 
@@ -166,9 +261,10 @@ def discover_workinlithuania_public_search(
     *,
     now: datetime | None = None,
 ) -> SourceDiscovery:
+    fetcher, _ = _rate_limited_fetcher(config, "workinlithuania_public_search", use_json=True)
     return discover_workinlithuania_public_search_source(
         config,
-        fetcher=fetch_json,
+        fetcher=fetcher,
         now=now,
     )
 
@@ -178,9 +274,10 @@ def discover_cvbankas_public_search(
     *,
     now: datetime | None = None,
 ) -> SourceDiscovery:
+    fetcher, _ = _rate_limited_fetcher(config, "cvbankas_public_search")
     return discover_cvbankas_public_search_source(
         config,
-        fetcher=fetch_text,
+        fetcher=fetcher,
         now=now,
     )
 
@@ -278,32 +375,38 @@ def discover_live_ats_provider(
     if not provider or not _enabled(provider_config, default=True):
         return []
 
+    def _fetch_with_retry(url: str) -> Any:
+        return _retry_with_backoff(
+            lambda: fetch_json(url, timeout=timeout),
+            max_retries=MAX_ATS_RETRIES,
+            base_delay=ATS_RETRY_BASE_DELAY_S,
+            max_delay=ATS_RETRY_MAX_DELAY_S,
+        )
+
     if provider == "greenhouse":
         slug = _provider_slug(provider_config, "board_token", "company_slug")
         if not slug:
             return []
         url = f"https://boards-api.greenhouse.io/v1/boards/{slug}/jobs?content=true"
-        rows = _payload_rows(fetch_json(url, timeout=timeout), "jobs")
+        rows = _payload_rows(_fetch_with_retry(url), "jobs")
     elif provider == "lever":
         slug = _provider_slug(provider_config, "company_slug", "board_token")
         if not slug:
             return []
         url = f"https://api.lever.co/v0/postings/{slug}?mode=json"
-        rows = _payload_rows(fetch_json(url, timeout=timeout), "postings", "jobs")
+        rows = _payload_rows(_fetch_with_retry(url), "postings", "jobs")
     elif provider == "ashby":
         slug = _provider_slug(provider_config, "job_board_name", "company_slug")
         if not slug:
             return []
         url = f"https://api.ashbyhq.com/posting-api/job-board/{slug}"
-        rows = _payload_rows(fetch_json(url, timeout=timeout), "jobs")
+        rows = _payload_rows(_fetch_with_retry(url), "jobs")
     elif provider == "smartrecruiters":
         slug = _provider_slug(provider_config, "company_identifier", "company_slug")
         if not slug:
             return []
         url = f"https://api.smartrecruiters.com/v1/companies/{slug}/postings?limit=100"
-        rows = _payload_rows(
-            fetch_json(url, timeout=timeout), "content", "jobs", "postings"
-        )
+        rows = _payload_rows(_fetch_with_retry(url), "content", "jobs", "postings")
     else:
         return []
 
