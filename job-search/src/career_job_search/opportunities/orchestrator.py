@@ -9,11 +9,6 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
-try:
-    import yaml
-except ModuleNotFoundError:
-    yaml = None
-
 from career_job_search.core.contracts import helper_json
 from career_job_search.core.paths import project_path
 from career_job_search.opportunities.alerts import (
@@ -24,8 +19,16 @@ from career_job_search.opportunities.browser import (
     load_browser_job_payloads,
     opportunity_from_browser_job,
 )
+from career_job_search.opportunities.config_validation import (
+    load_and_validate_config,
+    suggest_source_fixes,
+)
 from career_job_search.opportunities.dashboard_adapter import (
     build_opportunity_overview,
+)
+from career_job_search.opportunities.error_classifier import (
+    classify_all_results,
+    generate_summary_text,
 )
 from career_job_search.opportunities.live import (
     DEFAULT_LIVE_CHECK_MAX_CANDIDATES,
@@ -50,6 +53,7 @@ from career_job_search.opportunities.repository import (
     upsert_opportunities,
 )
 from career_job_search.opportunities.sources import discover_opportunities_with_results
+from career_job_search.opportunities.models import OpportunityStatus
 
 JOB_ROOT = project_path()
 DEFAULT_CONFIG = project_path("config", "opportunities.example.yaml")
@@ -58,22 +62,28 @@ def json_response(payload: dict[str, Any]) -> None:
 
 
 def load_config(path: Path | None) -> dict[str, Any]:
-    if path is None:
-        return {
-            "opportunities": {
-                "sources": {
-                    "inbox": {"enabled": True, "path": str(JOB_ROOT / "inbox" / "jobs")}
-                }
-            }
-        }
-    if not path.exists():
-        raise FileNotFoundError(f"Opportunity config not found: {path}")
-    if yaml is None:
-        raise SystemExit("PyYAML is required to read opportunity config.")
-    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-    if not isinstance(data, dict):
-        raise ValueError("Opportunity config must be a mapping.")
-    return data
+    """Load and validate opportunity configuration.
+
+    Falls back to sensible defaults when *path* is None, validates the
+    YAML against Pydantic schemas when a file is supplied, and surfaces
+    actionable fix suggestions on the first validation failure.
+    """
+    try:
+        return load_and_validate_config(str(path) if path else None)
+    except ValueError as exc:
+        # If validation fails, try to add fix suggestions for operator guidance
+        if path and path.exists():
+            import yaml
+            try:
+                raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+                if isinstance(raw, dict):
+                    suggestions = suggest_source_fixes(raw)
+                    if suggestions:
+                        lines: list[str] = [f"{exc}"] + ["\n" + s for s in suggestions]
+                        raise ValueError("\n".join(lines)) from exc
+            except Exception:
+                pass
+        raise
 
 
 def cmd_discover(args: argparse.Namespace) -> int:
@@ -112,7 +122,27 @@ def cmd_discover(args: argparse.Namespace) -> int:
 def cmd_match(args: argparse.Namespace) -> int:
     config = load_config(args.config)
     scoring_config = (config.get("opportunities") or {}).get("scoring") or {}
-    opportunities = list_opportunities(db_path=args.db)
+    since = getattr(args, "since", None)
+    if since:
+        # Only re-match opportunities discovered or changed since the given date.
+        # Skips records that are already matched/applied/skipped with no score
+        # changes and haven't been modified since *since*.
+        all_opps = list_opportunities(db_path=args.db)
+        opportunities = [
+            row
+            for row in all_opps
+            if (
+                row.first_seen_at.startswith(since)
+                or row.last_seen_at >= since
+                or row.first_eligible_at.startswith(since)
+                or row.live_checked_at.startswith(since)
+                or row.match is None
+                or row.match.score < 10
+                or row.status in {OpportunityStatus.NEW, OpportunityStatus.MATCHED, OpportunityStatus.REVIEW}
+            )
+        ]
+    else:
+        opportunities = list_opportunities(db_path=args.db)
     matched = match_opportunities(opportunities, scoring_config=scoring_config)
     for row in matched:
         save_opportunity(row, db_path=args.db)
@@ -163,18 +193,30 @@ def _short_row(row: dict[str, Any]) -> dict[str, Any]:
 
 
 def _source_issues(source_results: list[dict[str, Any]]) -> list[dict[str, str]]:
-    """Turn source health metadata into concise operator-facing warnings."""
+    """Turn source health metadata into concise operator-facing warnings.
 
+    Uses the new error_classifier module for structured severity + action.
+    """
     issues: list[dict[str, str]] = []
+    # Gather alerts from the classifier for actionable reporting
+    alerts = classify_all_results(source_results)
+    alert_map = {a.source: a for a in alerts}
+
     for result in source_results:
         source = str(result.get("source") or "unknown")
         status = str(result.get("status") or "")
+
+        alert = alert_map.get(source)
         if status == "failed":
+            msg = str(result.get("error") or "source failed")
+            if alert:
+                msg = f"{alert.message} → {alert.action}"
             issues.append(
                 {
                     "source": source,
                     "kind": "failed",
-                    "message": str(result.get("error") or "source failed"),
+                    "message": msg,
+                    "severity": alert.severity if alert else "medium",
                 }
             )
         elif status == "monitor_only":
@@ -573,7 +615,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="treat the input as a complete LinkedIn browser snapshot",
     )
 
-    sub.add_parser("match")
+    match_cmd = sub.add_parser("match")
+    match_cmd.add_argument(
+        "--since",
+        type=str,
+        default=None,
+        help="Only re-match opportunities discovered or changed since YYYY-MM-DD",
+    )
     report = sub.add_parser("report")
     report.add_argument("--summary", action="store_true")
     daily = sub.add_parser("daily-queue")

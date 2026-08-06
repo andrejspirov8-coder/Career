@@ -70,7 +70,7 @@ opportunities:
         - smoke
         - test
     company_watchlist:
-      enabled: true
+      enabled: false
       companies:
         - name: Celine / LVMH
           careers_url: https://www.lvmh.com/en/join-us/our-job-offers
@@ -100,8 +100,12 @@ opportunities:
           careers_url: https://bolt.eu/en/careers/positions/
         - name: Zalando
           careers_url: https://jobs.zalando.com/en/jobs
+        - name: Ignitis Group
+          careers_url: https://careers.ignitis.lt
+        - name: Citco
+          careers_url: https://www.citco.com/careers
     ats:
-      enabled: true
+      enabled: false
       network_timeout_seconds: 20
       providers:
         - provider: greenhouse
@@ -131,10 +135,7 @@ opportunities:
           max_posts: 25
       fixtures: []
     linkedin:
-      enabled: true
-      # The scheduled automation uses the user's authenticated Chrome session
-      # and imports structured read-only observations with `import-browser`.
-      # Set mode to local_profile only for the standalone Playwright scraper.
+      enabled: false
       mode: connected_chrome
       base_url: https://www.linkedin.com
       location: Vilnius, Lithuania
@@ -149,8 +150,6 @@ opportunities:
       browser_channel: chrome
       headed: false
       profile_dir: linkedin/.jobs-browser-profile
-      # Read-only job search seeds. CV matching still scores every returned job
-      # against all variants after discovery.
       queries:
         - business process
         - operations manager
@@ -162,9 +161,74 @@ opportunities:
       enabled: false
       feed_url: https://www.cvmarket.lt/rss-listings.xml
       network_timeout_seconds: 20
+    cvonline_public_search:
+      enabled: false
+      base_url: https://www.cvonline.lt/lt/search
+      queries:
+        - operations manager
+        - customer operations
+        - implementation manager
+        - business process
+        - retail operations
+        - store manager
+        - commerce
+        - supply chain
+      max_results_per_query: 50
+      max_queries: 6
+      network_timeout_seconds: 20
+    cvbankas_public_search:
+      enabled: false
+      base_url: https://www.cvbankas.lt/
+      queries:
+        - operations manager
+        - customer operations
+        - implementation manager
+        - business process
+        - retail operations
+        - store manager
+        - komercijos vadybininkas
+        - pardavimu vadovas
+      max_results_per_query: 50
+      max_queries: 6
+      network_timeout_seconds: 20
+    workinlithuania_public_search:
+      enabled: false
+      base_url: https://workinlithuania.com
+      search_page_url_template: https://workinlithuania.com/jobs/{query}
+      network_timeout_seconds: 20
+    uzt_open_data:
+      enabled: false
+      feed_url: https://uzt.gov.lt/api/v1/job-vacancies
+      api_url: https://get.data.gov.lt/datasets/gov/uzt/ldv/Vieta
+      municipality: Vilniaus miesto sav.
+      max_records: 300
+      network_timeout_seconds: 30
+      live_fallback_enabled: true
+      max_feed_age_days: 7
     job_board:
       enabled: false
-      links: []
+      links:
+        - title: Darbo.lt Vilnius search
+          url: https://www.darbo.lt/darbas/vilnius/
+          company: Darbo.lt
+          description: Search page for Vilnius jobs
+        - title: IRWork.lt search
+          url: https://www.irwork.lt/
+          company: IRWork
+          description: Jobs portal
+        - title: Renda.lt search
+          url: https://www.renda.lt/
+          company: Renda
+          description: Jobs portal
     web_search:
       enabled: false
-      links: []
+      links:
+        - title: LinkedIn Operations Vilnius
+          url: https://www.linkedin.com/jobs/search/?keywords=operations%20manager&location=Lithuania
+          company: LinkedIn
+        - title: CVBankas Vilnius career
+          url: https://www.cvbankas.lt/karjera/vilnius/
+          company: CVBankas
+        - title: CVOnline vacancies
+          url: https://www.cvonline.lt/lt/vacancies/
+          company: CVOnline
