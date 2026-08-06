@@ -187,3 +187,16 @@ def test_risk_penalty_unknown_flags() -> None:
 )
 def test_has_hard_title_mismatch(title: str, expected: bool) -> None:
     assert _has_hard_title_mismatch(title) == expected
+
+
+def test_normalise_monthly_salary_to_annual():
+    from career_job_search.opportunities.normalization import normalise_salary_range
+    res = normalise_salary_range("2500 - 3500 €/mėn")
+    assert res == (30000.0, 42000.0)
+
+
+def test_normalise_annual_salary():
+    from career_job_search.opportunities.normalization import normalise_salary_range
+    res = normalise_salary_range("€40,000 - €50,000 / year")
+    assert res == (40000.0, 50000.0)
+
