@@ -261,16 +261,16 @@ External Integration Points
 
 ## Troubleshooting
 
-**Q: Config changes not taking effect?**  
+**Q: Config changes not taking effect?**
 A: Restart Python process. Check: `python3 -c "import yaml; yaml.safe_load(open('linkedin/config.yaml'))"`
 
-**Q: Persona detection import fails?**  
+**Q: Persona detection import fails?**
 A: Check syntax in recruiter_match.py. Should be `from recruiter_match import` (no tools. prefix)
 
-**Q: MCP server won't start?**  
+**Q: MCP server won't start?**
 A: Install MCP SDK: `pip install mcp`
 
-**Q: Analytics report is empty?**  
+**Q: Analytics report is empty?**
 A: Check that recruiters.csv has ≥1 row. Run recruiter_orchestrate.py first.
 
 ---

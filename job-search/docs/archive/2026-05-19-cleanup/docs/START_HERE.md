@@ -1,7 +1,7 @@
 # 🎯 Job-Search Toolkit: Complete Optimisation Package
 
-**Status**: ✅ Complete & Ready  
-**Date**: 2026-05-19  
+**Status**: ✅ Complete & Ready
+**Date**: 2026-05-19
 **For**: Andrej
 
 ---

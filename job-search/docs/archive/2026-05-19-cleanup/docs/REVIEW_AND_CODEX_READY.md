@@ -1,7 +1,7 @@
 # Job-Search Optimisation: Complete Review & Codex Prompt
 
-**Prepared for**: Andrej  
-**Date**: 2026-05-19  
+**Prepared for**: Andrej
+**Date**: 2026-05-19
 **Status**: ✅ Ready for Codex implementation
 
 ---
@@ -58,8 +58,8 @@ Your job-search toolkit is **architecture-solid** but **operationally friction-h
 5. **Job: Analytics** — Real-time funnel + variant/source performance
 6. **Job: Deadlines** — Upcoming deadlines + calendar integration
 
-**Impact**: 80% faster workflows; 100% logging compliance  
-**Effort**: ~10 hours TypeScript  
+**Impact**: 80% faster workflows; 100% logging compliance
+**Effort**: ~10 hours TypeScript
 **Codex prompt**: See `CODEX_PROMPT_JOB_SEARCH_EXTENSION.md`
 
 ### Phase 2: Arc Browser Integration (P0)
@@ -75,8 +75,8 @@ Your job-search toolkit is **architecture-solid** but **operationally friction-h
 5. Open in editor for final polish
 ```
 
-**Impact**: 75% faster ingestion (5 min → 1 min per job)  
-**Effort**: Extend existing Arc Raycast extension  
+**Impact**: 75% faster ingestion (5 min → 1 min per job)
+**Effort**: Extend existing Arc Raycast extension
 **Codex prompt**: (See Phase 2 section below)
 
 ### Phase 3: Keyword Learning & Feedback Loop (P1)
@@ -88,7 +88,7 @@ Your job-search toolkit is **architecture-solid** but **operationally friction-h
 - Suggest adding keywords to winning variant's profile
 - Track keyword effectiveness over time
 
-**Impact**: 15–20% better matching after 20 applications  
+**Impact**: 15–20% better matching after 20 applications
 **Effort**: ~6 hours (keyword extraction + suggestion logic)
 
 ### Phase 4: Advanced Analytics & Forecasting (P2)
@@ -100,7 +100,7 @@ Your job-search toolkit is **architecture-solid** but **operationally friction-h
 - Interview rate trending (forecast offer probability)
 - Recommendation engine ("Apply to X next because Y")
 
-**Impact**: Maximize ROI; eliminate low-performing sources  
+**Impact**: Maximize ROI; eliminate low-performing sources
 **Effort**: ~8 hours (data analysis + ML-lite)
 
 ---

@@ -1,8 +1,8 @@
 # Codex Prompt: Job-Search Raycast Extension
 
-**Project**: `raycast-job-search-hub`  
-**Language**: TypeScript (Raycast native)  
-**Purpose**: Unified command palette for job-search toolkit  
+**Project**: `raycast-job-search-hub`
+**Language**: TypeScript (Raycast native)
+**Purpose**: Unified command palette for job-search toolkit
 **User**: Andrej (macOS M3 Max, Vilnius-based developer)
 
 ---
@@ -50,7 +50,7 @@ Cmd+K "Job: Log App"      → Form → Auto-appends to CSV
 
 ### 1. Command: `job-new`
 
-**Title**: "Job: New"  
+**Title**: "Job: New"
 **Description**: Create a new job posting file interactively
 
 **Form Fields**:
@@ -88,7 +88,7 @@ Cmd+K "Job: Log App"      → Form → Auto-appends to CSV
 
 ### 2. Command: `job-match`
 
-**Title**: "Job: Match All"  
+**Title**: "Job: Match All"
 **Description**: Batch match all jobs in inbox to CV variants
 
 **Execution**:
@@ -108,7 +108,7 @@ Cmd+K "Job: Log App"      → Form → Auto-appends to CSV
 
 ### 3. Command: `job-review`
 
-**Title**: "Job: Review"  
+**Title**: "Job: Review"
 **Description**: Dashboard of all generated application packs
 
 **Display Format** (Raycast List/Table):
@@ -166,7 +166,7 @@ Cmd+K "Job: Log App"      → Form → Auto-appends to CSV
 
 ### 4. Command: `job-log`
 
-**Title**: "Job: Log Application"  
+**Title**: "Job: Log Application"
 **Description**: Log an application to `applications.csv`
 
 **Trigger**:
@@ -214,7 +214,7 @@ Cmd+K "Job: Log App"      → Form → Auto-appends to CSV
 
 ### 5. Command: `job-analytics`
 
-**Title**: "Job: Analytics"  
+**Title**: "Job: Analytics"
 **Description**: Real-time performance metrics
 
 **Display Sections**:
@@ -266,7 +266,7 @@ startup_lt         1        0     0.0%
 
 ### 6. Command: `job-deadlines`
 
-**Title**: "Job: Deadlines"  
+**Title**: "Job: Deadlines"
 **Description**: Show upcoming application deadlines
 
 **Requirements** (Future Enhancement):

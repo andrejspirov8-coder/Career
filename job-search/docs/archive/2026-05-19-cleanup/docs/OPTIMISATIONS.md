@@ -34,7 +34,7 @@ def extract_professional_summary(md_path: Path) -> str:
     return summary
 ```
 
-**Impact**: 
+**Impact**:
 - First run: No improvement (summaries extracted once anyway)
 - Re-runs or multi-job batches: 0 disk I/O per variant (summaries cached in RAM)
 - Batch processing 10 jobs: ~5–10ms saved (negligible but clean)

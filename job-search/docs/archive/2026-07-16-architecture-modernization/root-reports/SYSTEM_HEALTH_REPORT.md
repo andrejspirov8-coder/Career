@@ -80,7 +80,7 @@ tiers:
   tier_2:
     require_clear_winner: true      ✅ CHANGED
     allow_tie_review: false         ✅ NEW
-  
+
   tier_3:
     min_primary_score: 13           ✅ RAISED
 ```

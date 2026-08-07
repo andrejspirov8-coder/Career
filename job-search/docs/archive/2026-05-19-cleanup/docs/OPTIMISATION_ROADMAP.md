@@ -1,7 +1,7 @@
 # Job-Search Toolkit: Comprehensive Optimisation Review
 
-**Prepared for**: Andrej  
-**Context**: Vilnius-based job search with variant-driven CV matching  
+**Prepared for**: Andrej
+**Context**: Vilnius-based job search with variant-driven CV matching
 **Goal**: Identify remaining optimisation opportunities across all layers
 
 ---
@@ -30,7 +30,7 @@
 - **Impact**: 2 min/job → 30 sec/job (75% time saved)
 - **Raycast integration**: Native Arc extension exists; extend it
 
-#### **1.2 Smart Source Detection** 
+#### **1.2 Smart Source Detection**
 **Status**: Manual source tagging
 
 - **Problem**: User must remember to tag `SOURCE: cvbank` (inconsistency risk)
@@ -78,18 +78,18 @@
 - **Problem**: User must `cd` into tools/, run Python scripts manually
 - **Solution**: Raycast extension with commands:
   ```
-  Cmd+K "Job: New" 
+  Cmd+K "Job: New"
   → Launches new_job.py in Raycast UI
-  
+
   Cmd+K "Job: Match All"
   → Runs batch_match_and_pack.py
   → Shows progress bar
   → Auto-opens review_packs dashboard when done
-  
-  Cmd+K "Job: Review" 
+
+  Cmd+K "Job: Review"
   → Opens review_packs with sort options
   → Display as Raycast grid (visual PDFs as thumbnails?)
-  
+
   Cmd+K "Job: Analytics"
   → Runs variant_performance.py
   → Displays as Raycast table
@@ -108,7 +108,7 @@
   # If luxury-retail interviews at 25% but IT-business at 0%,
   # Suggest adding winning keywords from luxury-retail interviews
   # to strengthen variant_profiles.yaml
-  
+
   # When user logs "interview" outcome,
   # Extract high-value keywords from that job's KEYWORD_GAPS.md
   ```
@@ -119,14 +119,14 @@
 - **Problem**: Negative keywords are hardcoded; miss tech roles disguised as ops
 - **Solution**: Track false positives
   ```python
-  # If operations-management variant scores high but user rejects 
+  # If operations-management variant scores high but user rejects
   # (outcome: withdrawn), log negative keyword from that JD
   # Suggest adding to negative_keywords list
   ```
 - **Impact**: Fewer bad matches; 5–10% fewer junk packs
 - **Effort**: Outcome tracking + suggestion engine (~150 lines)
 
-#### **2.3 Real-Time Scoring Dashboard** 
+#### **2.3 Real-Time Scoring Dashboard**
 **Status**: Static review_packs.py
 
 - **Problem**: Score numbers are hard to interpret (18.5 vs. 15.2 = how much better?)
@@ -177,7 +177,7 @@
   ```
   Then:
   ```bash
-  Raycast Cmd+K "Job: Deadlines" 
+  Raycast Cmd+K "Job: Deadlines"
   → Shows applications due in next 7 days
   → Click → opens Apple Calendar to add reminder
   ```
@@ -222,11 +222,11 @@
     Screening: 3 (20%)
     Interview: 1 (33% of screening)
     Offer: 0
-  
+
   → By variant:
     luxury-retail: 12 applied → 3 interview (25%)
     ops-management: 3 applied → 1 interview (33%)
-  
+
   → By source:
     linkedin: 8 applied → 2 interview (25%)
     cvbank: 7 applied → 1 interview (14%)
@@ -243,11 +243,11 @@
   # Group applications.csv by week + variant
   Week 1 (May 12–18):
     luxury-retail: 5 applied, 0 interview (0%)
-  
+
   Week 2 (May 19–25):
     luxury-retail: 7 applied, 2 interview (29%)
     ← Trending up (likely due to KEYWORD_GAPS refinements)
-  
+
   # Forecast: At current rate, expect 1 offer in 4 weeks
   ```
 - **Impact**: Predict outcomes; know when to pivot variants
@@ -278,7 +278,7 @@
 
 ### Optimisation Opportunities
 
-#### **5.1 CV Version Control** 
+#### **5.1 CV Version Control**
 **Status**: No version history
 
 - **Problem**: Edit CV, forget what changed; can't A/B test variants
@@ -288,11 +288,11 @@
   git init
   git add *.md
   git commit -m "v1.0: luxury-retail baseline"
-  
+
   # After feedback, edit CV:
   git add andrej-spirov-cv-luxury-retail.md
   git commit -m "v1.1: added 'store opening' keyword (from Zara feedback)"
-  
+
   # Later: compare versions
   git log --oneline
   git diff v1.0 v1.1 andrej-spirov-cv-luxury-retail.md
@@ -308,12 +308,12 @@
   ```python
   # Before edit:
   python batch_match_and_pack.py --snapshot v1.0
-  
+
   # Edit CV
-  
+
   # After edit:
   python batch_match_and_pack.py --snapshot v1.1 --compare v1.0
-  
+
   # Output:
   # Variant: luxury-retail
   # Average score: 14.2 (v1.0) → 15.8 (v1.1) [+11%]
@@ -331,7 +331,7 @@
   User logs: "interview" for Zara Home Director pack
   System extracts: packs/20260511-zara.../job_input.txt
   Identifies high-frequency keywords: "store opening", "manager training", "KPI"
-  Prompts: "These keywords appeared in interview #1. 
+  Prompts: "These keywords appeared in interview #1.
              Add to luxury-retail variant? (Y/n)"
   ```
 - **Impact**: Positive reinforcement loop; variants improve organically
@@ -355,7 +355,7 @@
 - **Solution**: Native Raycast extension (`job-search-hub`)
   ```
   Command palette (Cmd+K):
-  
+
   • Job: New                    → new_job.py GUI
   • Job: Match All              → batch_match_and_pack.py + progress
   • Job: Review                 → review_packs.py dashboard
@@ -364,7 +364,7 @@
   • Job: Show Deadlines         → Calendar integration
   • Job: Pipeline Funnel        → Real-time metrics
   • Job: Next Steps             → Smart recommendations
-  
+
   Menu bar icon:
   • Shows: "3 pending reviews, 1 due today"
   • Hover: Quick stats (applied: 15, interview: 2, offer: 0)
@@ -396,15 +396,15 @@
 - **Solution**: Intelligent prioritisation
   ```
   After batch matching, Raycast shows:
-  
+
   "RECOMMENDED NEXT STEPS"
   1. Apply to Michael Kors ASM (score: 18.5, confidence: ✓ clear)
      → Deadline: 5 days | Variant: luxury-retail (25% interview rate)
-  
+
   2. Apply to Zara Home (score: 17.2, confidence: ✓ clear)
      → Deadline: 3 weeks | Variant: luxury-retail | Same Apranga group
      → Note: Use different cover note than Michael Kors (same parent company)
-  
+
   3. Edit luxury-retail CV (suggested 3 new keywords from interview feedback)
      → Keywords: "store opening", "manager coaching", "KPI cadence"
      → Reason: These appeared in interview #1 (Zara feedback)

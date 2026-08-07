@@ -1,7 +1,7 @@
 # 📑 Complete Documentation Index
 
-**Job-Search Toolkit**: Comprehensive Optimisation Package  
-**Last Updated**: 2026-05-19  
+**Job-Search Toolkit**: Comprehensive Optimisation Package
+**Last Updated**: 2026-05-19
 **Status**: ✅ Complete & Production-Ready
 
 ---

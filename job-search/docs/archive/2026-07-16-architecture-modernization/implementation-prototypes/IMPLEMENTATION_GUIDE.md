@@ -1,6 +1,6 @@
 # Implementation Guide: Career Workspace Improvements
 
-**Generated:** 20 May 2026 | **Status:** Ready to implement  
+**Generated:** 20 May 2026 | **Status:** Ready to implement
 **Source:** Desktop Commander Comprehensive Review & Recommendations
 
 ---
@@ -33,21 +33,21 @@ Three interconnected improvements to your recruiter automation system:
    - "experis"
    - "in-house recruiter"
    ```
-   
+
    **Impact:** Michael Page recruiters now score +5 sector points (vs 0 before)
 
 2. **Fixed Tier 2 confidence gate** (line 88)
    ```yaml
    require_clear_winner: true  # was: false
    ```
-   
+
    **Impact:** Tier 2 no longer accepts ambiguous (tie_review) profiles. Your tie_review profiles had 0% response rate.
 
 3. **Raised Tier 3 threshold** (line 97)
    ```yaml
    min_primary_score: 13  # was: 12
    ```
-   
+
    **Impact:** Only high-confidence Tier 3 profiles accepted. Reduces noise in backlog queue.
 
 ### ✅ Verify Changes
@@ -100,9 +100,9 @@ Enables tier rules like: **"Tier 1 requires authority ≥85"** (filters out gene
 2. **Integrate into match_recruiter_profile():**
    ```python
    # Around line 240 in recruiter_match.py, after creating blob_lower:
-   
+
    persona_slug, persona_authority = detect_recruiter_persona(blob_lower)
-   
+
    # Store in result:
    result["recruiter_meta"]["persona_slug"] = persona_slug
    result["recruiter_meta"]["persona_authority"] = persona_authority
@@ -111,7 +111,7 @@ Enables tier rules like: **"Tier 1 requires authority ≥85"** (filters out gene
 3. **Integrate into assign_best_tier():**
    ```python
    # Around line 380, in the tier loop:
-   
+
    min_auth = rule.get("min_persona_authority", 0)
    if persona_authority < min_auth:
        continue  # Skip this tier, try next
@@ -131,7 +131,7 @@ Enables tier rules like: **"Tier 1 requires authority ≥85"** (filters out gene
 5. **Test:**
    ```bash
    python3 tools/recruiter_orchestrate.py daily --headed --dry-run
-   
+
    # Verify:
    # - Exec search consultants (authority=95) → Tier 1
    # - Michael Page (authority=70) → Tier 1–2
@@ -304,10 +304,10 @@ Recommendations
    ```bash
    cd job-search
    python3 tools/recruiter_quarterly_report.py
-   
+
    # Or save to file:
    python3 tools/recruiter_quarterly_report.py --output report.md
-   
+
    # Or analyze since a specific date:
    python3 tools/recruiter_quarterly_report.py --since 2026-05-01
    ```
@@ -342,7 +342,7 @@ Recommendations
   - [x] Set Tier 2 require_clear_winner: true
   - [x] Raise Tier 3 min_primary_score to 13
   - [x] Test with dry-run
-  
+
 - [ ] **Set up analytics** (15 mins)
   - [ ] Copy recruiter_quarterly_report.py to tools/
   - [ ] Test: python3 tools/recruiter_quarterly_report.py
@@ -356,7 +356,7 @@ Recommendations
   - [ ] Integrate into assign_best_tier()
   - [ ] Add min_persona_authority gates to config.yaml
   - [ ] Test with 5–10 profiles
-  
+
 - [ ] **Monitor response rates**
   - [ ] After 10+ new contacts, run: make report
   - [ ] Check: Did tier assignments improve? Did response rate increase?
@@ -369,7 +369,7 @@ Recommendations
   - [ ] Copy mcp/server.py
   - [ ] Test: python -m mcp.server
   - [ ] Verify Desktop Commander can call score_recruiter
-  
+
 - [ ] **Test agentic scoring**
   - [ ] Paste a recruiter profile into Desktop Commander
   - [ ] Ask DC to score it using MCP tool
@@ -484,13 +484,13 @@ python3 tools/recruiter_quarterly_report.py
 
 ## 📞 Support
 
-**Issue:** Tier assignments still look wrong  
+**Issue:** Tier assignments still look wrong
 **Debug:** Run dry-run with verbose output, check if persona detection is running
 
-**Issue:** MCP server crashes  
+**Issue:** MCP server crashes
 **Debug:** Check stderr for import errors, verify config.yaml is valid
 
-**Issue:** Analytics report is empty  
+**Issue:** Analytics report is empty
 **Debug:** Check that recruiters.csv has ≥1 row
 
 ---
@@ -499,19 +499,19 @@ python3 tools/recruiter_quarterly_report.py
 
 After implementation, you should see:
 
-✅ **Staffing agencies weighted correctly** — Michael Page tier ≥1–2 (not 3)  
-✅ **Persona authority working** — Exec search scores higher than generic HR  
-✅ **MCP tool available** — Desktop Commander can call score_recruiter  
-✅ **Analytics running** — Monthly reports show response rates by tier  
+✅ **Staffing agencies weighted correctly** — Michael Page tier ≥1–2 (not 3)
+✅ **Persona authority working** — Exec search scores higher than generic HR
+✅ **MCP tool available** — Desktop Commander can call score_recruiter
+✅ **Analytics running** — Monthly reports show response rates by tier
 ✅ **Response rate improving** — 23% → 28%+ (after 20+ contacts)
 
 ---
 
 ## 🚀 Next Steps After Implementation
 
-**Week 5:** Monitor response rates, adjust thresholds based on data  
-**Week 6:** Integrate MCP into hiring_network_workflow.py  
-**Week 7:** Full agentic end-to-end automation (discovery → score → send)  
+**Week 5:** Monitor response rates, adjust thresholds based on data
+**Week 6:** Integrate MCP into hiring_network_workflow.py
+**Week 7:** Full agentic end-to-end automation (discovery → score → send)
 
 ---
 

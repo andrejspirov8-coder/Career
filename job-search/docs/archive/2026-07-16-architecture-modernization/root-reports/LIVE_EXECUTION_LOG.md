@@ -205,10 +205,10 @@ Scout is running with your NEW config:
 - ✅ Thresholds optimized (selective backlog)
 - ✅ Full automation active (browser, scraping, scoring)
 
-**Status:** Running  
-**Expected completion:** 5–15 minutes  
-**Next phase:** Plan (build queue)  
-**Then:** Dispatch (preview) → Analytics (measure)  
+**Status:** Running
+**Expected completion:** 5–15 minutes
+**Next phase:** Plan (build queue)
+**Then:** Dispatch (preview) → Analytics (measure)
 
 ---
 

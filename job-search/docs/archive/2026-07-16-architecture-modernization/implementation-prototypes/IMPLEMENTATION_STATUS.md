@@ -97,7 +97,7 @@ Config is valid YAML and ready to use:
    - korn ferry
    - experis
    - retained search
-   
+
 ✅ tier_2.require_clear_winner = true
 ✅ tier_3.min_primary_score = 13
 ```
@@ -434,7 +434,7 @@ python3 tools/recruiter_orchestrate.py daily --headed --dry-run
 
 **You don't need MORE contacts—you need BETTER contacts.**
 
-Current: 23% response rate (22 sent, 5 responded)  
+Current: 23% response rate (22 sent, 5 responded)
 Target: 25%+ response rate
 
 Solution: Raise quality threshold, not volume.

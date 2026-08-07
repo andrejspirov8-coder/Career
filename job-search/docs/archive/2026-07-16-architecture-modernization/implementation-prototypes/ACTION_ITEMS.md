@@ -2,7 +2,7 @@
 
 > Historical implementation note. For the current daily workflow and checks, use `../README.md` and `../docs/OPERATIONS_RUNBOOK.md`.
 
-**Status:** Ready to Execute | **Time to Start:** 5 minutes  
+**Status:** Ready to Execute | **Time to Start:** 5 minutes
 **Generated:** 20 May 2026 | **Your Status:** CONFIG UPDATED ✅
 
 ---
@@ -68,7 +68,7 @@ After you run the dry-run and confirm tier assignments look better:
 2. **After 10–20 new contacts, run analytics**
    ```bash
    python3 tools/recruiter_quarterly_report.py --output pipeline/recruiter_quarterly_report.md
-   
+
    # Check:
    # - Tier 1 response rate: target ≥50%
    # - Tier 2 response rate: target ≥30%
@@ -152,7 +152,7 @@ Did you run the dry-run?
                 - Did config.yaml save correctly?
                   ls -l linkedin/config.yaml
                   grep "michael page" linkedin/config.yaml
-                  
+
                 - Try restarting Python:
                   pkill -f "python3 tools/recruiter"
                   python3 tools/recruiter_orchestrate.py daily --headed --dry-run
@@ -197,8 +197,8 @@ grep -A 15 "luxury-retail:" linkedin/config.yaml | grep -E "(executive|michael|k
 - ✅ Copied analytics script to tools/
 - ✅ Created implementation package with 4 production-ready modules
 
-**Total effort:** < 1 hour  
-**Expected impact:** +5–10% response rate improvement  
+**Total effort:** < 1 hour
+**Expected impact:** +5–10% response rate improvement
 **Status:** Ready for Week 1 testing
 
 ---
@@ -294,19 +294,19 @@ Data:
 
 ## 💬 Questions Before You Start?
 
-**Q: Should I run live dispatch or dry-run first?**  
+**Q: Should I run live dispatch or dry-run first?**
 A: Dry-run only. Verify tier assignments look better before sending real invites.
 
-**Q: Can I run this while actively recruiting?**  
+**Q: Can I run this while actively recruiting?**
 A: Yes! Dry-run mode has zero impact on LinkedIn. No invites sent. Just review.
 
-**Q: What if something breaks?**  
+**Q: What if something breaks?**
 A: Rollback is simple: restore the original config.yaml from git, or revert the 3 changes manually.
 
-**Q: How long do I wait before Week 2?**  
+**Q: How long do I wait before Week 2?**
 A: After 10–20 profiles processed and analytics show response rates. Usually 3–5 days.
 
-**Q: Can I skip persona detection and go straight to MCP?**  
+**Q: Can I skip persona detection and go straight to MCP?**
 A: Yes, they're independent. But persona detection gives better results faster (1.5 hrs vs 2 hrs for MCP).
 
 ---
@@ -329,7 +329,7 @@ Next command:
 ```bash
 cp ~/Downloads/Career-main/job-search/implementation/03_recruiter_quarterly_report.py \
    ~/Downloads/Career-main/job-search/tools/
-   
+
 python3 ~/Downloads/Career-main/job-search/tools/recruiter_quarterly_report.py
 ```
 

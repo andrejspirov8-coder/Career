@@ -1,7 +1,7 @@
 # Job-Search Toolkit: Improvements Summary
 
-**Date applied**: 2026-05-19  
-**User**: Andrej  
+**Date applied**: 2026-05-19
+**User**: Andrej
 **Status**: ✅ All optimisations complete
 
 ---
@@ -29,7 +29,7 @@ python new_job.py
 # → Pre-fills template with metadata headers
 ```
 
-**Eliminates**: Manual filename construction, typos, forgotten source tagging  
+**Eliminates**: Manual filename construction, typos, forgotten source tagging
 **Time saved**: ~5 minutes per job posting
 
 ---
@@ -48,7 +48,7 @@ Pack ID                              | Title                    | Variant       
 20260511-mango-vilnius-director      | MANGO Store Director     | ops-management   | ✓ clear   |  15.2
 ```
 
-**Eliminates**: Opening MATCH.json files manually  
+**Eliminates**: Opening MATCH.json files manually
 **Time saved**: ~5 minutes per batch review
 
 ---
@@ -70,7 +70,7 @@ operations-management       8            1   12.5%
 it-business                 3            0    0.0%
 ```
 
-**Benefits**: Identify which CV variant converts best; which job board drives interviews  
+**Benefits**: Identify which CV variant converts best; which job board drives interviews
 **Data needed**: Populate `applications.csv` after each application
 
 ---
@@ -96,7 +96,7 @@ black tools/     # Format code
 ruff check tools/  # Lint code
 ```
 
-**Tools**: black (formatter), ruff (linter), pytest (optional)  
+**Tools**: black (formatter), ruff (linter), pytest (optional)
 **Benefit**: Code quality checks if you edit tools
 
 ---
