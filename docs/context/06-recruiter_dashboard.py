@@ -110,11 +110,15 @@ def _active_run(runtime_dir: Path) -> dict[str, Any] | None:
     return None
 
 
-def _recent_runs(runtime_dir: Path, limit: int = RUN_HISTORY_LIMIT) -> list[dict[str, Any]]:
+def _recent_runs(
+    runtime_dir: Path, limit: int = RUN_HISTORY_LIMIT
+) -> list[dict[str, Any]]:
     if not runtime_dir.exists():
         return []
     runs: list[dict[str, Any]] = []
-    for path in sorted(runtime_dir.glob("run-*.json"), key=lambda item: item.name, reverse=True):
+    for path in sorted(
+        runtime_dir.glob("run-*.json"), key=lambda item: item.name, reverse=True
+    ):
         data = _load_json(path)
         if not isinstance(data, dict):
             continue
@@ -132,7 +136,9 @@ def _write_run_history(runtime_dir: Path, result: dict[str, Any]) -> None:
     )
     path = runtime_dir / f"run-{stamp}-{action}.json"
     tmp_path = path.with_suffix(".json.tmp")
-    tmp_path.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp_path.write_text(
+        json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
     tmp_path.replace(path)
 
 
@@ -176,7 +182,9 @@ def write_jsonl_records(path: Path, records: list[dict[str, Any]]) -> None:
     tmp_path.replace(path)
 
 
-def read_dashboard_action_history(path: Path = ACTION_HISTORY_JSONL) -> list[dict[str, Any]]:
+def read_dashboard_action_history(
+    path: Path = ACTION_HISTORY_JSONL,
+) -> list[dict[str, Any]]:
     rows, _malformed = read_jsonl_records(path)
     return rows
 
@@ -284,11 +292,17 @@ def _profile_evidence(row: dict[str, Any]) -> dict[str, Any]:
         "source": source,
         "company": {
             "name": company,
-            "facts": [item for item in [company, str(row.get("headline") or "")] if item],
+            "facts": [
+                item for item in [company, str(row.get("headline") or "")] if item
+            ],
         },
         "persona": {
             "label": persona,
-            "evidence": [item for item in [persona, *[str(signal) for signal in top_signals]] if item],
+            "evidence": [
+                item
+                for item in [persona, *[str(signal) for signal in top_signals]]
+                if item
+            ],
         },
         "cv_fit": {
             "variant": cv_variant,
@@ -308,7 +322,9 @@ def _score_explanation(row: dict[str, Any]) -> dict[str, str]:
     decision = str(row.get("decision") or "")
     tier = str(row.get("send_tier") or "")
     persona = str(row.get("persona") or "this profile")
-    cv_variant = str(row.get("cv_variant") or row.get("variant_slug") or "the selected CV")
+    cv_variant = str(
+        row.get("cv_variant") or row.get("variant_slug") or "the selected CV"
+    )
     signals = row.get("top_signals") or []
     if not isinstance(signals, list):
         signals = [str(signals)]
@@ -349,7 +365,10 @@ def _note_quality(row: dict[str, Any]) -> dict[str, Any]:
 
 
 def _next_action(record: dict[str, Any]) -> str:
-    if record.get("status") == "sent" or record.get("score_details", {}).get("send_tier") == "sent":
+    if (
+        record.get("status") == "sent"
+        or record.get("score_details", {}).get("send_tier") == "sent"
+    ):
         return "wait"
     if record.get("risk_flags"):
         return "review"
@@ -407,7 +426,9 @@ def _queue_key(row: dict[str, Any]) -> str:
     return "review"
 
 
-def _build_saved_views(queues: dict[str, list[dict[str, Any]]]) -> dict[str, list[dict[str, Any]]]:
+def _build_saved_views(
+    queues: dict[str, list[dict[str, Any]]],
+) -> dict[str, list[dict[str, Any]]]:
     action_rows = [
         *queues["auto_send"],
         *queues["review"],
@@ -416,7 +437,9 @@ def _build_saved_views(queues: dict[str, list[dict[str, Any]]]) -> dict[str, lis
     return {
         "needs_review": queues["review"],
         "auto_send_candidates": queues["auto_send"],
-        "approved": [row for row in action_rows if row.get("approval", {}).get("approved")],
+        "approved": [
+            row for row in action_rows if row.get("approval", {}).get("approved")
+        ],
         "skipped": queues["skipped"],
         "sent": queues["sent"],
         "risk_flags": [row for row in action_rows if row.get("risk_flags")],
@@ -442,7 +465,9 @@ def _campaign_readiness(queues: dict[str, list[dict[str, Any]]]) -> dict[str, An
         if row.get("approval", {}).get("warning") == "note_changed_after_approval"
     ]
     risky_profiles = [row for row in action_rows if row.get("risk_flags")]
-    approvals_valid = [row for row in action_rows if row.get("approval", {}).get("approved")]
+    approvals_valid = [
+        row for row in action_rows if row.get("approval", {}).get("approved")
+    ]
     return {
         "ready_for_manual_send": len(ready_for_manual_send),
         "approvals_valid": len(approvals_valid),
@@ -563,7 +588,11 @@ def build_overview(
                 "decision": status,
                 "risk_flags": [],
                 "note": sent_note,
-                "approval": {"approved": False, "reason": "sent_record", "note_hash": ""},
+                "approval": {
+                    "approved": False,
+                    "reason": "sent_record",
+                    "note_hash": "",
+                },
                 "score_details": {
                     "rank_score": row.get("rank_score") or "",
                     "send_tier": "sent",
@@ -592,9 +621,7 @@ def build_overview(
                 "next_action": "wait",
                 "action_history": histories.get(_profile_history_key(profile_url), []),
             }
-            queues["sent"].append(
-                sent_record
-            )
+            queues["sent"].append(sent_record)
 
     saved_views = _build_saved_views(queues)
     queues["saved_views"] = saved_views
@@ -603,7 +630,9 @@ def build_overview(
     readiness = _campaign_readiness(queues)
     run_state = _load_json(run_state_path) or {}
     risk_state = risk_stop_state(
-        screen_state=str(run_state.get("screen_state") or run_state.get("risk_screen_state") or ""),
+        screen_state=str(
+            run_state.get("screen_state") or run_state.get("risk_screen_state") or ""
+        ),
         failure_rate=float(run_state.get("failure_rate") or 0.0),
         pending_invites=int(run_state.get("pending_invites") or 0),
         daily_cap_reached=bool(run_state.get("daily_cap_reached") or False),
@@ -725,7 +754,9 @@ def approve_dashboard_note(
         approved_by="dashboard",
         db_path=state_db_path,
     )
-    check = approval_check(profile_url=profile_url, note=clean_note, db_path=state_db_path)
+    check = approval_check(
+        profile_url=profile_url, note=clean_note, db_path=state_db_path
+    )
     _append_dashboard_action_history(
         action_type="approve_note",
         profile_url=profile_url,
@@ -761,9 +792,7 @@ def bulk_update_profile_status(
 ) -> dict[str, Any]:
     next_tier, next_decision, action_type = _target_state(target_status)
     wanted = {
-        canon
-        for canon in (_profile_history_key(url) for url in profile_urls)
-        if canon
+        canon for canon in (_profile_history_key(url) for url in profile_urls) if canon
     }
     if not wanted:
         raise ValueError("At least one valid LinkedIn profile URL is required.")
@@ -926,7 +955,9 @@ def run_dashboard_action(
     try:
         fd = lock.open("x", encoding="utf-8")
     except FileExistsError as exc:
-        raise RuntimeError("Another dashboard automation action is already running.") from exc
+        raise RuntimeError(
+            "Another dashboard automation action is already running."
+        ) from exc
 
     started_at = utc_now_iso()
     try:
@@ -1017,7 +1048,9 @@ def build_parser() -> argparse.ArgumentParser:
     bulk_review.add_argument("--profile-url", action="append", required=True)
 
     operator = sub.add_parser("operator-action")
-    operator.add_argument("--action-type", required=True, choices=sorted(SAFE_OPERATOR_ACTIONS))
+    operator.add_argument(
+        "--action-type", required=True, choices=sorted(SAFE_OPERATOR_ACTIONS)
+    )
     operator.add_argument("--profile-url", required=True)
     operator.add_argument("--note", default="")
 

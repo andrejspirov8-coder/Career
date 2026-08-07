@@ -106,9 +106,9 @@ def dashboard_server() -> str:
         proc.terminate()
         stdout, stderr = proc.communicate(timeout=5)
         raise RuntimeError(f"Dashboard server failed to start: {stderr.decode()}")
-    
+
     yield DASHBOARD_URL
-    
+
     proc.terminate()
     proc.wait(timeout=10)
 
@@ -242,21 +242,21 @@ import pytest
 def test_encrypted_backup_create_validate_restore(dashboard_server: str, python_helper):
     """Full backup lifecycle: create → validate → restore → verify."""
     client = httpx.Client(base_url=dashboard_server, timeout=30.0, headers={"x-career-dashboard-token": "integration-test-token"})
-    
+
     # 1. Create backup
     resp = client.post("/api/settings/actions", json={"action": "backup_create", "passphrase": "test-passphrase-12345"})
     assert resp.status_code == 200
     backup_filename = resp.json()["data"]["filename"]
-    
+
     # 2. Validate backup
     resp = client.post("/api/settings/actions", json={"action": "backup_validate", "filename": backup_filename, "passphrase": "test-passphrase-12345"})
     assert resp.status_code == 200
     assert resp.json()["data"]["valid"] is True
-    
+
     # 3. Stop dashboard (required for restore)
     # This test assumes dashboard is running; restore would need worker offline
     # We'll skip actual restore in CI but verify validate works
-    
+
     # 4. Verify backup appears in list
     resp = client.post("/api/settings/actions", json={"action": "backup_list"})
     assert resp.status_code == 200
@@ -309,24 +309,24 @@ def test_full_approval_gate_flow(python_helper):
     # 1. Run scout (dry-run)
     result = python_helper("recruiters", ["scout", "--headed", "--dry-run", "--max-profiles", "3"])
     assert result["ok"] is True
-    
+
     # 2. Run plan (tier_1)
     result = python_helper("recruiters", ["plan", "--tier", "tier_1", "--retries-first"])
     assert result["ok"] is True
-    
+
     # 3. Approve session
     result = python_helper("recruiters", ["approve-session", "--session", "pipeline/recruiter_session_state.json"])
     assert result["ok"] is True
-    
+
     # 4. Verify approvals exist
     result = python_helper("recruiters", ["check-approvals", "--session", "pipeline/recruiter_session_state.json"])
     assert result["ok"] is True
     assert result["data"]["approved"] >= 0
-    
+
     # 5. Dispatch with --allow-live-dispatch --dry-run
     result = python_helper("recruiters", ["dispatch", "--headed", "--tier", "tier_1", "--max", "1", "--dry-run", "--allow-live-dispatch"])
     assert result["ok"] is True
-    
+
     # 6. Verify approval consumed (would fail on second dispatch)
     # This is verified by the fact that dry-run dispatch succeeded with approvals
 ```
@@ -373,14 +373,14 @@ import pytest
 def test_dashboard_restart_flow(dashboard_server: str):
     """Test the managed restart flow: request → rebuild → restart."""
     client = httpx.Client(base_url=dashboard_server, timeout=30.0, headers={"x-career-dashboard-token": "integration-test-token"})
-    
+
     # 1. Check runtime status shows restart supported
     resp = client.get("/api/settings/overview")
     assert resp.status_code == 200
     data = resp.json()["data"]
     assert "dashboard_runtime" in data
     # In dev mode, restart_supported may be false; that's OK
-    
+
     # 2. Request restart (may fail in dev mode, that's expected)
     resp = client.post("/api/settings/actions", json={"action": "dashboard_restart"})
     # In dev mode this returns 503; in production it would work

@@ -41,4 +41,3 @@ checks and a stable Glaze version has been saved.
 > records are not duplicated, sensitive content is redacted from logs, and all
 > forbidden dispatch or auto-apply command tokens are blocked. Fix only defects
 > found by these checks, then report pass/fail for every acceptance item.
-

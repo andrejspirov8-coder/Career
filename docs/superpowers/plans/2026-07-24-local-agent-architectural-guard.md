@@ -144,23 +144,23 @@ def _module_to_layer(module: str) -> str | None:
 
 def validate_architectural_boundaries(changed_files: Iterable[str], repo_root: Path) -> list[str]:
     """Validate that changed files don't violate architectural boundaries.
-    
+
     Returns list of violation messages (empty if valid).
     """
     violations = []
-    
+
     for file_str in changed_files:
         file_path = Path(file_str)
         if not file_path.exists() or file_path.suffix != ".py":
             continue
-            
+
         importer_layer = _get_layer(file_str)
         if not importer_layer:
             continue
-            
+
         content = file_path.read_text(encoding="utf-8")
         imports = _extract_imports(content)
-        
+
         for imp in imports:
             imported_layer = _module_to_layer(imp)
             if imported_layer and (importer_layer, imported_layer) in FORBIDDEN_INWARD_IMPORTS:
@@ -169,7 +169,7 @@ def validate_architectural_boundaries(changed_files: Iterable[str], repo_root: P
                     f"imports {imp} (layer: {imported_layer}) — "
                     f"dependencies must flow inward only"
                 )
-    
+
     return violations
 ```
 
@@ -187,14 +187,14 @@ from pathlib import Path
 
 def test_validate_architectural_boundaries_detects_violation():
     from career_job_search.dev_agents.architecture import validate_architectural_boundaries
-    
+
     with tempfile.TemporaryDirectory() as tmpdir:
         repo_root = Path(tmpdir)
         # Create a domain file that imports infrastructure
         domain_file = repo_root / "src/career_job_search/domain/matching.py"
         domain_file.parent.mkdir(parents=True)
         domain_file.write_text("from career_job_search.infrastructure.database import connect\n")
-        
+
         violations = validate_architectural_boundaries(
             ["src/career_job_search/domain/matching.py"], repo_root
         )
@@ -204,14 +204,14 @@ def test_validate_architectural_boundaries_detects_violation():
 
 def test_validate_architectural_boundaries_allows_valid_imports():
     from career_job_search.dev_agents.architecture import validate_architectural_boundaries
-    
+
     with tempfile.TemporaryDirectory() as tmpdir:
         repo_root = Path(tmpdir)
         # Infrastructure importing domain is OK (inward)
         infra_file = repo_root / "src/career_job_search/infrastructure/database.py"
         infra_file.parent.mkdir(parents=True)
         infra_file.write_text("from career_job_search.domain.models import User\n")
-        
+
         violations = validate_architectural_boundaries(
             ["src/career_job_search/infrastructure/database.py"], repo_root
         )
@@ -254,7 +254,7 @@ from pathlib import Path
 def test_build_patch_rejects_architectural_violation():
     from career_job_search.dev_agents.snapshots import build_patch
     from career_job_search.dev_agents.common import CoordinatorError
-    
+
     with tempfile.TemporaryDirectory() as tmpdir:
         repo_root = Path(tmpdir)
         # Setup minimal git repo with domain file importing infrastructure

@@ -75,3 +75,12 @@ default. This keeps auth logic in one layout instead of per-page middleware.
 ## Persistence and time
 
 Application CSV and outcome JSONL writers share an advisory `fcntl.flock` lock. CSV replacements are temporary-file + flush + fsync + `os.replace`; JSONL records are complete fsynced lines. Local application, response, reminder, and analytics dates use `Europe/Vilnius`; UTC timestamps remain suitable for audit instants.
+
+### Remote persistence is dormant
+
+Local SQLite under `state/` is the only supported runtime persistence layer.
+The `supabase/` directory contains unapplied historical migration material and
+is not an active fallback, deployment path, or runtime dependency. Its helper is
+intentionally fail-closed. A remote persistence implementation would require a
+separate reviewed architecture, security, migration, rollback, and credential
+plan with explicit owner approval.

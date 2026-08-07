@@ -70,4 +70,3 @@ If any item is missing, choose **Type what to change** in Glaze and paste:
 
 Use one prompt at a time from `12-GLAZE-FOLLOW-UP-PROMPTS.md`. Do not submit all
 later-stage prompts together.
-

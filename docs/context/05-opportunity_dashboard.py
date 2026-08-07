@@ -145,10 +145,7 @@ def _has_fresh_live_evidence(row: dict[str, Any]) -> bool:
     checked = _date_from_iso(str(row.get("live_checked_at") or ""))
     if row.get("live_status") != "live" or checked != datetime.now().date():
         return False
-    if (
-        row.get("source") == "linkedin"
-        and row.get("source_kind") == "job_board"
-    ):
+    if row.get("source") == "linkedin" and row.get("source_kind") == "job_board":
         evidence_facts = set((row.get("evidence") or {}).get("source_facts") or [])
         return (
             "chrome:linkedin_job_detail" in evidence_facts
@@ -222,9 +219,8 @@ def _is_delivery_candidate(row: dict[str, Any]) -> bool:
     # new to the daily output when it is live and absent from the delivery
     # ledger, even if the workspace first saw it on an earlier day. The ledger
     # filter is applied atomically immediately before delivery is claimed.
-    return (
-        bool(str(row.get("source_url") or "").strip())
-        and _is_top_today_candidate(row)
+    return bool(str(row.get("source_url") or "").strip()) and _is_top_today_candidate(
+        row
     )
 
 

@@ -55,12 +55,12 @@ flowchart TD
         D[Next.js App] -->|JSON API| PS["Python Server Bridge"]
         D -->|Env| ENV[CAREER_JOB_SEARCH_ROOT]
     end
-    
+
     subgraph "Python Package"
         PS -->|spawn| TOOLS["tools/*.py wrappers"]
         TOOLS -->|import| CORE["career_job_search.*"]
     end
-    
+
     subgraph "Domain Logic"
         CORE --> CVS[CV Module]
         CORE --> OPPS[Opportunity Module]
@@ -69,13 +69,13 @@ flowchart TD
         CORE --> AGENTS[Dev Agents Module]
         CORE --> NOTIF[Notification Module]
     end
-    
+
     subgraph "Integrations"
         RECRUITERS --> LINKEDIN[LinkedIn Integration]
         LINKEDIN -->|Playwright| BROWSER[Chrome Profile]
         CORE --> OLLAMA[Ollama Client]
     end
-    
+
     subgraph "State"
         RECRUITERS -->|SQLite| RECRUITER_DB["state/recruiter_state.sqlite3"]
         OPPS -->|SQLite| OPP_DB["state/opportunities.sqlite3"]

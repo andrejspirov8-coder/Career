@@ -1,5 +1,6 @@
 # Machine-readable fit profiles for assistive job matching.
 # Slugs align with filenames: andrej-spirov-cv-<slug>.md and output PDF stems.
+schema: cv_catalogue_v1
 variants:
   luxury-retail:
     name: Luxury Retail

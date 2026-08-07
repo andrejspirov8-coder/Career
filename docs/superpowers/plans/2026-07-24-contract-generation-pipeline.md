@@ -562,17 +562,17 @@ def test_generate_typescript_types():
         capture_output=True, text=True, cwd="."
     )
     assert result.returncode == 0, f"Generation failed: {result.stderr}"
-    
+
     generated_dir = Path("dashboard/lib/generated")
     assert generated_dir.exists(), "Generated directory not created"
-    
+
     # Verify envelope type generated
     envelope_file = generated_dir / "envelope.ts"
     assert envelope_file.exists(), "envelope.ts not generated"
     content = envelope_file.read_text()
     assert "PythonHelperEnvelopeV1" in content
     assert "career_python_helper_v1" in content
-    
+
     # Verify at least one helper type generated
     automation_file = generated_dir / "automation-contracts.ts"
     assert automation_file.exists(), "automation-contracts.ts not generated"
@@ -632,7 +632,7 @@ def main() -> int:
         "required": ["schema"],
     }
     run_ts_gen(envelope_schema, GENERATED_DIR / "envelope.ts", "PythonHelperEnvelopeV1")
-    
+
     # Generate per-helper types
     for helper_script, helper_name, type_name in HELPERS:
         try:
@@ -645,7 +645,7 @@ def main() -> int:
         except subprocess.CalledProcessError as e:
             print(f"ERROR: {helper_script} --schema failed: {e.stderr}", file=sys.stderr)
             return 1
-    
+
     return 0
 
 
@@ -889,22 +889,22 @@ import json
 
 def test_contract_pipeline_e2e():
     """Verify: Python schema -> TS generation -> TypeScript compiles -> runtime works"""
-    
+
     # 1. All helpers export schema
     for helper in ["automation_control", "opportunity_dashboard", "recruiter_dashboard", "cv_catalogue", "cv_studio", "local_dev_agents", "local_drafting", "notification_center", "search_preferences", "workspace_control", "career_analytics"]:
         result = subprocess.run(["uv", "run", "python", f"tools/{helper}.py", "--schema"], capture_output=True, text=True)
         assert result.returncode == 0
         schema = json.loads(result.stdout)
         assert schema["$schema"] == "http://json-schema.org/draft-07/schema#"
-    
+
     # 2. TypeScript generation succeeds
     result = subprocess.run(["uv", "run", "python", "scripts/generate-contracts.py"], capture_output=True, text=True)
     assert result.returncode == 0
-    
+
     # 3. Dashboard typecheck passes
     result = subprocess.run(["npm", "run", "typecheck"], capture_output=True, text=True, cwd="dashboard")
     assert result.returncode == 0, f"TypeScript failed: {result.stderr}"
-    
+
     # 4. Dashboard unit tests pass
     result = subprocess.run(["npm", "test"], capture_output=True, text=True, cwd="dashboard")
     assert result.returncode == 0, f"Dashboard tests failed: {result.stderr}"

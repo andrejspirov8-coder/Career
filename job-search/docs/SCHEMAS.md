@@ -99,36 +99,41 @@ Owned by `notifications/center.py`. Schema version 1.
 - **notification_settings** — single-row table (`CHECK (id = 1)`) for
   desktop-notification enablement.
 
-### `users.sqlite3` — local auth fallback
+### `users.sqlite3` — bounded local account store
 
 Owned by `api/user_store.py`. Schema version 1.
 
 - **users** — `user_id`, unique `email`, `password_hash`/`password_salt`
-  (PBKDF2-HMAC-SHA256), `created_at`. Used as the **fallback** login store;
-  when Supabase Auth is configured (`SUPABASE_URL` + `SUPABASE_ANON_KEY` set)
-  the API authenticates against Supabase first and the local store is bypassed.
+  (PBKDF2-HMAC-SHA256), and `created_at`. This store is limited to the local
+  account endpoints. It does not grant dashboard or FastAPI bearer access;
+  those boundaries require the configured dashboard token.
+
+Supabase Auth is not an active runtime fallback. The SQL files under
+`supabase/` are dormant, unapplied design material and are intentionally kept
+out of the local persistence path.
 
 ## Non-SQLite persisted state
 
 Several domains persist small preference/catalogue documents as JSON or YAML
-files rather than SQLite. Each carries a `schema_version` field for forward
-compatibility, but these are **not** under SQLite migration management
-(TDEBT-005 tracks bringing them under versioned migration).
+files rather than SQLite. Each carries a `schema_version` marker and loaders
+reject unknown versions loudly (TDEBT-005), but they are **not** under SQLite
+migration management.
 
 | Store | Module | `schema_version` |
 |---|---|---|
-| CV catalogue index | `cvs/catalogue.py` | `cv_catalogue_v1` |
+| CV catalogue index | `cvs/catalogue.py` | `cv_catalogue_v1` (validated in `load_cv_catalogue`) |
 | Drafting preferences | `cvs/drafting.py` | `career_local_drafting_preferences_v1` |
 | Search preferences | `opportunities/preferences.py` | `career_search_preferences_v1` |
-| LinkedIn campaign config | `integrations/linkedin/campaign_config.py` | — |
+| LinkedIn campaign config | `integrations/linkedin/campaign_config.py` | `campaign_config_v1` (rejected in `load_config`) |
 
 Generated CVs and CV versions live as files under `state/cv_versions/`
 (see `README.md`).
 
 ## Conventions
 
-- Open connections with `core/sqlite.connect_sqlite()` (enables foreign keys
-  and a busy timeout). Use `wal=True` for high-write databases.
+- Open connections with `core/sqlite.connect_sqlite()` (enables foreign keys,
+  a busy timeout, and — since all five databases open with `wal=True` —
+  WAL journaling for concurrent reader/writer access).
 - Write through the domain repository modules, never ad-hoc SQL from callers.
 - All DB paths resolve under the git-ignored `state/` directory via
   `project_path("state", …)` or `JOB_ROOT / "state" / …`.
