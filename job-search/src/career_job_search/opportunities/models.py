@@ -7,7 +7,7 @@ do not include any auto-apply or live-submission capability.
 from __future__ import annotations
 
 import re
-from enum import Enum
+from enum import StrEnum
 from hashlib import sha256
 from typing import Any, Literal
 from urllib.parse import urlsplit, urlunsplit
@@ -17,7 +17,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from career_job_search.core.time import utc_now_iso
 
 
-class OpportunitySourceKind(str, Enum):
+class OpportunitySourceKind(StrEnum):
     MANUAL_INBOX = "manual_inbox"
     COMPANY_SITE = "company_site"
     ATS = "ats"
@@ -27,7 +27,7 @@ class OpportunitySourceKind(str, Enum):
     RECRUITER = "recruiter"
 
 
-class OpportunityStatus(str, Enum):
+class OpportunityStatus(StrEnum):
     NEW = "new"
     MATCHED = "matched"
     REVIEW = "review"

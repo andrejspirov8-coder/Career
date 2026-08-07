@@ -1,7 +1,7 @@
 PY ?= uv run python
 DASHBOARD_PORT ?= $(if $(CAREER_DASHBOARD_PORT),$(CAREER_DASHBOARD_PORT),3001)
 
-.PHONY: bootstrap lock test test-coverage lint format preflight doctor scout plan approve-session check-approvals dispatch-dry daily-dry daily-queue weekly-review rebuild-cvs smoke verify-patch verify-release dashboard-dev dashboard-build dashboard-start dashboard-open dashboard-worker dashboard-status dashboard-backup dashboard-restore dashboard-test dashboard-e2e audit-runtime remember save precommit-setup handoff
+.PHONY: bootstrap lock test test-coverage coverage-ratchet coverage-baseline-update lint format typecheck preflight doctor scout plan approve-session check-approvals dispatch-dry daily-dry daily-queue weekly-review rebuild-cvs smoke verify-patch verify-release dashboard-dev dashboard-build dashboard-start dashboard-open dashboard-worker dashboard-status dashboard-backup dashboard-restore dashboard-test dashboard-e2e generate-types contracts-drift audit-runtime remember save precommit-setup handoff
 
 bootstrap:
 	./scripts/bootstrap.sh
@@ -15,12 +15,21 @@ test:
 test-coverage:
 	uv run --group dev python -m pytest --cov --cov-report=term-missing
 
+coverage-ratchet:
+	uv run --group dev python scripts/coverage_ratchet.py
+
+coverage-baseline-update:
+	uv run --group dev python scripts/coverage_ratchet.py --update
+
 lint:
 	uv run ruff check src mcp tools cv tests
 
 format:
 	uv run ruff format src mcp tools cv tests
 	uv run ruff check --fix src mcp tools cv tests
+
+typecheck:
+	uv run pyright
 
 preflight:
 	$(PY) -m career_job_search.recruiters.orchestrator preflight
@@ -98,6 +107,14 @@ dashboard-restore:
 
 dashboard-test:
 	cd dashboard && npm test && npm run typecheck
+
+generate-types:
+	uv run python scripts/generate-contracts.py
+	cd dashboard && npm run typecheck
+
+contracts-drift:
+	uv run python scripts/generate-contracts.py
+	git diff --exit-code -- dashboard/lib/generated
 
 dashboard-e2e:
 	cd dashboard && CAREER_DASHBOARD_TOKEN=local-e2e-token npm run e2e

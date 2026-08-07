@@ -26,11 +26,11 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
-  "black==26.3.1",
   "pypdf>=5.0,<7",
-  "ruff==0.4.2",
+  "ruff==0.15.22",
   "pytest==9.0.3",
   "pytest-cov>=7.1.0",
+  "pyright>=1.1.411",
 ]
 
 [tool.pytest.ini_options]
@@ -46,22 +46,35 @@ omit = ["*/__pycache__/*"]
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
-fail_under = 80
 
 [tool.ruff]
 line-length = 88
 target-version = "py311"
 src = ["src", "cv", "tests"]
+include = ["src/**/*.py", "mcp/**/*.py", "tools/**/*.py", "cv/**/*.py", "tests/**/*.py"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "B", "UP", "S"]
+select = ["E", "F", "I", "B", "UP", "S", "RUF"]
 ignore = [
   "E501",  # line-length handled by formatter/readability review
+  "RUF001",  # ambiguous-unicode in strings: en-dashes/€/Cyrillic are real content
+  "RUF002",  # ambiguous-unicode in comments (same rationale)
+  "RUF003",  # ambiguous-unicode in names (same rationale)
+  "S603",  # subprocess calls are all explicit-argv (no shell=True); informational only
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["S101", "S108", "S603", "S607"]  # pytest-specific patterns
+"scripts/smoke_sources.py" = ["S101"]  # assert-based CI smoke script
 
-[tool.black]
-line-length = 88
-target-version = ["py311"]
+[tool.pyright]
+include = [
+  "src/career_job_search/core",
+  "src/career_job_search/opportunities/sources",
+  "src/career_job_search/api",
+]
+exclude = ["**/__pycache__"]
+extraPaths = ["src", "cv"]
+pythonVersion = "3.11"
+pythonPlatform = "All"
+typeCheckingMode = "basic"
