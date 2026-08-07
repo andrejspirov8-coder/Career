@@ -147,7 +147,6 @@ def test_production_python_modules_stay_bounded() -> None:
 def test_tracked_top_level_structure_is_expected() -> None:
     expected = {
         ".cursor",
-        ".github",
         ".memory",
         "config",
         "cv",
@@ -162,7 +161,6 @@ def test_tracked_top_level_structure_is_expected() -> None:
         "prompts",
         "scripts",
         "src",
-        "supabase",
         "tests",
     }
     completed = subprocess.run(

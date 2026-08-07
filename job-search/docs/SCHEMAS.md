@@ -108,9 +108,10 @@ Owned by `api/user_store.py`. Schema version 1.
   account endpoints. It does not grant dashboard or FastAPI bearer access;
   those boundaries require the configured dashboard token.
 
-Supabase Auth is not an active runtime fallback. The SQL files under
-`supabase/` are dormant, unapplied design material and are intentionally kept
-out of the local persistence path.
+Supabase has been removed entirely (dependency, mirror scripts, and remote
+project). Its former migration history is archived under
+`docs/archive/supabase-migrations/` for reference only and is not part of the
+local persistence path.
 
 ## Non-SQLite persisted state
 

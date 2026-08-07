@@ -3,6 +3,8 @@ from __future__ import annotations
 import hashlib
 import secrets
 import sqlite3
+import threading
+import time
 from datetime import UTC, datetime
 
 from career_job_search.api.user_models import User
@@ -12,6 +14,41 @@ from career_job_search.core.sqlite import connect_sqlite, migrate_schema
 USERS_DB_PATH = project_path("state", "users.sqlite3")
 _PBKDF2_ITERATIONS = 600_000
 _SALT_BYTES = 16
+
+_MAX_FAILED_ATTEMPTS = 5
+_FAILURE_WINDOW_SECONDS = 15 * 60
+
+_failures: dict[str, list[float]] = {}
+_failures_lock = threading.Lock()
+
+
+def _is_locked_out(identity: str) -> bool:
+    with _failures_lock:
+        now = time.monotonic()
+        recent = [
+            ts
+            for ts in _failures.get(identity, [])
+            if now - ts < _FAILURE_WINDOW_SECONDS
+        ]
+        _failures[identity] = recent
+        return len(recent) >= _MAX_FAILED_ATTEMPTS
+
+
+def _record_failure(identity: str) -> None:
+    with _failures_lock:
+        now = time.monotonic()
+        recent = [
+            ts
+            for ts in _failures.get(identity, [])
+            if now - ts < _FAILURE_WINDOW_SECONDS
+        ]
+        recent.append(now)
+        _failures[identity] = recent
+
+
+def _clear_failures(identity: str) -> None:
+    with _failures_lock:
+        _failures.pop(identity, None)
 
 
 def _hash_password(password: str, salt: str | None = None) -> tuple[str, str]:
@@ -72,18 +109,24 @@ def create_user(email: str, password: str) -> User:
 
 
 def verify_user(email: str, password: str) -> User | None:
+    identity = email.lower().strip()
+    if _is_locked_out(identity):
+        return None
     con = _get_con()
     try:
         row = con.execute(
             "SELECT user_id, email, password_hash, password_salt, created_at FROM users WHERE email = ?",
-            (email.lower().strip(),),
+            (identity,),
         ).fetchone()
         if row is None:
+            _record_failure(identity)
             return None
         user_id, stored_email, stored_hash, stored_salt, created_at_str = row
         computed_hash, _ = _hash_password(password, stored_salt)
         if not secrets.compare_digest(computed_hash, stored_hash):
+            _record_failure(identity)
             return None
+        _clear_failures(identity)
         return User(
             user_id=user_id,
             email=stored_email,

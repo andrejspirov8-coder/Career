@@ -76,11 +76,13 @@ default. This keeps auth logic in one layout instead of per-page middleware.
 
 Application CSV and outcome JSONL writers share an advisory `fcntl.flock` lock. CSV replacements are temporary-file + flush + fsync + `os.replace`; JSONL records are complete fsynced lines. Local application, response, reminder, and analytics dates use `Europe/Vilnius`; UTC timestamps remain suitable for audit instants.
 
-### Remote persistence is dormant
+### No remote services
 
-Local SQLite under `state/` is the only supported runtime persistence layer.
-The `supabase/` directory contains unapplied historical migration material and
-is not an active fallback, deployment path, or runtime dependency. Its helper is
-intentionally fail-closed. A remote persistence implementation would require a
-separate reviewed architecture, security, migration, rollback, and credential
-plan with explicit owner approval.
+Local SQLite under `state/` is the only persistence layer and there are no
+external runtime services. Auth is local (HMAC bearer token + signed session
+cookie; PBKDF2 user store). The former Supabase integration — dependency,
+mirror scripts, and remote project — has been removed; its migration history
+is archived under `docs/archive/supabase-migrations/` for reference only. A
+remote persistence or auth implementation would require a separate reviewed
+architecture, security, migration, rollback, and credential plan with explicit
+owner approval.
