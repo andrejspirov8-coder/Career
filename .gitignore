@@ -32,6 +32,12 @@ job-search/linkedin/config.yaml
 job-search/config/settings.yaml
 job-search/config/opportunities.yaml
 
+# Agent scratch artifacts (never commit: the .patch contains a leaked token value)
+job-search-baseline-*.patch
+job-search-baseline-*.status
+job-search/config/*.bak
+job-search/config/*.new
+
 # Node modules at workspace root / job-search root (not tracked)
 node_modules/
 job-search/node_modules/

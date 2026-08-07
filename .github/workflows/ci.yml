@@ -2,6 +2,7 @@ name: CI
 
 on:
   pull_request:
+    paths-ignore: ['docs/**', '*.md']
   push:
     branches: [main]
 
@@ -13,6 +14,16 @@ defaults:
     working-directory: job-search
 
 jobs:
+  pre-commit:
+    name: Pre-commit hooks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: pre-commit/action@v3.0.1
+
   python:
     name: Python / lock, lint, tests, PDFs, audit
     runs-on: ubuntu-latest
@@ -29,8 +40,16 @@ jobs:
           uv sync --locked --all-groups
       - name: Lint
         run: uv run ruff check src mcp tools cv tests
+      - name: Format check
+        run: uv run ruff format --check src mcp tools cv tests
+      - name: Typecheck
+        run: uv run pyright
       - name: Test
-        run: uv run --group dev python -m pytest -q
+        run: make coverage-ratchet
+      - name: Contract drift check
+        run: |
+          uv run python scripts/generate-contracts.py
+          git diff --exit-code -- dashboard/lib/generated
       - name: Verify all CV outputs
         run: |
           uv run python cv/build_cv_pdf.py --all
@@ -41,101 +60,63 @@ jobs:
           uvx pip-audit -r /tmp/runtime-requirements.txt
 
   dashboard:
-    name: Dashboard / unit, build, browser, audit
+    name: Dashboard / unit, typecheck, build, audit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
-        with:
-          enable-cache: true
       - uses: actions/setup-node@v4
         with:
           node-version: 22.22.2
           cache: npm
           cache-dependency-path: job-search/dashboard/package-lock.json
-      - name: Install Python helper environment
-        run: |
-          uv python install 3.11
-          uv sync --locked --all-groups
       - name: Install dashboard dependencies
         working-directory: job-search/dashboard
         run: npm ci --include=dev
-      - name: Generate TypeScript contracts
-        working-directory: job-search
-        run: uv run python scripts/generate-contracts.py
       - name: Unit tests
         working-directory: job-search/dashboard
-        run: npm test
+        run: npm run test
       - name: Typecheck
         working-directory: job-search/dashboard
         run: npm run typecheck
-      - name: Lint
-        working-directory: job-search/dashboard
-        run: npm run lint
       - name: Production build
         working-directory: job-search/dashboard
         run: npm run build
+      - name: High-severity dependency audit
+        working-directory: job-search/dashboard
+        run: npm audit --audit-level=high --omit=dev
+
+  e2e:
+    name: Dashboard browser tests
+    needs: [dashboard]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.2
+          cache: npm
+          cache-dependency-path: job-search/dashboard/package-lock.json
+      - name: Install dashboard dependencies
+        working-directory: job-search/dashboard
+        run: npm ci --include=dev
       - name: Install Chromium
         working-directory: job-search/dashboard
         run: npx playwright install --with-deps chromium
       - name: Browser tests
         working-directory: job-search/dashboard
-        env:
-          CAREER_DASHBOARD_TOKEN: ci-dashboard-token
         run: npm run e2e
-      - name: High-severity dependency audit
-        working-directory: job-search/dashboard
-        run: npm audit --audit-level=high
-
-  raycast:
-    name: Raycast / typecheck, lint, tests, build, audit
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22.22.2
-          cache: npm
-          cache-dependency-path: job-search/raycast-job-search-hub/package-lock.json
-      - name: Install dependencies
-        working-directory: job-search/raycast-job-search-hub
-        run: npm ci --include=dev
-      - name: Typecheck
-        working-directory: job-search/raycast-job-search-hub
-        run: npm run typecheck
-      - name: Lint
-        working-directory: job-search/raycast-job-search-hub
-        run: |
-          npm run lint:ci
-          npm run lint
-      - name: Test
-        working-directory: job-search/raycast-job-search-hub
-        run: npm test
-      - name: Build
-        working-directory: job-search/raycast-job-search-hub
-        run: npm run build
-      - name: High-severity dependency audit
-        working-directory: job-search/raycast-job-search-hub
-        run: npm audit --audit-level=high
 
   smoke:
-    name: Repository smoke test
+    name: Headless source-discovery smoke
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22.22.2
-          cache: npm
-          cache-dependency-path: job-search/dashboard/package-lock.json
-      - name: Install dependencies
-        run: |
-          uv python install 3.11
-          uv sync --locked --all-groups
-          cd dashboard
-          npm ci --include=dev
-      - name: Run smoke harness
-        run: make smoke
+      - name: Install Python
+        run: uv python install 3.11
+      - name: Verify lock and install
+        run: uv sync --locked --all-groups
+      - name: Run headless source-discovery smoke
+        run: uv run python scripts/smoke_sources.py
