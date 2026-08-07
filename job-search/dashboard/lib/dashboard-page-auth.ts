@@ -2,11 +2,14 @@ import { cookies, headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 
 import {
-  DASHBOARD_SESSION_SUPABASE_TOKEN_COOKIE,
+  DASHBOARD_SESSION_COOKIE,
+  dashboardAuthDecision,
+  dashboardSessionSecretFromEnv,
   dashboardTokenFromEnv,
   dashboardTokenFromHeaders,
   isDashboardTokenAuthorized,
 } from './dashboard-auth'
+import { verifyDashboardSession } from './server/session'
 
 export async function isDashboardPageAuthenticated(): Promise<boolean> {
   const expectedToken = dashboardTokenFromEnv()
@@ -16,10 +19,9 @@ export async function isDashboardPageAuthenticated(): Promise<boolean> {
 
   if (isDashboardTokenAuthorized(expectedToken, dashboardTokenFromHeaders(requestHeaders))) return true
 
-  const sbToken = cookieStore.get(DASHBOARD_SESSION_SUPABASE_TOKEN_COOKIE)?.value
-  if (sbToken) return true
-
-  return false
+  const sessionValue = cookieStore.get(DASHBOARD_SESSION_COOKIE)?.value
+  const secret = dashboardSessionSecretFromEnv()
+  return Boolean(sessionValue && secret.length >= 32 && verifyDashboardSession(sessionValue, secret))
 }
 
 export async function requireDashboardPageAuth(nextPath = '/'): Promise<void> {

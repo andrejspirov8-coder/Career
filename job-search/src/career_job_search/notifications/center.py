@@ -14,6 +14,7 @@ from typing import Any
 
 from career_job_search.core.contracts import helper_json
 from career_job_search.core.paths import PROJECT_ROOT as JOB_ROOT
+from career_job_search.core.sqlite import connect_sqlite
 
 DEFAULT_NOTIFICATION_DB = JOB_ROOT / "state" / "notifications.sqlite3"
 NOTIFICATION_ID_PATTERN = re.compile(r"^notification_[a-f0-9]{32}$")
@@ -22,9 +23,7 @@ MAX_CANDIDATES = 200
 MAX_DESKTOP_IDS = 50
 
 SCOPES = frozenset({"automation", "opportunity", "application"})
-CATEGORIES = frozenset(
-    {"automation", "opportunity", "application", "system"}
-)
+CATEGORIES = frozenset({"automation", "opportunity", "application", "system"})
 KINDS = frozenset(
     {
         "automation_completed",
@@ -38,7 +37,15 @@ KINDS = frozenset(
 PRIORITIES = frozenset({"urgent", "attention", "info"})
 LIFECYCLES = frozenset({"event", "condition"})
 INDIVIDUAL_ACTIONS = frozenset(
-    {"read", "unread", "dismiss", "restore", "snooze_day", "snooze_week", "clear_snooze"}
+    {
+        "read",
+        "unread",
+        "dismiss",
+        "restore",
+        "snooze_day",
+        "snooze_week",
+        "clear_snooze",
+    }
 )
 
 SCHEMA_VERSION = 1
@@ -100,10 +107,7 @@ def connect(db_path: Path | str = DEFAULT_NOTIFICATION_DB) -> sqlite3.Connection
         path.parent.chmod(0o700)
     except OSError:
         pass
-    con = sqlite3.connect(path, timeout=30)
-    con.row_factory = sqlite3.Row
-    con.execute("PRAGMA journal_mode = WAL")
-    con.execute("PRAGMA synchronous = NORMAL")
+    con = connect_sqlite(path, timeout_seconds=30, row_factory=True, wal=True)
     try:
         path.chmod(0o600)
     except OSError:
@@ -138,7 +142,11 @@ def _clean_text(value: Any, name: str, max_length: int) -> str:
     if not isinstance(value, str):
         raise ValueError(f"{name} must be text.")
     clean = value.strip()
-    if not clean or len(clean) > max_length or re.search(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", clean):
+    if (
+        not clean
+        or len(clean) > max_length
+        or re.search(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", clean)
+    ):
         raise ValueError(f"{name} is invalid.")
     return clean
 
@@ -315,11 +323,15 @@ def sync_candidates(
     raw_scopes = payload.get("synced_scopes")
     if not isinstance(raw_candidates, list) or len(raw_candidates) > MAX_CANDIDATES:
         raise ValueError("Notification sync contains too many candidates.")
-    if not isinstance(raw_scopes, list) or any(scope not in SCOPES for scope in raw_scopes):
+    if not isinstance(raw_scopes, list) or any(
+        scope not in SCOPES for scope in raw_scopes
+    ):
         raise ValueError("Notification sync scopes are invalid.")
     scopes = set(raw_scopes)
     candidates = [validate_candidate(candidate) for candidate in raw_candidates]
-    if len({candidate["notification_id"] for candidate in candidates}) != len(candidates):
+    if len({candidate["notification_id"] for candidate in candidates}) != len(
+        candidates
+    ):
         raise ValueError("Notification sync contains duplicate candidates.")
     if any(candidate["scope"] not in scopes for candidate in candidates):
         raise ValueError("Notification candidate scope was not synchronized.")
@@ -496,7 +508,11 @@ def perform_action(
                 )
         elif action == "desktop_delivered":
             raw_ids = payload.get("notification_ids")
-            if not isinstance(raw_ids, list) or not raw_ids or len(raw_ids) > MAX_DESKTOP_IDS:
+            if (
+                not isinstance(raw_ids, list)
+                or not raw_ids
+                or len(raw_ids) > MAX_DESKTOP_IDS
+            ):
                 raise ValueError("Desktop delivery list is invalid.")
             notification_ids = [validate_notification_id(value) for value in raw_ids]
             if len(set(notification_ids)) != len(notification_ids):

@@ -6,7 +6,9 @@ from career_job_search.api.user_store import create_user, get_user, verify_user
 
 
 def test_create_and_verify_user(tmp_path, monkeypatch) -> None:
-    monkeypatch.setattr("career_job_search.api.user_store.USERS_DB_PATH", tmp_path / "users.sqlite3")
+    monkeypatch.setattr(
+        "career_job_search.api.user_store.USERS_DB_PATH", tmp_path / "users.sqlite3"
+    )
     user = create_user("alice@example.com", "secure-password-123")
     assert user.email == "alice@example.com"
     assert user.user_id.startswith("user_")
@@ -20,14 +22,18 @@ def test_create_and_verify_user(tmp_path, monkeypatch) -> None:
 
 
 def test_duplicate_email(tmp_path, monkeypatch) -> None:
-    monkeypatch.setattr("career_job_search.api.user_store.USERS_DB_PATH", tmp_path / "users.sqlite3")
+    monkeypatch.setattr(
+        "career_job_search.api.user_store.USERS_DB_PATH", tmp_path / "users.sqlite3"
+    )
     create_user("alice@example.com", "password-1")
     with pytest.raises(ValueError, match="already registered"):
         create_user("alice@example.com", "password-2")
 
 
 def test_get_user(tmp_path, monkeypatch) -> None:
-    monkeypatch.setattr("career_job_search.api.user_store.USERS_DB_PATH", tmp_path / "users.sqlite3")
+    monkeypatch.setattr(
+        "career_job_search.api.user_store.USERS_DB_PATH", tmp_path / "users.sqlite3"
+    )
     created = create_user("alice@example.com", "password")
     fetched = get_user(created.user_id)
     assert fetched is not None

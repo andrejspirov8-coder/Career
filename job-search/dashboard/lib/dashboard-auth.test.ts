@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
+import { createDashboardSession } from './server/session'
 import {
   dashboardAuthErrorResponse,
   dashboardAuthFailure,
@@ -11,6 +12,7 @@ import {
   isSameOriginLogoutRequest,
   isSameOriginRequest,
   safeDashboardNextPath,
+  DASHBOARD_SESSION_COOKIE,
 } from './dashboard-auth'
 
 describe('dashboard recruiter API auth', () => {
@@ -54,20 +56,34 @@ describe('dashboard recruiter API auth', () => {
     expect(isDashboardTokenAuthorized('secret', dashboardTokenFromRequest(headerRequest))).toBe(true)
   })
 
-  it('accepts the login session cookie on API routes', () => {
+  it('accepts only a valid signed session cookie', () => {
     process.env.CAREER_DASHBOARD_TOKEN = 'secret'
-    const sessionRequest = new Request('http://127.0.0.1/api/recruiter/overview', {
-      headers: { cookie: 'career_sb_token=e2e-token; other=value' },
+    process.env.CAREER_DASHBOARD_SESSION_SECRET = 'a'.repeat(32)
+    const session = createDashboardSession('a'.repeat(32), {
+      version: 1,
+      subject: 'local-user',
+      expiresAt: Date.now() + 60_000,
     })
-    const emptyCookieRequest = new Request('http://127.0.0.1/api/recruiter/overview', {
-      headers: { cookie: 'career_sb_token=' },
+    const validRequest = new Request('http://127.0.0.1/api/recruiter/overview', {
+      headers: { cookie: `${DASHBOARD_SESSION_COOKIE}=${session}` },
+    })
+    const arbitraryRequest = new Request('http://127.0.0.1/api/recruiter/overview', {
+      headers: { cookie: `${DASHBOARD_SESSION_COOKIE}=arbitrary` },
+    })
+    const oldCookieRequest = new Request('http://127.0.0.1/api/recruiter/overview', {
+      headers: { cookie: 'career_sb_token=e2e-token' },
     })
     const noCookieRequest = new Request('http://127.0.0.1/api/recruiter/overview')
 
-    expect(dashboardAuthErrorResponse(sessionRequest)).toBeNull()
-    expect(dashboardAuthErrorResponse(emptyCookieRequest)?.status).toBe(401)
+    expect(dashboardAuthErrorResponse(validRequest)).toBeNull()
+    expect(dashboardAuthErrorResponse(arbitraryRequest)?.status).toBe(401)
+    expect(dashboardAuthErrorResponse(oldCookieRequest)?.status).toBe(401)
     expect(dashboardAuthErrorResponse(noCookieRequest)?.status).toBe(401)
+  })
+
+  afterEach(() => {
     delete process.env.CAREER_DASHBOARD_TOKEN
+    delete process.env.CAREER_DASHBOARD_SESSION_SECRET
   })
 
   it('requires same-origin browser mutations while retaining header-token clients', async () => {

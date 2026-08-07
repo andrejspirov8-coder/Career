@@ -1,47 +1,40 @@
 const API_BASE_URL = process.env.CAREER_API_URL || 'http://127.0.0.1:8000'
-const API_TOKEN = process.env.CAREER_DASHBOARD_TOKEN || ''
-const SUPABASE_TOKEN_COOKIE_NAME = 'career_sb_token'
 
-export type FastApiBridgeResult<T> = {
-  ok: boolean
+import type { PythonHelperEnvelopeV1 as GeneratedPythonHelperEnvelopeV1 } from '@/lib/generated/envelope'
+
+export type FastApiBridgeResult<T> = GeneratedPythonHelperEnvelopeV1 & {
   data?: T
-  error?: string
-  schema: string
 }
 
-async function getSupabaseToken(): Promise<string | undefined> {
-  try {
-    const { cookies } = await import('next/headers')
-    const cookieStore = await cookies()
-    return cookieStore.get(SUPABASE_TOKEN_COOKIE_NAME)?.value
-  } catch {
-    return undefined
-  }
+type BridgeOptions = {
+  inputText?: string
+  timeoutMs?: number
+  errorLabel?: string
+  env?: NodeJS.ProcessEnv
 }
 
-async function buildAuthHeaders(): Promise<Record<string, string>> {
-  const supabaseToken = await getSupabaseToken()
-
-  const bearerToken = supabaseToken || API_TOKEN
-
+export function dashboardBackendAuthHeaders(
+  env: NodeJS.ProcessEnv = process.env,
+): Record<string, string> {
+  const token = (env.CAREER_DASHBOARD_TOKEN || '').trim()
+  if (!token) throw new Error('CAREER_DASHBOARD_TOKEN is not configured')
   return {
     'Content-Type': 'application/json',
-    Authorization: `Bearer ${bearerToken}`,
+    Authorization: `Bearer ${token}`,
   }
 }
 
 async function fetchWithTimeout(
   url: string,
   body: string,
-  options: { timeoutMs?: number; errorLabel?: string },
+  options: BridgeOptions,
 ): Promise<Response> {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? 30_000)
   try {
-    const headers = await buildAuthHeaders()
     return await fetch(url, {
       method: 'POST',
-      headers,
+      headers: dashboardBackendAuthHeaders(options.env),
       body,
       signal: controller.signal,
     })
@@ -53,31 +46,25 @@ async function fetchWithTimeout(
 export async function runFastApiHelper<T>(
   helper: string,
   args: readonly string[] = [],
-  options: { inputText?: string; timeoutMs?: number; errorLabel?: string } = {},
+  options: BridgeOptions = {},
 ): Promise<T> {
   const response = await fetchWithTimeout(
     `${API_BASE_URL}/api/v1/helpers/${helper}`,
     JSON.stringify({ args: [...args], input: options.inputText ?? null }),
     options,
   )
-
   if (!response.ok) {
-    const text = await response.text().catch(() => '')
-    throw new Error(`${options.errorLabel || 'FastAPI helper'}: ${response.status} ${text}`)
+    throw new Error(`${options.errorLabel || 'FastAPI helper'}: ${response.status} ${await response.text().catch(() => '')}`)
   }
-
   const result: FastApiBridgeResult<T> = await response.json()
-  if (!result.ok) {
-    throw new Error(result.error || `${options.errorLabel || 'FastAPI helper'} returned error`)
-  }
-
+  if (!result.ok) throw new Error(result.error || `${options.errorLabel || 'FastAPI helper'} returned error`)
   return result.data as T
 }
 
 export async function runFastApiEndpoint<T>(
   endpoint: string,
   body: unknown,
-  options: { timeoutMs?: number; errorLabel?: string } = {},
+  options: BridgeOptions = {},
 ): Promise<T> {
   const response = await fetchWithTimeout(
     `${API_BASE_URL}/api/v1/${endpoint}`,
@@ -85,8 +72,7 @@ export async function runFastApiEndpoint<T>(
     options,
   )
   if (!response.ok) {
-    const text = await response.text().catch(() => '')
-    throw new Error(`${options.errorLabel || 'FastAPI endpoint'}: ${response.status} ${text}`)
+    throw new Error(`${options.errorLabel || 'FastAPI endpoint'}: ${response.status} ${await response.text().catch(() => '')}`)
   }
   return (await response.json()) as T
 }

@@ -15,7 +15,9 @@ _SALT_BYTES = 16
 
 
 def _hash_password(password: str, salt: str | None = None) -> tuple[str, str]:
-    salt_bytes = secrets.token_bytes(_SALT_BYTES) if salt is None else bytes.fromhex(salt)
+    salt_bytes = (
+        secrets.token_bytes(_SALT_BYTES) if salt is None else bytes.fromhex(salt)
+    )
     salt_hex = salt_bytes.hex()
     key = hashlib.pbkdf2_hmac(
         "sha256",
@@ -100,6 +102,8 @@ def get_user(user_id: str) -> User | None:
         ).fetchone()
         if row is None:
             return None
-        return User(user_id=row[0], email=row[1], created_at=datetime.fromisoformat(row[2]))
+        return User(
+            user_id=row[0], email=row[1], created_at=datetime.fromisoformat(row[2])
+        )
     finally:
         con.close()

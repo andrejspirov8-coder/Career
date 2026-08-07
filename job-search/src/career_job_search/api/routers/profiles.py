@@ -7,7 +7,9 @@ from fastapi import APIRouter, Depends
 from career_job_search.api.auth import verify_token
 from career_job_search.cvs.profiles_helper import read_profiles, write_profiles
 
-router = APIRouter(prefix="/api/v1/settings/cv-profiles", dependencies=[Depends(verify_token)])
+router = APIRouter(
+    prefix="/api/v1/settings/cv-profiles", dependencies=[Depends(verify_token)]
+)
 
 
 @router.get("/")

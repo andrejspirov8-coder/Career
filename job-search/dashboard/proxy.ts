@@ -3,11 +3,7 @@ import { randomBytes } from 'node:crypto'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
-import {
-  DASHBOARD_SESSION_SUPABASE_TOKEN_COOKIE,
-  dashboardTokenFromEnv,
-  isDashboardHeadersAuthorized,
-} from './lib/dashboard-auth'
+import { isDashboardRequestAuthorized } from './lib/dashboard-auth'
 
 export function isCvDocumentPath(pathname: string): boolean {
   return /^\/api\/cvs\/[^/]+\/(visual|ats)$/.test(pathname)
@@ -72,11 +68,7 @@ export function proxy(request: NextRequest) {
     )
   }
 
-  const expectedToken = dashboardTokenFromEnv()
-  const hasSessionCookie = Boolean(
-    request.cookies.get(DASHBOARD_SESSION_SUPABASE_TOKEN_COOKIE)?.value,
-  )
-  if (isDashboardHeadersAuthorized(expectedToken, request.headers) || hasSessionCookie) {
+  if (isDashboardRequestAuthorized(request)) {
     return secureResponse(
       NextResponse.next({ request: { headers: requestHeaders } }),
       policy,

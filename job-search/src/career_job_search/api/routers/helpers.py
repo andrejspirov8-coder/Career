@@ -63,7 +63,9 @@ async def run_helper(name: str, body: HelperRequest) -> HelperResponse:
     try:
         module = importlib.import_module(module_path)
     except ImportError as exc:
-        raise HTTPException(status_code=500, detail=f"Cannot import helper: {exc}") from exc
+        raise HTTPException(
+            status_code=500, detail=f"Cannot import helper: {exc}"
+        ) from exc
 
     module = sys.modules.get(module_path, module)
 

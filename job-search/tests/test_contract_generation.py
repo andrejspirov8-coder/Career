@@ -7,7 +7,9 @@ from pathlib import Path
 def test_generate_typescript_types():
     result = subprocess.run(
         ["uv", "run", "python", "scripts/generate-contracts.py"],
-        capture_output=True, text=True, cwd="."
+        capture_output=True,
+        text=True,
+        cwd=".",
     )
     assert result.returncode == 0, f"Generation failed: {result.stderr}"
 

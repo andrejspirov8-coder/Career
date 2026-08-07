@@ -11,7 +11,9 @@ from pydantic import BaseModel
 
 from career_job_search.api.auth import verify_token
 
-AGENT_STATE_PATH = Path(os.environ.get("CAREER_AGENT_STATE_DIR", "state")) / "agent_bridge.json"
+AGENT_STATE_PATH = (
+    Path(os.environ.get("CAREER_AGENT_STATE_DIR", "state")) / "agent_bridge.json"
+)
 
 router = APIRouter(prefix="/api/v1/agent")
 

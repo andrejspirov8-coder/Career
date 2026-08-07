@@ -54,6 +54,7 @@ def migrate_notification_settings():
             f"ON CONFLICT DO NOTHING;"
         )
 
+
 def migrate_notifications():
     db = SQLITE_DBS["notifications"]
     conn = sqlite3.connect(str(db))
@@ -63,20 +64,39 @@ def migrate_notifications():
     if not rows:
         return
     cols = [
-        "notification_id", "scope", "category", "kind", "priority", "lifecycle",
-        "title", "body", "href", "occurred_at", "source_updated_at",
-        "desktop_eligible", "first_seen_at", "last_seen_at", "read_at",
-        "dismissed_at", "snoozed_until", "resolved_at", "desktop_delivered_at",
+        "notification_id",
+        "scope",
+        "category",
+        "kind",
+        "priority",
+        "lifecycle",
+        "title",
+        "body",
+        "href",
+        "occurred_at",
+        "source_updated_at",
+        "desktop_eligible",
+        "first_seen_at",
+        "last_seen_at",
+        "read_at",
+        "dismissed_at",
+        "snoozed_until",
+        "resolved_at",
+        "desktop_delivered_at",
     ]
     col_list = ", ".join(cols)
     for r in rows:
         d = dict(r)
         vals = ", ".join(
-            _fmt(bool(d["desktop_eligible"])) if c == "desktop_eligible"
+            _fmt(bool(d["desktop_eligible"]))
+            if c == "desktop_eligible"
             else _fmt(d.get(c))
             for c in cols
         )
-        print(f"INSERT INTO notifications ({col_list}) VALUES ({vals}) ON CONFLICT DO NOTHING;")
+        print(
+            f"INSERT INTO notifications ({col_list}) VALUES ({vals}) ON CONFLICT DO NOTHING;"
+        )
+
 
 def migrate_source_runs():
     db = SQLITE_DBS["opportunities"]
@@ -88,12 +108,25 @@ def migrate_source_runs():
         return
     # Supabase: id, run_id, source, status, snapshot_type, item_count, duration_ms, error, created_at
     # SQLite has user_id which Supabase doesn't
-    cols = ["id", "run_id", "source", "status", "snapshot_type", "item_count", "duration_ms", "error", "created_at"]
+    cols = [
+        "id",
+        "run_id",
+        "source",
+        "status",
+        "snapshot_type",
+        "item_count",
+        "duration_ms",
+        "error",
+        "created_at",
+    ]
     col_list = ", ".join(cols)
     for r in rows:
         d = dict(r)
         vals = ", ".join(_fmt(d[c]) for c in cols)
-        print(f"INSERT INTO source_runs ({col_list}) VALUES ({vals}) ON CONFLICT DO NOTHING;")
+        print(
+            f"INSERT INTO source_runs ({col_list}) VALUES ({vals}) ON CONFLICT DO NOTHING;"
+        )
+
 
 def migrate_daily_runs():
     db = SQLITE_DBS["opportunities"]
@@ -110,10 +143,12 @@ def migrate_daily_runs():
     for r in rows:
         d = dict(r)
         vals = ", ".join(
-            _fmt(d[c]) if c != "partial" else _fmt(bool(d["partial"]))
-            for c in cols
+            _fmt(d[c]) if c != "partial" else _fmt(bool(d["partial"])) for c in cols
         )
-        print(f"INSERT INTO daily_runs ({col_list}) VALUES ({vals}) ON CONFLICT DO NOTHING;")
+        print(
+            f"INSERT INTO daily_runs ({col_list}) VALUES ({vals}) ON CONFLICT DO NOTHING;"
+        )
+
 
 def migrate_opportunities():
     db = SQLITE_DBS["opportunities"]
@@ -127,26 +162,49 @@ def migrate_opportunities():
     #           title, company, location, status, data_json, evidence_json,
     #           match_json, created_at, updated_at
     # SQLite data_json contains evidence and match inside it
-    cols = ["opportunity_id", "user_id", "dedupe_key", "source_kind", "source_url",
-            "title", "company", "location", "status", "data_json",
-            "evidence_json", "match_json", "created_at", "updated_at"]
+    cols = [
+        "opportunity_id",
+        "user_id",
+        "dedupe_key",
+        "source_kind",
+        "source_url",
+        "title",
+        "company",
+        "location",
+        "status",
+        "data_json",
+        "evidence_json",
+        "match_json",
+        "created_at",
+        "updated_at",
+    ]
     col_list = ", ".join(cols)
     for r in rows:
         d = dict(r)
         try:
-            dj = json.loads(d["data_json"]) if isinstance(d["data_json"], str) else (d["data_json"] or {})
+            dj = (
+                json.loads(d["data_json"])
+                if isinstance(d["data_json"], str)
+                else (d["data_json"] or {})
+            )
         except (json.JSONDecodeError, TypeError):
             dj = {}
         evidence = dj.get("evidence")
         match = dj.get("match")
         vals = ", ".join(
-            _fmt(json.dumps(dj)) if c == "data_json"
-            else _fmt(json.dumps(evidence)) if c == "evidence_json"
-            else _fmt(json.dumps(match)) if c == "match_json"
+            _fmt(json.dumps(dj))
+            if c == "data_json"
+            else _fmt(json.dumps(evidence))
+            if c == "evidence_json"
+            else _fmt(json.dumps(match))
+            if c == "match_json"
             else _fmt(d.get(c))
             for c in cols
         )
-        print(f"INSERT INTO opportunities ({col_list}) VALUES ({vals}) ON CONFLICT DO NOTHING;")
+        print(
+            f"INSERT INTO opportunities ({col_list}) VALUES ({vals}) ON CONFLICT DO NOTHING;"
+        )
+
 
 def migrate_opportunity_aliases():
     db = SQLITE_DBS["opportunities"]
@@ -159,13 +217,23 @@ def migrate_opportunity_aliases():
     conn.close()
     if not rows:
         return
-    cols = ["alias_key", "alias_type", "opportunity_id", "source", "native_source_id",
-            "created_at", "last_seen_at"]
+    cols = [
+        "alias_key",
+        "alias_type",
+        "opportunity_id",
+        "source",
+        "native_source_id",
+        "created_at",
+        "last_seen_at",
+    ]
     col_list = ", ".join(cols)
     for r in rows:
         d = dict(r)
         vals = ", ".join(_fmt(d[c]) for c in cols)
-        print(f"INSERT INTO opportunity_aliases ({col_list}) VALUES ({vals}) ON CONFLICT DO NOTHING;")
+        print(
+            f"INSERT INTO opportunity_aliases ({col_list}) VALUES ({vals}) ON CONFLICT DO NOTHING;"
+        )
+
 
 MIGRATORS = {
     "notification_settings": migrate_notification_settings,

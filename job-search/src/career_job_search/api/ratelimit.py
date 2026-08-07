@@ -22,7 +22,9 @@ WINDOW_SECONDS = 60.0
 
 _EXEMPT_PREFIXES = ("/health", "/docs", "/openapi.json", "/redoc")
 
-ASGIApp = Callable[[dict[str, Any], Callable[..., Any], Callable[..., Any]], Awaitable[None]]
+ASGIApp = Callable[
+    [dict[str, Any], Callable[..., Any], Callable[..., Any]], Awaitable[None]
+]
 
 
 class RateLimiter:
@@ -78,7 +80,7 @@ class RateLimitMiddleware:
             await self.app(scope, receive, send)
             return
         client = scope.get("client") or (None, None)
-        ip = client[0] if client else "unknown"
+        ip = client[0] or "unknown"
         retry_after = self.limiter.allow(ip, path)
         if retry_after is None:
             await self.app(scope, receive, send)

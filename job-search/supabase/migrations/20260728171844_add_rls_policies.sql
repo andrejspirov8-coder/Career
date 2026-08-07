@@ -116,4 +116,3 @@ CREATE POLICY "anon_select_user_settings"
   ON public.user_settings FOR SELECT
   TO anon
   USING (true);
-

@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
 
 import {
-  DASHBOARD_SESSION_SUPABASE_TOKEN_COOKIE,
+  DASHBOARD_SESSION_COOKIE,
   applyDashboardPrivateHeaders,
   isSameOriginLogoutRequest,
+  legacyDashboardSessionCookieName,
 } from '@/lib/server/auth'
 
 export const runtime = 'nodejs'
@@ -16,14 +17,16 @@ export async function POST(request: Request) {
   }
 
   const response = NextResponse.json({ ok: true })
-  response.cookies.set({
-    name: DASHBOARD_SESSION_SUPABASE_TOKEN_COOKIE,
-    value: '',
-    httpOnly: true,
-    sameSite: 'strict',
-    maxAge: 0,
-    expires: new Date(0),
-    path: '/',
-  })
+  for (const name of [DASHBOARD_SESSION_COOKIE, legacyDashboardSessionCookieName()]) {
+    response.cookies.set({
+      name,
+      value: '',
+      httpOnly: true,
+      sameSite: 'strict',
+      maxAge: 0,
+      expires: new Date(0),
+      path: '/',
+    })
+  }
   return applyDashboardPrivateHeaders(response)
 }

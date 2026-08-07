@@ -10,7 +10,9 @@ from career_job_search.integrations.linkedin.config_helper import (
     write_config,
 )
 
-router = APIRouter(prefix="/api/v1/settings/linkedin", dependencies=[Depends(verify_token)])
+router = APIRouter(
+    prefix="/api/v1/settings/linkedin", dependencies=[Depends(verify_token)]
+)
 
 
 @router.get("/")

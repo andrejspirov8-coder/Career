@@ -14,7 +14,10 @@ def test_schema_module_exists():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     assert hasattr(module, "HELPER_ENVELOPE_SCHEMA")
-    assert module.HELPER_ENVELOPE_SCHEMA["properties"]["schema"]["const"] == "career_python_helper_v1"
+    assert (
+        module.HELPER_ENVELOPE_SCHEMA["properties"]["schema"]["const"]
+        == "career_python_helper_v1"
+    )
 
 
 HELPER_SCHEMA_MAP = [

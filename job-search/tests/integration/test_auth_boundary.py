@@ -97,11 +97,11 @@ def test_dispatch_limit_enforced():
     assert validate_live_dispatch_max(None, dry_run=True, option_name="--max") is None
 
     # Invalid values
-    with pytest.raises(SystemExit, match="explicit --max"):
+    with pytest.raises(SystemExit, match=r"explicit --max"):
         validate_live_dispatch_max(None, dry_run=False, option_name="--max")
 
-    with pytest.raises(SystemExit, match="range 1..3"):
+    with pytest.raises(SystemExit, match=r"range 1..3"):
         validate_live_dispatch_max(0, dry_run=False, option_name="--max")
 
-    with pytest.raises(SystemExit, match="cannot exceed 3"):
+    with pytest.raises(SystemExit, match=r"cannot exceed 3"):
         validate_live_dispatch_max(4, dry_run=False, option_name="--max")

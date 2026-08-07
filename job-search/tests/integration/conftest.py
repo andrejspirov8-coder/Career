@@ -25,7 +25,17 @@ def dashboard_server() -> str:
         "CAREER_DASHBOARD_PORT": str(DASHBOARD_PORT),
     }
     proc = subprocess.Popen(
-        ["uv", "run", "python", "-m", "career_job_search.workspace.dashboard_service", "--mode", "dev", "--port", str(DASHBOARD_PORT)],
+        [
+            "uv",
+            "run",
+            "python",
+            "-m",
+            "career_job_search.workspace.dashboard_service",
+            "--mode",
+            "dev",
+            "--port",
+            str(DASHBOARD_PORT),
+        ],
         cwd=JOB_ROOT,
         env=env,
         stdout=subprocess.PIPE,
@@ -40,7 +50,7 @@ def dashboard_server() -> str:
             time.sleep(0.5)
     else:
         proc.terminate()
-        stdout, stderr = proc.communicate(timeout=5)
+        _stdout, stderr = proc.communicate(timeout=5)
         raise RuntimeError(f"Dashboard server failed to start: {stderr.decode()}")
 
     yield DASHBOARD_URL
@@ -80,6 +90,10 @@ def python_helper() -> Callable[[str, list[str]], dict]:
         )
         import json
 
-        return json.loads(result.stdout) if result.stdout else {"ok": False, "error": result.stderr}
+        return (
+            json.loads(result.stdout)
+            if result.stdout
+            else {"ok": False, "error": result.stderr}
+        )
 
     return _call

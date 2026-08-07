@@ -28,6 +28,7 @@ export default defineConfig({
     timeout: 120_000,
     env: {
       CAREER_DASHBOARD_TOKEN: 'e2e-token',
+      CAREER_DASHBOARD_SESSION_SECRET: 'e2e-dashboard-session-secret-0123456789',
     },
   },
 })

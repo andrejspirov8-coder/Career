@@ -2,49 +2,19 @@ import { NextResponse } from 'next/server'
 
 import {
   DASHBOARD_REMEMBERED_SESSION_MAX_AGE_SECONDS,
+  DASHBOARD_SESSION_COOKIE,
   DASHBOARD_SESSION_MAX_AGE_SECONDS,
-  DASHBOARD_SESSION_SUPABASE_TOKEN_COOKIE,
+  DASHBOARD_SESSION_SECRET_ENV_VAR,
   applyDashboardPrivateHeaders,
+  dashboardSessionSecretFromEnv,
   dashboardTokenFromEnv,
   isDashboardTokenAuthorized,
   isSameOriginRequest,
+  legacyDashboardSessionCookieName,
 } from '@/lib/server/auth'
-import { runFastApiEndpoint } from '@/lib/server/fastapi-bridge'
+import { createDashboardSession } from '@/lib/server/session'
 
 export const runtime = 'nodejs'
-
-async function loginWithBackend(
-  body: { email: string; password: string; remember?: boolean },
-) {
-  const { remember } = body
-  const maxAge = remember
-    ? DASHBOARD_REMEMBERED_SESSION_MAX_AGE_SECONDS
-    : DASHBOARD_SESSION_MAX_AGE_SECONDS
-
-  const result = await runFastApiEndpoint<{
-    user_id: string
-    email: string
-    supabase_access_token?: string | null
-  }>('auth/login', { email: body.email, password: body.password }, {
-    timeoutMs: 10_000,
-    errorLabel: 'Auth login',
-  })
-
-  const response = NextResponse.json({ ok: true })
-
-  if (result.supabase_access_token) {
-    response.cookies.set({
-      name: DASHBOARD_SESSION_SUPABASE_TOKEN_COOKIE,
-      value: result.supabase_access_token,
-      httpOnly: true,
-      sameSite: 'strict',
-      maxAge,
-      path: '/',
-    })
-  }
-
-  return applyDashboardPrivateHeaders(response)
-}
 
 export async function POST(request: Request) {
   const expectedToken = dashboardTokenFromEnv()
@@ -63,6 +33,16 @@ export async function POST(request: Request) {
     )
   }
 
+  const secret = dashboardSessionSecretFromEnv()
+  if (secret.length < 32) {
+    return applyDashboardPrivateHeaders(
+      NextResponse.json(
+        { ok: false, error: `${DASHBOARD_SESSION_SECRET_ENV_VAR} is not configured with a valid secret.` },
+        { status: 503 },
+      ),
+    )
+  }
+
   let body: { token?: string; email?: string; password?: string; remember?: boolean } = {}
   try {
     body = (await request.json()) as typeof body
@@ -72,18 +52,18 @@ export async function POST(request: Request) {
     )
   }
 
-  if (body.email && body.password) {
-    try {
-      return await loginWithBackend({ email: body.email, password: body.password, remember: body.remember })
-    } catch {
-      return applyDashboardPrivateHeaders(
-        NextResponse.json({ ok: false, error: 'Invalid email or password' }, { status: 401 }),
-      )
-    }
+  if (body.email || body.password) {
+    return applyDashboardPrivateHeaders(
+      NextResponse.json(
+        { ok: false, error: 'Dashboard login requires the local dashboard token.' },
+        { status: 400 },
+      ),
+    )
   }
 
-  const suppliedToken =
-    typeof body.token === 'string' && body.token.length <= 4096 ? body.token.trim() : ''
+  const suppliedToken = typeof body.token === 'string' && body.token.length <= 4096
+    ? body.token.trim()
+    : ''
   if (!isDashboardTokenAuthorized(expectedToken, suppliedToken)) {
     return applyDashboardPrivateHeaders(
       NextResponse.json({ ok: false, error: 'Invalid dashboard token.' }, { status: 401 }),
@@ -93,13 +73,30 @@ export async function POST(request: Request) {
   const maxAge = body.remember
     ? DASHBOARD_REMEMBERED_SESSION_MAX_AGE_SECONDS
     : DASHBOARD_SESSION_MAX_AGE_SECONDS
+  const expiresAt = Date.now() + maxAge * 1000
+  const session = createDashboardSession(secret, {
+    version: 1,
+    subject: 'local-user',
+    expiresAt,
+  })
   const response = NextResponse.json({ ok: true })
   response.cookies.set({
-    name: DASHBOARD_SESSION_SUPABASE_TOKEN_COOKIE,
-    value: suppliedToken,
+    name: DASHBOARD_SESSION_COOKIE,
+    value: session,
     httpOnly: true,
     sameSite: 'strict',
+    secure: process.env.NODE_ENV === 'production',
     maxAge,
+    path: '/',
+  })
+  // Expire the legacy cookie so an old browser does not retain misleading state.
+  response.cookies.set({
+    name: legacyDashboardSessionCookieName(),
+    value: '',
+    httpOnly: true,
+    sameSite: 'strict',
+    maxAge: 0,
+    expires: new Date(0),
     path: '/',
   })
   return applyDashboardPrivateHeaders(response)

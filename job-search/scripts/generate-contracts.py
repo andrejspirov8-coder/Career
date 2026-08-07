@@ -11,13 +11,25 @@ from pathlib import Path
 
 HELPERS = [
     ("career_job_search.automation.control", "automation", "AutomationOverview"),
-    ("career_job_search.opportunities.dashboard_adapter", "opportunities", "OpportunityOverview"),
-    ("career_job_search.recruiters.dashboard_adapter", "recruiters", "RecruiterOverview"),
+    (
+        "career_job_search.opportunities.dashboard_adapter",
+        "opportunities",
+        "OpportunityOverview",
+    ),
+    (
+        "career_job_search.recruiters.dashboard_adapter",
+        "recruiters",
+        "RecruiterOverview",
+    ),
     ("career_job_search.cvs.catalogue_cli", "cvCatalogue", "CvCatalogue"),
     ("career_job_search.cvs.studio", "cvStudio", "CvStudioStatus"),
     ("career_job_search.cvs.drafting", "localDrafting", "LocalDraftingStatus"),
     ("career_job_search.notifications.center", "notifications", "NotificationOverview"),
-    ("career_job_search.opportunities.preferences", "searchPreferences", "SearchPreferences"),
+    (
+        "career_job_search.opportunities.preferences",
+        "searchPreferences",
+        "SearchPreferences",
+    ),
     ("career_job_search.workspace.control", "workspace", "WorkspaceControls"),
     ("career_job_search.automation.analytics", "analytics", "AnalyticsOverview"),
 ]
@@ -48,12 +60,16 @@ def main() -> int:
         try:
             schema_json = subprocess.run(
                 ["uv", "run", "python", "-m", helper_module, "--schema"],
-                capture_output=True, text=True, check=True
+                capture_output=True,
+                text=True,
+                check=True,
             ).stdout
             schema = json.loads(schema_json)
             run_ts_gen(schema, GENERATED_DIR / f"{helper_name}-contracts.ts", type_name)
         except subprocess.CalledProcessError as e:
-            print(f"ERROR: {helper_module} --schema failed: {e.stderr}", file=sys.stderr)
+            print(
+                f"ERROR: {helper_module} --schema failed: {e.stderr}", file=sys.stderr
+            )
             return 1
 
     return 0
@@ -61,9 +77,18 @@ def main() -> int:
 
 def run_ts_gen(schema: dict, out_path: Path, type_name: str) -> None:
     result = subprocess.run(
-        ["npx", "json-schema-to-typescript", "--style.singleQuotes", "true", "--declareExternallyReferenced", "true"],
+        [
+            "npx",
+            "json-schema-to-typescript",
+            "--style.singleQuotes",
+            "true",
+            "--declareExternallyReferenced",
+            "true",
+        ],
         input=json.dumps(schema),
-        capture_output=True, text=True, check=True
+        capture_output=True,
+        text=True,
+        check=True,
     )
     # Fix: json-schema-to-typescript outputs `export interface` but we want `export type` for envelope
     content = result.stdout
@@ -73,7 +98,7 @@ def run_ts_gen(schema: dict, out_path: Path, type_name: str) -> None:
             rf"^export interface {re.escape(type_name)}\s*\{{",
             f"export type {type_name} = {{",
             content,
-            flags=re.MULTILINE
+            flags=re.MULTILINE,
         )
         # The original interface ends with a single "}" on its own line.
         # For "export type X = { ... }", we keep that single closing brace.

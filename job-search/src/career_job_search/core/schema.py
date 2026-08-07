@@ -30,7 +30,10 @@ AUTOMATION_OVERVIEW_SCHEMA: dict[str, Any] = {
             "required": ["schedule_enabled", "schedule_time", "timezone", "updated_at"],
             "properties": {
                 "schedule_enabled": {"type": "boolean"},
-                "schedule_time": {"type": "string", "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"},
+                "schedule_time": {
+                    "type": "string",
+                    "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+                },
                 "timezone": {"type": "string"},
                 "updated_at": {"type": "string", "format": "date-time"},
             },
@@ -55,7 +58,10 @@ AUTOMATION_OVERVIEW_SCHEMA: dict[str, Any] = {
         "source_health": {
             "type": "object",
             "properties": {
-                "overall_status": {"type": "string", "enum": ["healthy", "stale", "attention", "failed", "not_run"]},
+                "overall_status": {
+                    "type": "string",
+                    "enum": ["healthy", "stale", "attention", "failed", "not_run"],
+                },
                 "last_checked_at": {"type": ["string", "null"], "format": "date-time"},
                 "age_hours": {"type": ["number", "null"]},
                 "message": {"type": "string"},
@@ -72,7 +78,18 @@ AUTOMATION_OVERVIEW_SCHEMA: dict[str, Any] = {
             },
         },
     },
-    "required": ["schema", "generated_at", "settings", "worker", "counts", "active_runs", "recent_runs", "source_health", "available_actions", "safety"],
+    "required": [
+        "schema",
+        "generated_at",
+        "settings",
+        "worker",
+        "counts",
+        "active_runs",
+        "recent_runs",
+        "source_health",
+        "available_actions",
+        "safety",
+    ],
 }
 
 
@@ -81,7 +98,13 @@ OPPORTUNITY_OVERVIEW_SCHEMA: dict[str, Any] = {
     "title": "OpportunityOverview",
     "type": "object",
     "properties": {
-        "schema": {"type": "string", "enum": ["opportunity_dashboard_overview_v1", "opportunity_dashboard_overview_v2"]},
+        "schema": {
+            "type": "string",
+            "enum": [
+                "opportunity_dashboard_overview_v1",
+                "opportunity_dashboard_overview_v2",
+            ],
+        },
         "generated_at": {"type": "string", "format": "date-time"},
         "counts": {"type": "object", "additionalProperties": {"type": "integer"}},
         "funnel": {"type": "object", "additionalProperties": {"type": "integer"}},
@@ -97,7 +120,15 @@ OPPORTUNITY_OVERVIEW_SCHEMA: dict[str, Any] = {
         },
         "helperError": {"type": ["string", "null"]},
     },
-    "required": ["schema", "generated_at", "counts", "funnel", "pipeline", "queues", "safe_actions"],
+    "required": [
+        "schema",
+        "generated_at",
+        "counts",
+        "funnel",
+        "pipeline",
+        "queues",
+        "safe_actions",
+    ],
 }
 
 
@@ -114,7 +145,15 @@ RECRUITER_OVERVIEW_SCHEMA: dict[str, Any] = {
         "live_dispatch": {"type": "object"},
         "operators": {"type": "array"},
     },
-    "required": ["schema", "generated_at", "queue", "saved_views", "metrics", "live_dispatch", "operators"],
+    "required": [
+        "schema",
+        "generated_at",
+        "queue",
+        "saved_views",
+        "metrics",
+        "live_dispatch",
+        "operators",
+    ],
 }
 
 
@@ -128,7 +167,18 @@ CV_CATALOGUE_SCHEMA: dict[str, Any] = {
             "type": "array",
             "items": {
                 "type": "object",
-                "required": ["slug", "name", "language", "focus", "display_order", "source_filename", "pdf_stem", "target_titles", "keywords", "negative_keywords"],
+                "required": [
+                    "slug",
+                    "name",
+                    "language",
+                    "focus",
+                    "display_order",
+                    "source_filename",
+                    "pdf_stem",
+                    "target_titles",
+                    "keywords",
+                    "negative_keywords",
+                ],
                 "properties": {
                     "slug": {"type": "string"},
                     "name": {"type": "string"},
@@ -163,7 +213,17 @@ CV_STUDIO_SCHEMA: dict[str, Any] = {
         "canva_text_exists": {"type": "boolean"},
         "history": {"type": "array"},
     },
-    "required": ["schema", "variant", "source", "sections", "unsaved_changes", "visual_pdf_exists", "ats_pdf_exists", "canva_text_exists", "history"],
+    "required": [
+        "schema",
+        "variant",
+        "source",
+        "sections",
+        "unsaved_changes",
+        "visual_pdf_exists",
+        "ats_pdf_exists",
+        "canva_text_exists",
+        "history",
+    ],
 }
 
 
@@ -212,7 +272,18 @@ SEARCH_PREFERENCES_SCHEMA: dict[str, Any] = {
         "sources": {"type": "array", "items": {"type": "string"}},
         "updated_at": {"type": "string", "format": "date-time"},
     },
-    "required": ["schema", "daily_queue_size", "work_arrangements", "role_tracks", "excluded_companies", "excluded_keywords", "min_fit_score", "locations", "sources", "updated_at"],
+    "required": [
+        "schema",
+        "daily_queue_size",
+        "work_arrangements",
+        "role_tracks",
+        "excluded_companies",
+        "excluded_keywords",
+        "min_fit_score",
+        "locations",
+        "sources",
+        "updated_at",
+    ],
 }
 
 
@@ -228,7 +299,14 @@ WORKSPACE_CONTROLS_SCHEMA: dict[str, Any] = {
         "startup": {"type": "object"},
         "backup": {"type": "object"},
     },
-    "required": ["schema", "generated_at", "dashboard_runtime", "keychain", "startup", "backup"],
+    "required": [
+        "schema",
+        "generated_at",
+        "dashboard_runtime",
+        "keychain",
+        "startup",
+        "backup",
+    ],
 }
 
 
@@ -250,20 +328,33 @@ ANALYTICS_OVERVIEW_SCHEMA: dict[str, Any] = {
         "recruiters": {"type": "array"},
         "recommendations": {"type": "array"},
     },
-    "required": ["schema", "generated_at", "funnel", "data_quality", "by_source", "by_variant", "by_tailoring", "by_score", "outcome_history", "weekly_trend", "recruiters", "recommendations"],
+    "required": [
+        "schema",
+        "generated_at",
+        "funnel",
+        "data_quality",
+        "by_source",
+        "by_variant",
+        "by_tailoring",
+        "by_score",
+        "outcome_history",
+        "weekly_trend",
+        "recruiters",
+        "recommendations",
+    ],
 }
 
 
 __all__ = [
-    "HELPER_ENVELOPE_SCHEMA",
+    "ANALYTICS_OVERVIEW_SCHEMA",
     "AUTOMATION_OVERVIEW_SCHEMA",
-    "OPPORTUNITY_OVERVIEW_SCHEMA",
-    "RECRUITER_OVERVIEW_SCHEMA",
     "CV_CATALOGUE_SCHEMA",
     "CV_STUDIO_SCHEMA",
+    "HELPER_ENVELOPE_SCHEMA",
     "LOCAL_DRAFTING_SCHEMA",
     "NOTIFICATIONS_OVERVIEW_SCHEMA",
+    "OPPORTUNITY_OVERVIEW_SCHEMA",
+    "RECRUITER_OVERVIEW_SCHEMA",
     "SEARCH_PREFERENCES_SCHEMA",
     "WORKSPACE_CONTROLS_SCHEMA",
-    "ANALYTICS_OVERVIEW_SCHEMA",
 ]

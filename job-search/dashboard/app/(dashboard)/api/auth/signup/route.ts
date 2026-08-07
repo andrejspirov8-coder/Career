@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 
 import {
   applyDashboardPrivateHeaders,
+  dashboardAuthErrorResponse,
   isSameOriginRequest,
 } from '@/lib/server/auth'
 import { runFastApiEndpoint } from '@/lib/server/fastapi-bridge'
@@ -12,6 +13,15 @@ export async function POST(request: Request) {
   if (!isSameOriginRequest(request)) {
     return applyDashboardPrivateHeaders(
       NextResponse.json({ ok: false, error: 'Signup requires a same-origin request.' }, { status: 403 }),
+    )
+  }
+
+  const authError = dashboardAuthErrorResponse(request)
+  if (authError) return authError
+
+  if (process.env.CAREER_ALLOW_LOCAL_SIGNUP?.trim().toLowerCase() !== 'true') {
+    return applyDashboardPrivateHeaders(
+      NextResponse.json({ ok: false, error: 'Local signup is disabled.' }, { status: 403 }),
     )
   }
 
@@ -36,9 +46,7 @@ export async function POST(request: Request) {
       { email: body.email, password: body.password },
       { timeoutMs: 10_000, errorLabel: 'Auth signup' },
     )
-    return applyDashboardPrivateHeaders(
-      NextResponse.json({ ok: true, email: result.email }),
-    )
+    return applyDashboardPrivateHeaders(NextResponse.json({ ok: true, email: result.email }))
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Signup failed'
     return applyDashboardPrivateHeaders(

@@ -14,7 +14,8 @@ def test_health_endpoint() -> None:
     assert data["status"] == "ok"
 
 
-def test_auth_missing_header() -> None:
+def test_auth_missing_header(monkeypatch) -> None:
+    monkeypatch.setenv("CAREER_DASHBOARD_TOKEN", "test-token")
     app = create_app()
     client = TestClient(app)
     response = client.get("/api/v1/me")
@@ -25,9 +26,7 @@ def test_auth_valid_token(monkeypatch) -> None:
     monkeypatch.setenv("CAREER_DASHBOARD_TOKEN", "test-token")
     app = create_app()
     client = TestClient(app)
-    response = client.get(
-        "/api/v1/me", headers={"Authorization": "Bearer test-token"}
-    )
+    response = client.get("/api/v1/me", headers={"Authorization": "Bearer test-token"})
     assert response.status_code == 200
     assert response.json()["user"] == "local-user"
 
@@ -36,9 +35,7 @@ def test_auth_invalid_token(monkeypatch) -> None:
     monkeypatch.setenv("CAREER_DASHBOARD_TOKEN", "test-token")
     app = create_app()
     client = TestClient(app)
-    response = client.get(
-        "/api/v1/me", headers={"Authorization": "Bearer wrong-token"}
-    )
+    response = client.get("/api/v1/me", headers={"Authorization": "Bearer wrong-token"})
     assert response.status_code == 403
 
 
@@ -122,34 +119,51 @@ def test_agent_heartbeat(monkeypatch, tmp_path) -> None:
 
 def test_auth_signup_and_login(monkeypatch, tmp_path) -> None:
     monkeypatch.setenv("CAREER_DASHBOARD_TOKEN", "test-token")
-    monkeypatch.setattr("career_job_search.api.user_store.USERS_DB_PATH", tmp_path / "users.sqlite3")
+    monkeypatch.setenv("CAREER_ALLOW_LOCAL_SIGNUP", "true")
+    monkeypatch.setattr(
+        "career_job_search.api.user_store.USERS_DB_PATH", tmp_path / "users.sqlite3"
+    )
     from fastapi.testclient import TestClient
 
     from career_job_search.api.server import create_app
+
     app = create_app()
     client = TestClient(app)
+    headers = {"Authorization": "Bearer test-token"}
 
-    signup_resp = client.post("/api/v1/auth/signup", json={"email": "alice@example.com", "password": "secure-pass-123"})
+    signup_resp = client.post(
+        "/api/v1/auth/signup",
+        json={"email": "alice@example.com", "password": "secure-pass-123"},
+        headers=headers,
+    )
     assert signup_resp.status_code == 200
     data = signup_resp.json()
     assert data["ok"] is True
     user_id = data["user_id"]
 
-    login_resp = client.post("/api/v1/auth/login", json={"email": "alice@example.com", "password": "secure-pass-123"})
+    login_resp = client.post(
+        "/api/v1/auth/login",
+        json={"email": "alice@example.com", "password": "secure-pass-123"},
+    )
     assert login_resp.status_code == 200
     assert login_resp.json()["user_id"] == user_id
 
-    bad_resp = client.post("/api/v1/auth/login", json={"email": "alice@example.com", "password": "wrong"})
+    bad_resp = client.post(
+        "/api/v1/auth/login", json={"email": "alice@example.com", "password": "wrong"}
+    )
     assert bad_resp.status_code == 401
 
 
 def test_auth_me_with_bearer(monkeypatch, tmp_path) -> None:
     monkeypatch.setenv("CAREER_DASHBOARD_TOKEN", "test-token")
-    monkeypatch.setattr("career_job_search.api.user_store.USERS_DB_PATH", tmp_path / "users.sqlite3")
+    monkeypatch.setattr(
+        "career_job_search.api.user_store.USERS_DB_PATH", tmp_path / "users.sqlite3"
+    )
     from fastapi.testclient import TestClient
 
     from career_job_search.api.server import create_app
     from career_job_search.api.user_store import create_user
+
     create_user("bob@example.com", "password-123")
     app = create_app()
     client = TestClient(app)
@@ -160,17 +174,30 @@ def test_auth_me_with_bearer(monkeypatch, tmp_path) -> None:
 
 def test_signup_validation(monkeypatch, tmp_path) -> None:
     monkeypatch.setenv("CAREER_DASHBOARD_TOKEN", "test-token")
-    monkeypatch.setattr("career_job_search.api.user_store.USERS_DB_PATH", tmp_path / "users.sqlite3")
+    monkeypatch.setenv("CAREER_ALLOW_LOCAL_SIGNUP", "true")
+    monkeypatch.setattr(
+        "career_job_search.api.user_store.USERS_DB_PATH", tmp_path / "users.sqlite3"
+    )
     from fastapi.testclient import TestClient
 
     from career_job_search.api.server import create_app
+
     app = create_app()
     client = TestClient(app)
+    headers = {"Authorization": "Bearer test-token"}
 
-    resp = client.post("/api/v1/auth/signup", json={"email": "not-an-email", "password": "12345678"})
+    resp = client.post(
+        "/api/v1/auth/signup",
+        json={"email": "not-an-email", "password": "12345678"},
+        headers=headers,
+    )
     assert resp.status_code == 400
 
-    resp = client.post("/api/v1/auth/signup", json={"email": "a@b.com", "password": "short"})
+    resp = client.post(
+        "/api/v1/auth/signup",
+        json={"email": "a@b.com", "password": "short"},
+        headers=headers,
+    )
     assert resp.status_code == 400
 
 
@@ -236,7 +263,8 @@ def test_rate_limit_auth_has_own_budget() -> None:
     assert limiter.allow("1.2.3.4", "/api/v1/me") is None
 
 
-def test_rate_limit_middleware_returns_429() -> None:
+def test_rate_limit_middleware_returns_429(monkeypatch) -> None:
+    monkeypatch.setenv("CAREER_DASHBOARD_TOKEN", "test-token")
     from fastapi.testclient import TestClient
 
     from career_job_search.api.ratelimit import RateLimiter

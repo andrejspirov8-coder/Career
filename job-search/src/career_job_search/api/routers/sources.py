@@ -7,7 +7,9 @@ from fastapi import APIRouter, Depends
 from career_job_search.api.auth import verify_token
 from career_job_search.opportunities.sources_helper import read_config, write_config
 
-router = APIRouter(prefix="/api/v1/settings/sources", dependencies=[Depends(verify_token)])
+router = APIRouter(
+    prefix="/api/v1/settings/sources", dependencies=[Depends(verify_token)]
+)
 
 
 @router.get("/")

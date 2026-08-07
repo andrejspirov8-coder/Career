@@ -14,9 +14,9 @@ export async function safeStringEqual(expected: string, candidate: string | null
   const encoder = new TextEncoder()
   const expectedBuffer = new TextEncoder().encode(expected)
   const candidateBuffer = new TextEncoder().encode(candidate)
-  
+
   if (expectedBuffer.length !== candidateBuffer.length) return false
-  
+
   return constantTimeEqual(
     new Uint8Array(expectedBuffer),
     new Uint8Array(candidateBuffer)
@@ -32,7 +32,7 @@ export async function isDashboardTokenAuthorized(expectedToken: string, requestT
 export function safeStringEqualSync(expected: string, candidate: string | null): boolean {
   if (!expected || !candidate) return false
   if (expected.length !== candidate.length) return false
-  
+
   let result = 0
   for (let i = 0; i < expected.length; i++) {
     result |= expected.charCodeAt(i) ^ candidate.charCodeAt(i)

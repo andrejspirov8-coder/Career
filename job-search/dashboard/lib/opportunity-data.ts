@@ -541,7 +541,11 @@ export async function getOpportunityDetail(opportunityId: string): Promise<Oppor
 }
 
 export async function getOpportunityExport(): Promise<OpportunityExport> {
-  return (await runHelper(['export'])) as OpportunityExport
+  return (await runPythonHelper<OpportunityExport>('opportunities', ['export'], {
+    timeoutMs: 30_000,
+    errorLabel: 'Opportunity helper',
+    maxOutputBytes: 16 * 1024 * 1024,
+  })) as OpportunityExport
 }
 
 export async function captureOpportunity(input: OpportunityCaptureInput): Promise<OpportunityCaptureResult> {

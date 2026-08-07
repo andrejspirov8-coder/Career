@@ -49,7 +49,9 @@ def test_signup_requires_feature_flag_and_bearer_auth(monkeypatch, tmp_path) -> 
     assert response.status_code == 200
 
 
-def test_local_login_does_not_issue_supabase_access_token(monkeypatch, tmp_path) -> None:
+def test_local_login_does_not_issue_supabase_access_token(
+    monkeypatch, tmp_path
+) -> None:
     monkeypatch.setenv("CAREER_DASHBOARD_TOKEN", "expected-token")
     monkeypatch.setenv("CAREER_ALLOW_LOCAL_SIGNUP", "true")
     monkeypatch.setattr(
@@ -58,7 +60,10 @@ def test_local_login_does_not_issue_supabase_access_token(monkeypatch, tmp_path)
     client = TestClient(create_app())
     headers = {"Authorization": "Bearer expected-token"}
     payload = {"email": "local@example.com", "password": "secure-pass-123"}
-    assert client.post("/api/v1/auth/signup", json=payload, headers=headers).status_code == 200
+    assert (
+        client.post("/api/v1/auth/signup", json=payload, headers=headers).status_code
+        == 200
+    )
 
     response = client.post("/api/v1/auth/login", json=payload)
     assert response.status_code == 200

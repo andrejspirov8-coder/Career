@@ -10,7 +10,9 @@ from career_job_search.opportunities.preferences import (
     save_search_preferences,
 )
 
-router = APIRouter(prefix="/api/v1/settings/preferences", dependencies=[Depends(verify_token)])
+router = APIRouter(
+    prefix="/api/v1/settings/preferences", dependencies=[Depends(verify_token)]
+)
 
 
 @router.get("/")

@@ -122,7 +122,9 @@ def test_read_dismiss_restore_and_snooze_actions_are_fixed(tmp_path):
     assert read["counts"]["unread"] == 0
 
     with pytest.raises(ValueError, match="Unsupported"):
-        action(db_path, {"action": "run_shell", "notification_id": row["notification_id"]})
+        action(
+            db_path, {"action": "run_shell", "notification_id": row["notification_id"]}
+        )
 
 
 def test_desktop_opt_in_skips_existing_items_and_delivers_new_items(tmp_path):

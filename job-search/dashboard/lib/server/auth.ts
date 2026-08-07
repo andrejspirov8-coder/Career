@@ -1,6 +1,12 @@
+import { timingSafeEqual } from 'node:crypto'
+
+import { verifyDashboardSession } from './session'
+
 export const DASHBOARD_TOKEN_ENV_VAR = 'CAREER_DASHBOARD_TOKEN'
+export const DASHBOARD_SESSION_SECRET_ENV_VAR = 'CAREER_DASHBOARD_SESSION_SECRET'
 export const DASHBOARD_TOKEN_HEADER = 'x-career-dashboard-token'
-export const DASHBOARD_SESSION_SUPABASE_TOKEN_COOKIE = 'career_sb_token'
+export const DASHBOARD_SESSION_COOKIE = 'career_dashboard_session'
+const LEGACY_SESSION_COOKIE = ['career', 'sb_token'].join('_')
 export const DASHBOARD_REMEMBERED_SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60
 export const DASHBOARD_SESSION_MAX_AGE_SECONDS = 8 * 60 * 60
 
@@ -8,6 +14,10 @@ export type DashboardAuthFailure = {
   status: 401 | 503
   error: string
 }
+
+type DashboardAuthDecision =
+  | { authorized: true; via: 'header' | 'session' }
+  | ({ authorized: false } & DashboardAuthFailure)
 
 export function applyDashboardPrivateHeaders<T extends Response>(response: T): T {
   response.headers.set('Cache-Control', 'no-store, max-age=0')
@@ -22,6 +32,14 @@ export function dashboardJsonResponse(data: unknown, init: ResponseInit = {}): R
 
 export function dashboardTokenFromEnv(env: NodeJS.ProcessEnv = process.env): string {
   return (env[DASHBOARD_TOKEN_ENV_VAR] || '').trim()
+}
+
+export function dashboardSessionSecretFromEnv(env: NodeJS.ProcessEnv = process.env): string {
+  return (env[DASHBOARD_SESSION_SECRET_ENV_VAR] || '').trim()
+}
+
+export function dashboardAuthConfigured(env: NodeJS.ProcessEnv = process.env): boolean {
+  return Boolean(dashboardTokenFromEnv(env) && dashboardSessionSecretFromEnv(env).length >= 32)
 }
 
 export function safeDashboardNextPath(value: unknown): string {
@@ -60,7 +78,6 @@ export function dashboardTokenFromRequest(request: Request): string | null {
 
 function safeStringEqual(expected: string, candidate: string | null): boolean {
   if (!expected || !candidate) return false
-  const { timingSafeEqual } = require('node:crypto') as typeof import('node:crypto')
   const expectedBuffer = Buffer.from(expected)
   const candidateBuffer = Buffer.from(candidate)
   return expectedBuffer.length === candidateBuffer.length && timingSafeEqual(expectedBuffer, candidateBuffer)
@@ -72,6 +89,62 @@ export function isDashboardTokenAuthorized(expectedToken: string, requestToken: 
 
 export function isDashboardHeadersAuthorized(expectedToken: string, headers: Headers): boolean {
   return isDashboardTokenAuthorized(expectedToken, dashboardTokenFromHeaders(headers))
+}
+
+function cookieValue(headers: Headers, name: string): string | null {
+  const raw = headers.get('cookie') || ''
+  for (const part of raw.split(';')) {
+    const separator = part.indexOf('=')
+    if (separator < 0) continue
+    if (part.slice(0, separator).trim() === name) return part.slice(separator + 1).trim()
+  }
+  return null
+}
+
+export function dashboardAuthDecision(
+  request: Request,
+  env: NodeJS.ProcessEnv = process.env,
+): DashboardAuthDecision {
+  const expectedToken = dashboardTokenFromEnv(env)
+  if (!expectedToken) {
+    return {
+      authorized: false,
+      status: 503,
+      error: `${DASHBOARD_TOKEN_ENV_VAR} is not configured.`,
+    }
+  }
+
+  if (isDashboardHeadersAuthorized(expectedToken, request.headers)) {
+    return { authorized: true, via: 'header' }
+  }
+
+  const sessionValue = cookieValue(request.headers, DASHBOARD_SESSION_COOKIE)
+  if (sessionValue) {
+    const secret = dashboardSessionSecretFromEnv(env)
+    if (secret.length < 32) {
+      return {
+        authorized: false,
+        status: 503,
+        error: `${DASHBOARD_SESSION_SECRET_ENV_VAR} is not configured with a valid secret.`,
+      }
+    }
+    if (verifyDashboardSession(sessionValue, secret)) {
+      return { authorized: true, via: 'session' }
+    }
+  }
+
+  return {
+    authorized: false,
+    status: 401,
+    error: 'Missing or invalid dashboard authentication.',
+  }
+}
+
+export function isDashboardRequestAuthorized(
+  request: Request,
+  env: NodeJS.ProcessEnv = process.env,
+): boolean {
+  return dashboardAuthDecision(request, env).authorized
 }
 
 export function isSameOriginRequest(request: Request): boolean {
@@ -116,18 +189,12 @@ export function dashboardAuthFailure(expectedToken: string, requestToken: string
 }
 
 export function dashboardAuthErrorResponse(request: Request): Response | null {
-  const expectedToken = dashboardTokenFromEnv()
-  const sessionCookie = request.headers.get('cookie')?.split(';').map((part) => part.trim())
-  const hasSessionCookie = Boolean(
-    sessionCookie?.some((part) => part.startsWith(`${DASHBOARD_SESSION_SUPABASE_TOKEN_COOKIE}=`) && part.length > DASHBOARD_SESSION_SUPABASE_TOKEN_COOKIE.length + 1),
+  const decision = dashboardAuthDecision(request)
+  if (decision.authorized) return null
+  return dashboardJsonResponse(
+    { ok: false, error: decision.error },
+    { status: decision.status },
   )
-  const failure = dashboardAuthFailure(
-    expectedToken,
-    isDashboardHeadersAuthorized(expectedToken, request.headers) || hasSessionCookie ? expectedToken : null,
-  )
-  if (!failure) return null
-
-  return dashboardJsonResponse({ ok: false, error: failure.error }, { status: failure.status })
 }
 
 export function dashboardMutationAuthErrorResponse(request: Request): Response | null {
@@ -143,4 +210,8 @@ export function dashboardMutationAuthErrorResponse(request: Request): Response |
     )
   }
   return null
+}
+
+export function legacyDashboardSessionCookieName(): string {
+  return LEGACY_SESSION_COOKIE
 }
