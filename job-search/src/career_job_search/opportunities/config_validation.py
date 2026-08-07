@@ -69,13 +69,19 @@ class CVOnlineConfig(BaseModel):
 
     @field_validator("queries")
     @classmethod
-    def queries_must_be_non_empty_when_enabled(cls, value: list[str], info: Any) -> list[str]:
+    def queries_must_be_non_empty_when_enabled(
+        cls, value: list[str], info: Any
+    ) -> list[str]:
         enabled = info.data.get("enabled", False)
         if enabled and (not value or not any(v.strip() for v in value)):
-            raise ValueError("'queries' must be a non-empty list of search terms when enabled.")
+            raise ValueError(
+                "'queries' must be a non-empty list of search terms when enabled."
+            )
         for i, item in enumerate(value):
             if not isinstance(item, str):
-                raise ValueError(f"queries[{i}] must be a string, got {type(item).__name__}.")
+                raise ValueError(
+                    f"queries[{i}] must be a string, got {type(item).__name__}."
+                )
             if item.strip() == "":
                 raise ValueError(f"queries[{i}] must not be empty.")
         return value
@@ -194,7 +200,12 @@ class LinkedInConfig(BaseModel):
     @field_validator("mode")
     @classmethod
     def mode_must_be_valid(cls, value: str) -> str:
-        valid = {"local_profile", "connected_chrome", "chrome_session", "external_browser"}
+        valid = {
+            "local_profile",
+            "connected_chrome",
+            "chrome_session",
+            "external_browser",
+        }
         if value.casefold() not in valid:
             raise ValueError(f"mode must be one of {valid}, got '{value}'.")
         return value
@@ -210,7 +221,9 @@ class JobBoardConfig(BaseModel):
 
     @field_validator("links")
     @classmethod
-    def links_must_be_objects_not_strings(cls, value: list[Any]) -> list[dict[str, Any]]:
+    def links_must_be_objects_not_strings(
+        cls, value: list[Any]
+    ) -> list[dict[str, Any]]:
         if not isinstance(value, list):
             raise ValueError("'links' must be a list.")
         for i, item in enumerate(value):
@@ -243,7 +256,9 @@ class WebSearchConfig(BaseModel):
 
     @field_validator("links")
     @classmethod
-    def links_must_be_objects_not_strings(cls, value: list[Any]) -> list[dict[str, Any]]:
+    def links_must_be_objects_not_strings(
+        cls, value: list[Any]
+    ) -> list[dict[str, Any]]:
         if not isinstance(value, list):
             raise ValueError("'links' must be a list.")
         for i, item in enumerate(value):
@@ -317,7 +332,9 @@ class OpportunitiesConfig(BaseModel):
     # --- sources ---
     inbox: InboxConfig = Field(default_factory=InboxConfig)
     ats: ATSConfig = Field(default_factory=ATSConfig)
-    company_watchlist: CompanyWatchlistConfig = Field(default_factory=CompanyWatchlistConfig)
+    company_watchlist: CompanyWatchlistConfig = Field(
+        default_factory=CompanyWatchlistConfig
+    )
     linkedin: LinkedInConfig = Field(default_factory=LinkedInConfig)
     job_board: JobBoardConfig = Field(default_factory=JobBoardConfig)
     web_search: WebSearchConfig = Field(default_factory=WebSearchConfig)
@@ -348,7 +365,6 @@ def _format_validation_error(exc: Exception, context_path: str = "") -> str:
 
     Extracts the field path and error detail from Pydantic errors.
     """
-    import json
     from pydantic_core import ValidationError
 
     if not isinstance(exc, ValidationError):
@@ -411,9 +427,16 @@ def canonicalise_opportunities_config(raw: dict[str, Any]) -> dict[str, Any]:
         # Apply field aliases within this source and detect field collisions
         aliased_block = dict(source_block)
         if source_name in _FIELD_ALIASES or canonical_name in _FIELD_ALIASES:
-            field_map = _FIELD_ALIASES.get(source_name) or _FIELD_ALIASES.get(canonical_name) or {}
+            field_map = (
+                _FIELD_ALIASES.get(source_name)
+                or _FIELD_ALIASES.get(canonical_name)
+                or {}
+            )
             for alias_name, canonical_field_name in field_map.items():
-                if alias_name in aliased_block and canonical_field_name in aliased_block:
+                if (
+                    alias_name in aliased_block
+                    and canonical_field_name in aliased_block
+                ):
                     raise ValueError(
                         f"Field alias collision in '{canonical_name}': "
                         f"cannot have both '{alias_name}' and '{canonical_field_name}'. "
@@ -433,7 +456,9 @@ def canonicalise_opportunities_config(raw: dict[str, Any]) -> dict[str, Any]:
         validated = OpportunitiesConfig.model_validate(payload)
         return {
             "opportunities": {
-                "sources": validated.model_dump(exclude_unset=False, exclude_defaults=False),
+                "sources": validated.model_dump(
+                    exclude_unset=False, exclude_defaults=False
+                ),
                 **{k: v for k, v in payload.items() if k not in canonical_sources},
             }
         }
@@ -486,7 +511,9 @@ def load_and_validate_config(path: str | None) -> dict[str, Any]:
         raise ValueError(f"Failed to parse YAML from {p}: {exc}") from exc
 
     if not isinstance(data, dict):
-        raise ValueError("Opportunity config must be a mapping (dict), not a list or string.")
+        raise ValueError(
+            "Opportunity config must be a mapping (dict), not a list or string."
+        )
 
     # Canonicalise and validate
     return canonicalise_opportunities_config(data)
@@ -526,7 +553,7 @@ def suggest_source_fixes(raw: dict[str, Any]) -> list[str]:
 
     sources_block = (raw.get("opportunities") or {}).get("sources") or {}
 
-    for source_name, model_cls in sources_to_check.items():
+    for source_name, _model_cls in sources_to_check.items():
         config_block = sources_block.get(source_name, {})
         if not config_block:
             continue

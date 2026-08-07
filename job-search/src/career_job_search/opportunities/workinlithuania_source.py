@@ -14,6 +14,7 @@ from career_job_search.opportunities.models import (
     OpportunityEvidence,
     OpportunitySourceKind,
 )
+from career_job_search.opportunities.sources.base import SourceDiscovery
 
 DEFAULT_API_URL = "https://jobs.workinlithuania.com/api/job-offers"
 DEFAULT_CITY_IDS = (2, 14)
@@ -35,7 +36,7 @@ _JOB_PATH_RE = re.compile(r"^/job-offers/(\d+)(?:-[^/]*)?/?$")
 
 
 @dataclass
-class WorkInLithuaniaSourceDiscovery:
+class WorkInLithuaniaSourceDiscovery(SourceDiscovery):
     opportunities: list[Opportunity] = field(default_factory=list)
     complete: bool = True
     status: str | None = None

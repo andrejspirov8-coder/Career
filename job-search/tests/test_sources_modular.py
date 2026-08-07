@@ -5,6 +5,7 @@ from career_job_search.opportunities.sources import (
     discover_opportunities_with_results,
 )
 
+
 def test_sources_package_exports():
     assert DiscoveryBatch is not None
     assert SourceDiscovery is not None

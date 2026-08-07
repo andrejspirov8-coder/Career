@@ -336,7 +336,9 @@ def _cvbankas_page(cards: list[str], *, max_page: int = 1) -> str:
         f'<a href="https://www.cvbankas.lt/?page={page}">{page}</a>'
         for page in range(1, max_page + 1)
     )
-    return f"<html><body>{''.join(cards)}<ul class=\"pages_ul\">{paging}</ul></body></html>"
+    return (
+        f'<html><body>{"".join(cards)}<ul class="pages_ul">{paging}</ul></body></html>'
+    )
 
 
 def test_cvbankas_uses_exact_bounded_search_and_keeps_public_card_fields() -> None:
@@ -509,7 +511,7 @@ def test_lithuania_board_source_results_use_safe_reconciliation_modes(
         source_kind=OpportunitySourceKind.JOB_BOARD,
         native_source_id="701",
         source_url=(
-            "https://jobs.workinlithuania.com/" "job-offers/701-operations-manager"
+            "https://jobs.workinlithuania.com/job-offers/701-operations-manager"
         ),
         title="Operations Manager",
         company="Work Company",

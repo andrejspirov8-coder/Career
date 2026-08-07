@@ -19,6 +19,7 @@ from career_job_search.opportunities.models import (
     OpportunitySourceKind,
 )
 from career_job_search.opportunities.normalization import infer_remote_policy
+from career_job_search.opportunities.sources.base import SourceDiscovery
 
 DEFAULT_FETCH_TIMEOUT_SECONDS = 20
 DEFAULT_CVMARKET_RSS_URL = "https://www.cvmarket.lt/rss-listings.xml"
@@ -38,7 +39,7 @@ _COMPANY_ACRONYMS = {
 
 
 @dataclass
-class CvMarketSourceDiscovery:
+class CvMarketSourceDiscovery(SourceDiscovery):
     opportunities: list[Opportunity] = field(default_factory=list)
     complete: bool = True
     status: str | None = None

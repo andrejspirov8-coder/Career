@@ -16,6 +16,7 @@ from career_job_search.opportunities.models import (
     OpportunityEvidence,
     OpportunitySourceKind,
 )
+from career_job_search.opportunities.sources.base import SourceDiscovery
 from career_job_search.opportunities.uzt_live_source import (
     discover_uzt_live_search_source,
 )
@@ -48,7 +49,7 @@ _UZT_PUBLIC_FIELDS = (
 
 
 @dataclass
-class UztSourceDiscovery:
+class UztSourceDiscovery(SourceDiscovery):
     opportunities: list[Opportunity] = field(default_factory=list)
     complete: bool = True
     status: str | None = None

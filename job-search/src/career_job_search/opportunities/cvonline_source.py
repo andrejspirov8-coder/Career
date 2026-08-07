@@ -17,6 +17,7 @@ from career_job_search.opportunities.models import (
     OpportunityEvidence,
     OpportunitySourceKind,
 )
+from career_job_search.opportunities.sources.base import SourceDiscovery
 
 DEFAULT_CVONLINE_SEARCH_URL = "https://www.cvonline.lt/lt/search"
 DEFAULT_FETCH_TIMEOUT_SECONDS = 20
@@ -38,7 +39,7 @@ _CONTACT_SECTION_RE = re.compile(
 
 
 @dataclass
-class CvOnlineSourceDiscovery:
+class CvOnlineSourceDiscovery(SourceDiscovery):
     opportunities: list[Opportunity] = field(default_factory=list)
     complete: bool = True
     status: str | None = None

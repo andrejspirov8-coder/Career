@@ -28,7 +28,7 @@ def test_discovery_reports_partial_ats_failure_without_hiding_good_source(
             ]
         }
 
-    monkeypatch.setattr(sources, "fetch_json", fake_fetch)
+    monkeypatch.setattr(sources.providers, "fetch_json", fake_fetch)
     config = {
         "opportunities": {
             "sources": {
@@ -68,7 +68,7 @@ def test_discovery_reports_partial_ats_failure_without_hiding_good_source(
 
 def test_ats_cap_is_applied_after_location_filtering(monkeypatch) -> None:
     monkeypatch.setattr(
-        sources,
+        sources.providers,
         "fetch_json",
         lambda _url, *, timeout: {
             "jobs": [
@@ -174,7 +174,9 @@ def test_connected_chrome_mode_delegates_discovery_to_browser_automation(
     def should_not_open_local_profile(_config: dict[str, object]) -> list[object]:
         raise AssertionError("connected Chrome mode must not launch a local profile")
 
-    monkeypatch.setattr(sources, "discover_linkedin_jobs", should_not_open_local_profile)
+    monkeypatch.setattr(
+        sources, "discover_linkedin_jobs", should_not_open_local_profile
+    )
 
     batch = sources.discover_opportunities_with_results(
         {

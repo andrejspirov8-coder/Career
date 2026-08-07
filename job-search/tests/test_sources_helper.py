@@ -12,7 +12,9 @@ EXAMPLE_CONFIG = Path("config/opportunities.example.yaml")
 def _run(*args: str) -> subprocess.CompletedProcess:
     return subprocess.run(
         ["uv", "run", "python", HELPER, *args],
-        capture_output=True, text=True, cwd=".",
+        capture_output=True,
+        text=True,
+        cwd=".",
     )
 
 
@@ -63,7 +65,10 @@ def test_save_and_show_round_trip():
             "opportunities": {
                 "sources": {
                     "inbox": {"enabled": True, "path": "inbox/test"},
-                    "cvmarket_rss": {"enabled": False, "feed_url": "https://example.com/rss"},
+                    "cvmarket_rss": {
+                        "enabled": False,
+                        "feed_url": "https://example.com/rss",
+                    },
                 },
             },
         }
@@ -121,7 +126,10 @@ def test_show_reads_user_config_over_example():
         result = _run("show")
         payload = json.loads(result.stdout)
         assert payload["data"]["opportunities"]["sources"]["inbox"]["enabled"] is False
-        assert payload["data"]["opportunities"]["sources"]["inbox"]["path"] == "custom/path"
+        assert (
+            payload["data"]["opportunities"]["sources"]["inbox"]["path"]
+            == "custom/path"
+        )
     finally:
         if backup is not None:
             USER_CONFIG.write_text(backup, encoding="utf-8")

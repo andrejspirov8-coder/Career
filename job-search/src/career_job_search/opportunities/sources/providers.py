@@ -1,35 +1,23 @@
-"""Local-first opportunity source adapters."""
+"""Per-portal feed providers and fetch helpers for opportunity discovery.
+
+The public ``discover_*`` callables wired into :data:`SOURCE_ADAPTERS` and
+re-exported from the ``sources`` package. Kept separate from the registry
+orchestration so the package ``__init__`` stays under the module-size bound.
+"""
 
 from __future__ import annotations
 
+import json
 import logging
 import time
-import json
-import re
-from dataclasses import dataclass, field
+from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
-from time import perf_counter, sleep
+from time import sleep
 from typing import Any
 from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
-
-logger = logging.getLogger(__name__)
-
-# Retry configuration for external API calls.
-# ATS providers (Greenhouse, Lever, Ashby, SmartRecruiters) throttle
-# aggressively; transient 5xx failures should not crash the entire batch.
-MAX_ATS_RETRIES = 3
-ATS_RETRY_BASE_DELAY_S = 1.0
-ATS_RETRY_MAX_DELAY_S = 8.0
-FETCH_RETRY_COUNT = 3
-FETCH_RETRY_BASE_DELAY_S = 0.5
-FETCH_RETRY_MAX_DELAY_S = 4.0
 
 from career_job_search.cvs.matching import JOB_ROOT, parse_job_file
-from career_job_search.integrations.linkedin.opportunities import (
-    discover_linkedin_jobs,
-)
 from career_job_search.opportunities.ats_normalization import (
     _payload_rows,
     _provider_slug,
@@ -54,10 +42,9 @@ from career_job_search.opportunities.models import (
     OpportunityEvidence,
     OpportunitySourceKind,
     OpportunityStatus,
-    company_title_location_key,
-    normalise_url,
 )
 from career_job_search.opportunities.normalization import infer_remote_policy
+from career_job_search.opportunities.sources.base import SourceDiscovery
 from career_job_search.opportunities.uzt_source import (
     discover_uzt_open_data_source,
 )
@@ -65,15 +52,20 @@ from career_job_search.opportunities.workinlithuania_source import (
     discover_workinlithuania_public_search_source,
 )
 
+logger = logging.getLogger(__name__)
+
+# Retry configuration for external API calls.
+# ATS providers (Greenhouse, Lever, Ashby, SmartRecruiters) throttle
+# aggressively; transient 5xx failures should not crash the entire batch.
+MAX_ATS_RETRIES = 3
+ATS_RETRY_BASE_DELAY_S = 1.0
+ATS_RETRY_MAX_DELAY_S = 8.0
+FETCH_RETRY_COUNT = 3
+FETCH_RETRY_BASE_DELAY_S = 0.5
+FETCH_RETRY_MAX_DELAY_S = 4.0
+
 DEFAULT_INBOX_JOBS = JOB_ROOT / "inbox" / "jobs"
 DEFAULT_FETCH_TIMEOUT_SECONDS = 20
-
-
-from career_job_search.opportunities.sources_package.base import (
-    DiscoveryBatch,
-    SourceDiscovery,
-    SourceResult,
-)
 
 
 def _source_cfg(config: dict[str, Any], name: str) -> dict[str, Any]:
@@ -206,16 +198,16 @@ def _rate_limited_fetcher(
     timeout = int(block.get("network_timeout_seconds") or DEFAULT_FETCH_TIMEOUT_SECONDS)
 
     if use_json:
+
         def _json_limited(url: str, **kwargs: Any) -> Any:  # type: ignore[no-untyped-def]
-            return fetch_json_limited(
-                url, timeout=timeout, rate_limit_seconds=rate
-            )
+            return fetch_json_limited(url, timeout=timeout, rate_limit_seconds=rate)
+
         return _json_limited, rate
     else:
+
         def _text_limited(url: str, **kwargs: Any) -> str:  # type: ignore[no-untyped-def]
-            return fetch_text_limited(
-                url, timeout=timeout, rate_limit_seconds=rate
-            )
+            return fetch_text_limited(url, timeout=timeout, rate_limit_seconds=rate)
+
         return _text_limited, rate
 
 
@@ -261,7 +253,9 @@ def discover_workinlithuania_public_search(
     *,
     now: datetime | None = None,
 ) -> SourceDiscovery:
-    fetcher, _ = _rate_limited_fetcher(config, "workinlithuania_public_search", use_json=True)
+    fetcher, _ = _rate_limited_fetcher(
+        config, "workinlithuania_public_search", use_json=True
+    )
     return discover_workinlithuania_public_search_source(
         config,
         fetcher=fetcher,
@@ -523,268 +517,6 @@ def discover_link_list(
     return rows
 
 
-def discover_opportunities(config: dict[str, Any]) -> list[Opportunity]:
-    return discover_opportunities_with_results(config).opportunities
-
-
-def discover_opportunities_with_results(config: dict[str, Any]) -> DiscoveryBatch:
-    batch = DiscoveryBatch()
-
-    inbox = _source_cfg(config, "inbox")
-    if _enabled(inbox, default=True):
-        _collect_source(
-            batch,
-            source="inbox",
-            snapshot_type="snapshot",
-            discover=lambda: discover_inbox_opportunities(config),
-        )
-
-    watchlist = _source_cfg(config, "company_watchlist")
-    if _enabled(watchlist, default=False):
-        _collect_source(
-            batch,
-            source="company_watchlist",
-            snapshot_type="snapshot",
-            result_status="monitor_only",
-            discover=lambda: discover_company_watchlist(config),
-        )
-
-    ats = _source_cfg(config, "ats")
-    if _enabled(ats, default=False):
-        timeout = int(
-            ats.get("network_timeout_seconds") or DEFAULT_FETCH_TIMEOUT_SECONDS
-        )
-        for provider_config in ats.get("providers") or []:
-            if not isinstance(provider_config, dict) or not _enabled(
-                provider_config, default=True
-            ):
-                continue
-            provider = str(provider_config.get("provider") or "").strip().lower()
-            slug = _provider_slug(
-                provider_config,
-                "board_token",
-                "company_slug",
-                "job_board_name",
-                "company_identifier",
-            )
-            _collect_source(
-                batch,
-                source=_provider_source_name(provider, slug),
-                snapshot_type="snapshot",
-                complete=not bool(provider_config.get("max_posts")),
-                discover=lambda cfg=provider_config: discover_live_ats_provider(
-                    cfg, timeout=timeout
-                ),
-            )
-        fixture_rows = _discover_ats_fixture_opportunities(ats)
-        if ats.get("fixtures"):
-            batch.opportunities.extend(fixture_rows)
-            batch.source_results.append(
-                SourceResult(
-                    source="ats:fixtures",
-                    status="success" if fixture_rows else "empty",
-                    snapshot_type="snapshot",
-                    item_count=len(fixture_rows),
-                    duration_ms=0,
-                    complete=True,
-                )
-            )
-
-    linkedin = _source_cfg(config, "linkedin")
-    linkedin_mode = str(linkedin.get("mode") or "local_profile").strip().casefold()
-    if _enabled(linkedin, default=False) and linkedin_mode not in {
-        "connected_chrome",
-        "chrome_session",
-        "external_browser",
-    }:
-        _collect_source(
-            batch,
-            source="linkedin",
-            snapshot_type="snapshot",
-            discover=lambda: discover_linkedin_jobs(config),
-        )
-
-    for name, kind in (
-        ("job_board", OpportunitySourceKind.JOB_BOARD),
-        ("web_search", OpportunitySourceKind.WEB_SEARCH),
-    ):
-        block = _source_cfg(config, name)
-        if _enabled(block, default=False):
-            _collect_source(
-                batch,
-                source=name,
-                snapshot_type="snapshot",
-                discover=lambda source_name=name, source_kind=kind: discover_link_list(
-                    config, source_name, source_kind
-                ),
-            )
-
-    cvmarket = _source_cfg(config, "cvmarket_rss")
-    if _enabled(cvmarket, default=False):
-        _collect_discovery_source(
-            batch,
-            source="cvmarket",
-            snapshot_type="incremental",
-            discover=lambda: discover_cvmarket_rss(config),
-        )
-
-    cvonline = _source_cfg(config, "cvonline_public_search")
-    if _enabled(cvonline, default=False):
-        _collect_discovery_source(
-            batch,
-            source="cvonline",
-            snapshot_type="incremental",
-            discover=lambda: discover_cvonline_public_search(config),
-        )
-
-    cvbankas = _source_cfg(config, "cvbankas_public_search")
-    if _enabled(cvbankas, default=False):
-        _collect_discovery_source(
-            batch,
-            source="cvbankas",
-            snapshot_type="incremental",
-            discover=lambda: discover_cvbankas_public_search(config),
-        )
-
-    workinlithuania = _source_cfg(config, "workinlithuania_public_search")
-    if _enabled(workinlithuania, default=False):
-        _collect_discovery_source(
-            batch,
-            source="workinlithuania",
-            snapshot_type="snapshot",
-            discover=lambda: discover_workinlithuania_public_search(config),
-        )
-
-    uzt = _source_cfg(config, "uzt_open_data")
-    if _enabled(uzt, default=False):
-        _collect_discovery_source(
-            batch,
-            source="uzt_open_data",
-            snapshot_type="incremental",
-            discover=lambda: discover_uzt_open_data(config),
-        )
-
-    company_careers = _source_cfg(config, "official_company_careers")
-    if _enabled(company_careers, default=False):
-        for company_config in company_careers.get("companies") or []:
-            if not isinstance(company_config, dict) or not _enabled(
-                company_config, default=True
-            ):
-                continue
-            provider = str(company_config.get("provider") or "").strip().casefold()
-            _collect_discovery_source(
-                batch,
-                source=f"company_careers:{provider}",
-                snapshot_type="snapshot",
-                discover=lambda cfg=company_config: (
-                    discover_official_company_careers(config, cfg)
-                ),
-            )
-
-    batch.opportunities = dedupe_opportunities(batch.opportunities)
-    return batch
-
-
-def _discover_ats_fixture_opportunities(block: dict[str, Any]) -> list[Opportunity]:
-    rows: list[Opportunity] = []
-    for fixture in block.get("fixtures") or []:
-        if not isinstance(fixture, dict):
-            continue
-        provider = str(fixture.get("provider") or "")
-        company = str(fixture.get("company") or "")
-        path = Path(str(fixture.get("path") or ""))
-        if not provider or not path.exists():
-            continue
-        data = json.loads(path.read_text(encoding="utf-8"))
-        postings = data if isinstance(data, list) else data.get("jobs") or []
-        for item in postings:
-            if isinstance(item, dict):
-                row = normalize_ats_posting(provider, item, company=company)
-                if classify_location_eligibility(row).eligibility != "ineligible":
-                    rows.append(_annotate_location(row))
-    return rows
-
-
-def _collect_source(
-    batch: DiscoveryBatch,
-    *,
-    source: str,
-    snapshot_type: str,
-    discover: Any,
-    complete: bool = True,
-    result_status: str | None = None,
-) -> None:
-    started = perf_counter()
-    try:
-        rows = discover()
-    except Exception as exc:
-        batch.source_results.append(
-            SourceResult(
-                source=source,
-                status="failed",
-                snapshot_type=snapshot_type,
-                item_count=0,
-                duration_ms=max(0, int((perf_counter() - started) * 1000)),
-                complete=False,
-                error=_redact_source_error(exc),
-            )
-        )
-        return
-    annotated = [_annotate_location(row) for row in rows]
-    batch.opportunities.extend(annotated)
-    batch.source_results.append(
-        SourceResult(
-            source=source,
-            status=result_status or ("success" if annotated else "empty"),
-            snapshot_type=snapshot_type,
-            item_count=len(annotated),
-            duration_ms=max(0, int((perf_counter() - started) * 1000)),
-            complete=complete,
-        )
-    )
-
-
-def _collect_discovery_source(
-    batch: DiscoveryBatch,
-    *,
-    source: str,
-    snapshot_type: str,
-    discover: Any,
-) -> None:
-    started = perf_counter()
-    try:
-        discovery = discover()
-    except Exception as exc:
-        batch.source_results.append(
-            SourceResult(
-                source=source,
-                status="failed",
-                snapshot_type=snapshot_type,
-                item_count=0,
-                duration_ms=max(0, int((perf_counter() - started) * 1000)),
-                complete=False,
-                error=_redact_source_error(exc),
-            )
-        )
-        return
-    rows = list(getattr(discovery, "opportunities", []))
-    annotated = [_annotate_location(row) for row in rows]
-    batch.opportunities.extend(annotated)
-    status = getattr(discovery, "status", None) or (
-        "success" if annotated else "empty"
-    )
-    batch.source_results.append(
-        SourceResult(
-            source=source,
-            status=status,
-            snapshot_type=snapshot_type,
-            item_count=len(annotated),
-            duration_ms=max(0, int((perf_counter() - started) * 1000)),
-            complete=bool(getattr(discovery, "complete", True)),
-        )
-    )
-
-
 def _annotate_location(opportunity: Opportunity) -> Opportunity:
     result = classify_location_eligibility(opportunity)
     opportunity.location_eligibility = result.eligibility
@@ -792,55 +524,3 @@ def _annotate_location(opportunity: Opportunity) -> Opportunity:
     if not opportunity.remote_policy and result.work_mode != "unknown":
         opportunity.remote_policy = result.work_mode
     return opportunity
-
-
-def _redact_source_error(error: object) -> str:
-    text = " ".join(str(error or "").split())
-    text = re.sub(
-        r"(?i)\b(token|api[_-]?key|password|secret)\s*[:=]\s*([^\s,;]+)",
-        r"\1=[redacted]",
-        text,
-    )
-    return text[:240]
-
-
-def _dedupe_keys(opportunity: Opportunity) -> list[str]:
-    keys: list[str] = []
-    url = normalise_url(opportunity.source_url)
-    if url:
-        keys.append(f"url:{url}")
-    ctl = company_title_location_key(
-        opportunity.company, opportunity.title, opportunity.location
-    )
-    if ctl != "ctl:":
-        keys.append(ctl)
-    if not keys:
-        keys.append(opportunity.dedupe_key)
-    return keys
-
-
-def dedupe_opportunities(rows: list[Opportunity]) -> list[Opportunity]:
-    unique: list[Opportunity] = []
-    key_to_index: dict[str, int] = {}
-    for row in rows:
-        keys = _dedupe_keys(row)
-        matched_index = next(
-            (key_to_index[key] for key in keys if key in key_to_index), None
-        )
-        if matched_index is None:
-            key_to_index.update({key: len(unique) for key in keys})
-            row.duplicate_cluster_id = row.duplicate_cluster_id or row.opportunity_id
-            unique.append(row)
-            continue
-        existing = unique[matched_index]
-        flags = list(dict.fromkeys([*existing.evidence.risk_flags, "duplicate"]))
-        existing.evidence.risk_flags = flags
-        existing.duplicate_cluster_id = (
-            existing.duplicate_cluster_id or existing.opportunity_id
-        )
-        existing.evidence.source_facts = list(
-            dict.fromkeys([*existing.evidence.source_facts, *row.evidence.source_facts])
-        )
-        for key in keys:
-            key_to_index[key] = matched_index
-    return unique

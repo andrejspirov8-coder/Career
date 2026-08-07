@@ -42,7 +42,7 @@ def test_cvmarket_official_rss_imports_only_configured_vilnius_rows(
 </rss>
 """
     monkeypatch.setattr(
-        sources,
+        sources.providers,
         "fetch_text",
         lambda _url, *, timeout: rss,
     )
@@ -81,7 +81,7 @@ def test_cvmarket_feed_age_is_reported_as_stale(monkeypatch) -> None:
 </rss>
 """
     monkeypatch.setattr(
-        sources,
+        sources.providers,
         "fetch_text",
         lambda _url, *, timeout: rss,
     )
@@ -158,7 +158,7 @@ def test_uzt_open_data_requests_no_contact_columns_and_redacts_description(
             ]
         }
 
-    monkeypatch.setattr(sources, "fetch_json", fake_fetch)
+    monkeypatch.setattr(sources.providers, "fetch_json", fake_fetch)
     result = sources.discover_uzt_open_data(
         _source_config(
             "uzt_open_data",
@@ -201,7 +201,7 @@ def test_uzt_open_data_requests_no_contact_columns_and_redacts_description(
 
 def test_uzt_old_publication_date_marks_feed_and_rows_stale(monkeypatch) -> None:
     monkeypatch.setattr(
-        sources,
+        sources.providers,
         "fetch_json",
         lambda _url, *, timeout: {
             "_data": [
@@ -237,7 +237,7 @@ def test_uzt_stale_open_data_uses_current_official_search_fallback(
     monkeypatch,
 ) -> None:
     monkeypatch.setattr(
-        sources,
+        sources.providers,
         "fetch_json",
         lambda _url, *, timeout: {
             "_data": [
@@ -283,7 +283,7 @@ def test_uzt_stale_open_data_uses_current_official_search_fallback(
         seen_urls.append(url)
         return current_search
 
-    monkeypatch.setattr(sources, "fetch_text", fake_text_fetch)
+    monkeypatch.setattr(sources.providers, "fetch_text", fake_text_fetch)
     result = sources.discover_uzt_open_data(
         _source_config(
             "uzt_open_data",
@@ -309,7 +309,7 @@ def test_uzt_stale_open_data_uses_current_official_search_fallback(
     assert row.source == "uzt_open_data"
     assert row.native_source_id == "DV-01-996740623"
     assert row.source_url == (
-        "https://uzt.lt/laisvos-darbo-vietos/436/" "skelbimas/DV-01-996740623"
+        "https://uzt.lt/laisvos-darbo-vietos/436/skelbimas/DV-01-996740623"
     )
     assert row.title == "Procesų valdymo vadovas"
     assert row.company == "LTG, AB"
@@ -333,11 +333,12 @@ def test_uzt_open_data_failure_uses_current_official_search_fallback(
         del timeout
         raise OSError("HTTP 500")
 
-    monkeypatch.setattr(sources, "fetch_json", failed_open_data)
+    monkeypatch.setattr(sources.providers, "fetch_json", failed_open_data)
     monkeypatch.setattr(
-        sources,
+        sources.providers,
         "fetch_text",
-        lambda _url, *, timeout: """\
+        lambda _url, *, timeout: (
+            """\
 <html><body>
   <a class="list__item"
      href="/laisvos-darbo-vietos/436/skelbimas/DV-01-996740624">
@@ -349,7 +350,8 @@ def test_uzt_open_data_failure_uses_current_official_search_fallback(
     <div class="contact">private.person@example.lt +370 612 34567</div>
   </a>
 </body></html>
-""",
+"""
+        ),
     )
 
     result = sources.discover_uzt_open_data(
@@ -377,7 +379,7 @@ def test_uzt_open_data_failure_uses_current_official_search_fallback(
 
 def test_uzt_live_fallback_must_remain_on_official_domain(monkeypatch) -> None:
     monkeypatch.setattr(
-        sources,
+        sources.providers,
         "fetch_json",
         lambda _url, *, timeout: {
             "_data": [
@@ -397,7 +399,7 @@ def test_uzt_live_fallback_must_remain_on_official_domain(monkeypatch) -> None:
         live_fetch_called = True
         return ""
 
-    monkeypatch.setattr(sources, "fetch_text", fake_text_fetch)
+    monkeypatch.setattr(sources.providers, "fetch_text", fake_text_fetch)
 
     with pytest.raises(ValueError, match="official HTTPS vacancy search"):
         sources.discover_uzt_open_data(
@@ -419,7 +421,7 @@ def test_uzt_live_fallback_follows_bounded_official_pagination(
     monkeypatch,
 ) -> None:
     monkeypatch.setattr(
-        sources,
+        sources.providers,
         "fetch_json",
         lambda _url, *, timeout: {
             "_data": [
@@ -472,7 +474,7 @@ def test_uzt_live_fallback_follows_bounded_official_pagination(
             )
         return card("DV-01-PAGE-1", "First page", next_page=True)
 
-    monkeypatch.setattr(sources, "fetch_text", fake_text_fetch)
+    monkeypatch.setattr(sources.providers, "fetch_text", fake_text_fetch)
     result = sources.discover_uzt_open_data(
         _source_config(
             "uzt_open_data",
@@ -504,7 +506,7 @@ def test_uzt_stale_live_page_does_not_override_stale_open_data(
     monkeypatch,
 ) -> None:
     monkeypatch.setattr(
-        sources,
+        sources.providers,
         "fetch_json",
         lambda _url, *, timeout: {
             "_data": [
@@ -527,7 +529,7 @@ def test_uzt_stale_live_page_does_not_override_stale_open_data(
 </a>
 """
     monkeypatch.setattr(
-        sources,
+        sources.providers,
         "fetch_text",
         lambda _url, *, timeout: stale_search,
     )
@@ -552,7 +554,7 @@ def test_uzt_deadline_filter_uses_vilnius_calendar_date(monkeypatch) -> None:
         seen_query.update(parse_qs(urlsplit(url).query))
         return {"_data": []}
 
-    monkeypatch.setattr(sources, "fetch_json", fake_fetch)
+    monkeypatch.setattr(sources.providers, "fetch_json", fake_fetch)
     sources.discover_uzt_open_data(
         _source_config(
             "uzt_open_data",

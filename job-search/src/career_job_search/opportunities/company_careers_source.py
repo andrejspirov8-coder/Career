@@ -18,6 +18,7 @@ from career_job_search.opportunities.models import (
     OpportunityStatus,
 )
 from career_job_search.opportunities.normalization import infer_remote_policy
+from career_job_search.opportunities.sources.base import SourceDiscovery
 
 DEFAULT_FETCH_TIMEOUT_SECONDS = 30
 DEFAULT_MAX_PAGE_CHARS = 12_000_000
@@ -54,7 +55,7 @@ _EURO_RANGE_RE = re.compile(
 
 
 @dataclass
-class CompanyCareersSourceDiscovery:
+class CompanyCareersSourceDiscovery(SourceDiscovery):
     opportunities: list[Opportunity] = field(default_factory=list)
     complete: bool = True
     status: str | None = None

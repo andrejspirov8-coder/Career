@@ -28,7 +28,6 @@ from career_job_search.opportunities.dashboard_adapter import (
 )
 from career_job_search.opportunities.error_classifier import (
     classify_all_results,
-    generate_summary_text,
 )
 from career_job_search.opportunities.live import (
     DEFAULT_LIVE_CHECK_MAX_CANDIDATES,
@@ -36,6 +35,7 @@ from career_job_search.opportunities.live import (
     apply_daily_live_gate,
 )
 from career_job_search.opportunities.matching import match_opportunities
+from career_job_search.opportunities.models import OpportunityStatus
 from career_job_search.opportunities.preferences import (
     apply_search_preferences,
     load_search_preferences,
@@ -53,10 +53,11 @@ from career_job_search.opportunities.repository import (
     upsert_opportunities,
 )
 from career_job_search.opportunities.sources import discover_opportunities_with_results
-from career_job_search.opportunities.models import OpportunityStatus
 
 JOB_ROOT = project_path()
 DEFAULT_CONFIG = project_path("config", "opportunities.example.yaml")
+
+
 def json_response(payload: dict[str, Any]) -> None:
     print(helper_json(payload, indent=2))
 
@@ -74,6 +75,7 @@ def load_config(path: Path | None) -> dict[str, Any]:
         # If validation fails, try to add fix suggestions for operator guidance
         if path and path.exists():
             import yaml
+
             try:
                 raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
                 if isinstance(raw, dict):
@@ -81,7 +83,7 @@ def load_config(path: Path | None) -> dict[str, Any]:
                     if suggestions:
                         lines: list[str] = [f"{exc}"] + ["\n" + s for s in suggestions]
                         raise ValueError("\n".join(lines)) from exc
-            except Exception:
+            except Exception:  # noqa: S110  # try each candidate config path; re-raise the last failure after the loop
                 pass
         raise
 
@@ -138,7 +140,12 @@ def cmd_match(args: argparse.Namespace) -> int:
                 or row.live_checked_at.startswith(since)
                 or row.match is None
                 or row.match.score < 10
-                or row.status in {OpportunityStatus.NEW, OpportunityStatus.MATCHED, OpportunityStatus.REVIEW}
+                or row.status
+                in {
+                    OpportunityStatus.NEW,
+                    OpportunityStatus.MATCHED,
+                    OpportunityStatus.REVIEW,
+                }
             )
         ]
     else:

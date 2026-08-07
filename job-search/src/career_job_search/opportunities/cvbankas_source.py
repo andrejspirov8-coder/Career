@@ -15,6 +15,7 @@ from career_job_search.opportunities.models import (
     OpportunityEvidence,
     OpportunitySourceKind,
 )
+from career_job_search.opportunities.sources.base import SourceDiscovery
 
 DEFAULT_SEARCH_URL = "https://www.cvbankas.lt/"
 DEFAULT_LOCATION_IDS = (606, 502)
@@ -37,7 +38,7 @@ _VOID_TAGS = frozenset(
 
 
 @dataclass
-class CvBankasSourceDiscovery:
+class CvBankasSourceDiscovery(SourceDiscovery):
     opportunities: list[Opportunity] = field(default_factory=list)
     complete: bool = True
     status: str | None = None
