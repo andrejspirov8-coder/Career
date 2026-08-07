@@ -206,7 +206,7 @@ def compute_note_hash(note: str) -> str:
 
 def connect(db_path: Path | str = DEFAULT_STATE_DB) -> sqlite3.Connection:
     path = Path(db_path)
-    con = connect_sqlite(path, timeout_seconds=30.0, row_factory=True)
+    con = connect_sqlite(path, timeout_seconds=30.0, row_factory=True, wal=True)
     con.execute("PRAGMA journal_mode = WAL")
     con.execute("PRAGMA synchronous = NORMAL")
     # Ensure the setting is applied before the connection is returned. Some

@@ -438,7 +438,9 @@ def mark_unseen_linkedin_browser_unverified(
     if not snapshot_complete:
         return 0
     init_db(db_path)
-    seen = {str(value).strip() for value in seen_native_source_ids if str(value).strip()}
+    seen = {
+        str(value).strip() for value in seen_native_source_ids if str(value).strip()
+    }
     now = utc_now_iso()
     changed = 0
     preserved_statuses = {

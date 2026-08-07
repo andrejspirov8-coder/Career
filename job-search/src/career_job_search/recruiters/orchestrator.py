@@ -496,10 +496,13 @@ def cmd_dispatch(
     login_timeout_seconds: int | None = None,
 ) -> int:
     settings = load_settings()
-    effective_dry_run = bool(dry_run or (
-        not allow_live_dispatch
-        and (settings.runtime.mode == "dry_run" or settings.runtime.dry_run_default)
-    ))
+    effective_dry_run = bool(
+        dry_run
+        or (
+            not allow_live_dispatch
+            and (settings.runtime.mode == "dry_run" or settings.runtime.dry_run_default)
+        )
+    )
     max_profiles = validate_live_dispatch_max(
         max_profiles,
         dry_run=effective_dry_run,
@@ -618,12 +621,12 @@ def cmd_followup(headed: bool, config_path: Path) -> int:
         "--config",
         str(config_path),
     ]
-    return subprocess.call(cli)  # noqa: S603
+    return subprocess.call(cli)
 
 
 def cmd_report() -> int:
     cli = [sys.executable, str(TOOLS_DIR / "recruiter_performance.py")]
-    return subprocess.call(cli)  # noqa: S603
+    return subprocess.call(cli)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -707,7 +710,7 @@ def main(argv: list[str] | None = None) -> int:
                 cli.extend(["--browser-channel", parsed.browser_channel])
             if parsed.allow_live_dispatch:
                 cli.append("--allow-live-dispatch")
-            return subprocess.call(cli)  # noqa: S603
+            return subprocess.call(cli)
 
         login_timeout_seconds = parsed.login_timeout_seconds
         if parsed.dry_run and login_timeout_seconds is None:

@@ -22,9 +22,7 @@ def company_history(
         return {"sent": 0, "accepted": 0, "last_contact_at": ""}
     with recruiters_csv.open(encoding="utf-8", newline="") as handle:
         for row in csv.DictReader(handle):
-            row_company = (
-                row.get("company") or row.get("company_guess") or ""
-            ).lower()
+            row_company = (row.get("company") or row.get("company_guess") or "").lower()
             if company_key not in row_company and row_company not in company_key:
                 continue
             status = (row.get("status") or "").strip().lower()

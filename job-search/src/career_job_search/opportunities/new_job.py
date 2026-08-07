@@ -72,7 +72,10 @@ def main() -> None:
         print(f"\nValid sources: {', '.join(sorted(VALID_SOURCES))}")
         source = input("Source (or leave blank): ").strip().lower()
         if source and source not in VALID_SOURCES:
-            print(f"⚠️  Warning: source '{source}' not in standard list, but proceeding.", flush=True)
+            print(
+                f"⚠️  Warning: source '{source}' not in standard list, but proceeding.",
+                flush=True,
+            )
 
     except KeyboardInterrupt:
         print("\n❌ Cancelled.", file=sys.stderr)

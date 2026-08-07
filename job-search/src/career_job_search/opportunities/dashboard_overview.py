@@ -69,6 +69,7 @@ BEST_MATCH_BLOCKING_FLAGS = {
     "visa_location_risk",
 }
 
+
 def _annotate_possible_duplicates(rows: list[dict[str, Any]]) -> None:
     groups: dict[tuple[str, str, str], list[dict[str, Any]]] = {}
     for row in rows:
@@ -224,7 +225,9 @@ def _has_usable_cv_match(row: dict[str, Any]) -> bool:
     if cv_score < 10.0:
         return False
     confidence = str(match.get("confidence") or "")
-    return confidence == "clear_winner" and margin >= 5.0 or confidence == "tie_review"
+    return (
+        confidence == "clear_winner" and margin >= 5.0
+    ) or confidence == "tie_review"
 
 
 def _is_top_today_candidate(row: dict[str, Any]) -> bool:
@@ -232,11 +235,12 @@ def _is_top_today_candidate(row: dict[str, Any]) -> bool:
         return False
     if (
         not bool((row.get("preference") or {}).get("eligible", True))
-        or (row.get("preference") or {}).get("flags")
-        and "work_arrangement_not_selected"
-        in set((row.get("preference") or {}).get("flags") or [])
-        or
-        not _is_europe_fit(row)
+        or (
+            (row.get("preference") or {}).get("flags")
+            and "work_arrangement_not_selected"
+            in set((row.get("preference") or {}).get("flags") or [])
+        )
+        or not _is_europe_fit(row)
         or not _is_clean_best_match(row)
         or not _has_fresh_live_evidence(row)
         or not _has_usable_cv_match(row)

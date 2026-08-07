@@ -38,6 +38,7 @@ SCRYPT_N = 2**15
 SCRYPT_R = 8
 SCRYPT_P = 1
 
+
 def _allowed_backup_path(relative_path: PurePosixPath) -> bool:
     if relative_path.is_absolute() or ".." in relative_path.parts:
         return False
@@ -487,13 +488,13 @@ def restore_backup(
             if destination.is_symlink():
                 raise RuntimeError(
                     f"Refusing to restore over a symlinked destination: {destination}"
-                 )
+                )
             parent = destination.parent
             while parent != job_root.parent and str(parent) != str(job_root):
                 if parent.is_symlink():
                     raise RuntimeError(
                         f"Refusing to restore under a symlinked parent directory: {parent}"
-                     )
+                    )
                 parent = parent.parent
             destination.parent.mkdir(parents=True, exist_ok=True)
             temporary_destination = destination.with_name(

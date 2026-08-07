@@ -12,7 +12,9 @@ from typing import Any
 
 try:
     import yaml
-except ModuleNotFoundError:  # Keep Raycast usable when system Python cannot install packages.
+except (
+    ModuleNotFoundError
+):  # Keep Raycast usable when system Python cannot install packages.
     yaml = None
 
 from career_job_search.core.paths import project_path
@@ -169,7 +171,9 @@ def load_profiles(path: Path | None = None) -> dict[str, Any]:
     if not p.exists():
         raise FileNotFoundError(f"Missing profiles: {p}")
     raw = p.read_text(encoding="utf-8")
-    data = yaml.safe_load(raw) if yaml is not None else _parse_variant_profiles_yaml(raw)
+    data = (
+        yaml.safe_load(raw) if yaml is not None else _parse_variant_profiles_yaml(raw)
+    )
     variants = data.get("variants") if isinstance(data, dict) else None
     if not isinstance(variants, dict):
         raise ValueError("variant_profiles.yaml must contain a 'variants' mapping")
@@ -200,7 +204,9 @@ def _parse_variant_profiles_yaml(raw: str) -> dict[str, Any]:
             continue
 
         if current_slug is None:
-            raise ValueError(f"Unexpected profile content on line {line_number}: {raw_line}")
+            raise ValueError(
+                f"Unexpected profile content on line {line_number}: {raw_line}"
+            )
 
         if indent == 4 and ":" in stripped:
             key, _, value = stripped.partition(":")
@@ -214,7 +220,9 @@ def _parse_variant_profiles_yaml(raw: str) -> dict[str, Any]:
             continue
 
         if indent >= 6 and stripped.startswith("- ") and current_list_key:
-            variants[current_slug][current_list_key].append(_yaml_scalar(stripped[2:].strip()))
+            variants[current_slug][current_list_key].append(
+                _yaml_scalar(stripped[2:].strip())
+            )
             continue
 
         raise ValueError(f"Unsupported profile YAML on line {line_number}: {raw_line}")
@@ -223,7 +231,9 @@ def _parse_variant_profiles_yaml(raw: str) -> dict[str, Any]:
 
 
 def _yaml_scalar(value: str) -> str:
-    if (value.startswith('"') and value.endswith('"')) or (value.startswith("'") and value.endswith("'")):
+    if (value.startswith('"') and value.endswith('"')) or (
+        value.startswith("'") and value.endswith("'")
+    ):
         return value[1:-1]
     return value
 
@@ -309,7 +319,9 @@ def variant_markdown_path(slug: str, variants: dict[str, Any]) -> Path:
     return CV_DIR / rel
 
 
-def _keyword_score(keyword: str, jd_lower: str, title_boost_lower: str) -> tuple[float, int]:
+def _keyword_score(
+    keyword: str, jd_lower: str, title_boost_lower: str
+) -> tuple[float, int]:
     """Returns (weighted score, hit count capped)."""
     kw = keyword.lower().strip()
     if not kw or len(kw) < 2:
@@ -392,7 +404,9 @@ def score_variant(
     }
 
 
-def match_job_to_variants(parsed_job: dict[str, Any], variants: dict[str, Any]) -> dict[str, Any]:
+def match_job_to_variants(
+    parsed_job: dict[str, Any], variants: dict[str, Any]
+) -> dict[str, Any]:
     body = parsed_job.get("body") or ""
     tb = parsed_job.get("title_boost_region") or ""
     job_title_lower = str(parsed_job.get("title") or "").lower()
@@ -420,7 +434,11 @@ def match_job_to_variants(parsed_job: dict[str, Any], variants: dict[str, Any]) 
 
     scores.sort(key=lambda r: (r["primary_score"], r["tie_break_score"]), reverse=True)
     top = scores[0]
-    second = scores[1] if len(scores) > 1 else {"slug": "", "primary_score": 0.0, "tie_break_score": 0.0}
+    second = (
+        scores[1]
+        if len(scores) > 1
+        else {"slug": "", "primary_score": 0.0, "tie_break_score": 0.0}
+    )
 
     margin = float(round(top["primary_score"] - second["primary_score"], 4))
     if top["primary_score"] <= 0:
@@ -459,7 +477,9 @@ def keyword_gaps(
     JD token frequencies minus stopwords minus tokens appearing in variant markdown.
     Returns (sorted list (token, count), rationale lines).
     """
-    md_text = variant_markdown_path(chosen_slug, variants).read_text(encoding="utf-8").lower()
+    md_text = (
+        variant_markdown_path(chosen_slug, variants).read_text(encoding="utf-8").lower()
+    )
 
     jd_tokens_list = [m.group(0).lower() for m in TOKEN_RE.finditer(job_body)]
     freq: dict[str, int] = {}

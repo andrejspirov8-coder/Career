@@ -34,26 +34,54 @@ from career_job_search.opportunities.repository import (
 
 PACKS_DIR = project_path("packs")
 APPLICATION_COLUMNS = [
-    "date_iso", "company", "title", "variant_slug", "source", "outcome",
-    "deadline_date", "match_score", "match_confidence", "salary_range",
-    "tailored_cv", "response_date", "opportunity_id", "pack_dir",
-    "application_url", "notes",
+    "date_iso",
+    "company",
+    "title",
+    "variant_slug",
+    "source",
+    "outcome",
+    "deadline_date",
+    "match_score",
+    "match_confidence",
+    "salary_range",
+    "tailored_cv",
+    "response_date",
+    "opportunity_id",
+    "pack_dir",
+    "application_url",
+    "notes",
 ]
 SUBMITTED_OUTCOMES = {"applied", "screening", "interview", "offer", "rejected"}
 POSITIVE_OUTCOMES = {"interview", "offer"}
 SAFE_OPPORTUNITY_ACTIONS = [
-    "mark_review", "mark_skipped", "mark_apply_ready", "generate_pack",
-    "mark_applied", "log_application", "update_application_outcome",
-    "snooze_followup", "undo_last_decision",
+    "mark_review",
+    "mark_skipped",
+    "mark_apply_ready",
+    "generate_pack",
+    "mark_applied",
+    "log_application",
+    "update_application_outcome",
+    "snooze_followup",
+    "undo_last_decision",
 ]
 APPLICATION_OUTCOMES = {"screening", "interview", "offer", "rejected", "withdrawn"}
 SKIP_REASONS = {
-    "not_relevant", "location", "salary", "seniority", "company",
-    "duplicate", "closed", "other",
+    "not_relevant",
+    "location",
+    "salary",
+    "seniority",
+    "company",
+    "duplicate",
+    "closed",
+    "other",
 }
 REVERSIBLE_DECISION_ACTIONS = {
-    "mark_review", "mark_skipped", "mark_apply_ready", "snooze_followup",
+    "mark_review",
+    "mark_skipped",
+    "mark_apply_ready",
+    "snooze_followup",
 }
+
 
 def _pack_result(opportunity: Opportunity) -> dict[str, Any]:
     if not opportunity.match:
@@ -257,15 +285,21 @@ def _undo_last_decision(
     latest = history[0]
     action_type = str(latest.get("action_type") or "")
     if action_type not in REVERSIBLE_DECISION_ACTIONS:
-        raise ValueError("The latest action has file or application side effects and cannot be undone safely.")
+        raise ValueError(
+            "The latest action has file or application side effects and cannot be undone safely."
+        )
     current_status = opportunity.status.value
     if current_status != str(latest.get("new_status") or ""):
-        raise ValueError("This role changed after that decision, so it cannot be undone safely.")
+        raise ValueError(
+            "This role changed after that decision, so it cannot be undone safely."
+        )
     old_status = str(latest.get("old_status") or "")
     try:
         opportunity.status = OpportunityStatus(old_status)
     except ValueError as exc:
-        raise ValueError("The previous role status is invalid and cannot be restored.") from exc
+        raise ValueError(
+            "The previous role status is invalid and cannot be restored."
+        ) from exc
     return {
         "undone_action": action_type,
         "restored_status": opportunity.status.value,

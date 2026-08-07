@@ -14,7 +14,7 @@ from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
 
-from career_job_search.recruiters import hiring_network as hn  # noqa: E402
+from career_job_search.recruiters import hiring_network as hn
 
 
 class TestHiringNetworkSchemas(unittest.TestCase):

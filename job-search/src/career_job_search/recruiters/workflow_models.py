@@ -67,7 +67,9 @@ class OutreachDraft(BaseModel):
     note: str = ""
     evidence_cited: str = ""
     status: str = "draft"
-    created_at: str = Field(default_factory=lambda: datetime.now(UTC).replace(microsecond=0).isoformat())
+    created_at: str = Field(
+        default_factory=lambda: datetime.now(UTC).replace(microsecond=0).isoformat()
+    )
 
 
 class WorkflowStep(BaseModel):
@@ -81,7 +83,9 @@ class WorkflowStep(BaseModel):
 class WorkflowRun(BaseModel):
     run_id: str
     mode: WorkflowMode = WorkflowMode.DRY_RUN
-    started_at: str = Field(default_factory=lambda: datetime.now(UTC).replace(microsecond=0).isoformat())
+    started_at: str = Field(
+        default_factory=lambda: datetime.now(UTC).replace(microsecond=0).isoformat()
+    )
     finished_at: str | None = None
     dry_run: bool = True
     stages: list[WorkflowStep] = Field(default_factory=list)

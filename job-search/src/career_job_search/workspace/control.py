@@ -211,7 +211,7 @@ def _run(
         input=input_text,
         text=True,
         capture_output=True,
-        shell=False,  # noqa: S603
+        shell=False,
         timeout=timeout,
         check=False,
     )
@@ -347,7 +347,11 @@ def keychain_status() -> dict[str, Any]:
     storage = (
         "keychain"
         if in_keychain
-        else "env_file" if in_file else "environment" if in_process else "missing"
+        else "env_file"
+        if in_file
+        else "environment"
+        if in_process
+        else "missing"
     )
     return {
         "supported": keychain_supported(),
@@ -488,9 +492,7 @@ def _worker_online() -> bool:
     return _backups._worker_online(JOB_ROOT)
 
 
-def restore_backup(
-    filename: str, passphrase: str, confirmation: str
-) -> dict[str, Any]:
+def restore_backup(filename: str, passphrase: str, confirmation: str) -> dict[str, Any]:
     return _backups.restore_backup(
         filename,
         passphrase,

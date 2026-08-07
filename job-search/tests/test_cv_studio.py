@@ -169,11 +169,15 @@ def test_build_variant_accepts_only_the_fixed_variant_map(
 ) -> None:
     built: list[tuple[str, str]] = []
 
-    def fake_pdf(md_path: Path, out_path: Path, *, layout: str, photo: Path | None = None) -> None:
+    def fake_pdf(
+        md_path: Path, out_path: Path, *, layout: str, photo: Path | None = None
+    ) -> None:
         del md_path, photo
         built.append((out_path.name, layout))
 
-    def fake_paste(md_path: Path, out_path: Path, *, design_hint: str | None = None) -> None:
+    def fake_paste(
+        md_path: Path, out_path: Path, *, design_hint: str | None = None
+    ) -> None:
         del md_path, design_hint
         built.append((out_path.name, "paste"))
 

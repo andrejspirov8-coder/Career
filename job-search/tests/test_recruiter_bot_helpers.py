@@ -5,11 +5,11 @@ from __future__ import annotations
 import unittest
 from pathlib import Path
 
-from career_job_search.integrations.linkedin import campaign as bot  # noqa: E402
-from career_job_search.integrations.linkedin import selectors as lis  # noqa: E402
-from career_job_search.recruiters import log as rlog  # noqa: E402
-from career_job_search.recruiters import matching as rm  # noqa: E402
-from career_job_search.recruiters import orchestrator as orch  # noqa: E402
+from career_job_search.integrations.linkedin import campaign as bot
+from career_job_search.integrations.linkedin import selectors as lis
+from career_job_search.recruiters import log as rlog
+from career_job_search.recruiters import matching as rm
+from career_job_search.recruiters import orchestrator as orch
 
 
 class TestCanonicalProfileUrls(unittest.TestCase):
@@ -91,7 +91,6 @@ class TestPlannedInviteMetadata(unittest.TestCase):
 
 class TestBlockingHeuristics(unittest.TestCase):
     def test_checkpoint_url_detected(self) -> None:
-
         blocker = lis.detect_blockers(
             url="https://www.linkedin.com/checkpoint/lg/sign-in-phone",
             html_sample="<html></html>",

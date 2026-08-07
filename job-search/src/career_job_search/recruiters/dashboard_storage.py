@@ -169,4 +169,4 @@ def read_recruiter_rows(path: Path) -> list[dict[str, str]]:
 
 
 def _row_status(row: dict[str, Any]) -> str:
-    return f"{str(row.get('send_tier') or '')}:{str(row.get('decision') or '')}"
+    return f"{row.get('send_tier') or ''!s}:{row.get('decision') or ''!s}"

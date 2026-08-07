@@ -129,8 +129,10 @@ def _iso_now() -> str:
 def _file_time(path: Path) -> str | None:
     if not path.is_file():
         return None
-    return datetime.fromtimestamp(path.stat().st_mtime, UTC).isoformat().replace(
-        "+00:00", "Z"
+    return (
+        datetime.fromtimestamp(path.stat().st_mtime, UTC)
+        .isoformat()
+        .replace("+00:00", "Z")
     )
 
 
@@ -276,7 +278,9 @@ def _build_variant_files(
     source.write_text(content, encoding="utf-8")
     source.chmod(0o600)
     photo = paths.root / "cv" / "assets" / "andrej-spirov-headshot.png"
-    build_pdf(source, visual_pdf, layout="canva", photo=photo if photo.is_file() else None)
+    build_pdf(
+        source, visual_pdf, layout="canva", photo=photo if photo.is_file() else None
+    )
     build_pdf(source, ats_pdf, layout="plain")
     build_canva_paste(source, canva_text)
     for output in (visual_pdf, ats_pdf, canva_text):
@@ -371,7 +375,9 @@ def save_and_rebuild(
         changed = current != normalized
         state_root = root / "state"
         state_root.mkdir(parents=True, exist_ok=True)
-        with tempfile.TemporaryDirectory(prefix=".cv-studio-", dir=state_root) as temporary:
+        with tempfile.TemporaryDirectory(
+            prefix=".cv-studio-", dir=state_root
+        ) as temporary:
             transaction_root = Path(temporary)
             prepared = _build_variant_files(paths, normalized, transaction_root)
             version = _snapshot_current(paths, "before_save") if changed else None
@@ -397,7 +403,9 @@ def rebuild_variant(slug: str, *, root: Path = JOB_ROOT) -> dict[str, Any]:
         content = _normalize_source(paths.source.read_text(encoding="utf-8"))
         state_root = root / "state"
         state_root.mkdir(parents=True, exist_ok=True)
-        with tempfile.TemporaryDirectory(prefix=".cv-studio-", dir=state_root) as temporary:
+        with tempfile.TemporaryDirectory(
+            prefix=".cv-studio-", dir=state_root
+        ) as temporary:
             transaction_root = Path(temporary)
             prepared = _build_variant_files(paths, content, transaction_root)
             _commit_files(
@@ -429,7 +437,9 @@ def restore_version(
         changed = current != restored
         state_root = root / "state"
         state_root.mkdir(parents=True, exist_ok=True)
-        with tempfile.TemporaryDirectory(prefix=".cv-studio-", dir=state_root) as temporary:
+        with tempfile.TemporaryDirectory(
+            prefix=".cv-studio-", dir=state_root
+        ) as temporary:
             transaction_root = Path(temporary)
             prepared = _build_variant_files(paths, restored, transaction_root)
             version = _snapshot_current(paths, "before_restore") if changed else None
@@ -556,7 +566,9 @@ def main() -> int:
         print(helper_json({"ok": False, "error": str(exc)}))
         return 1
     except Exception:
-        print(helper_json({"ok": False, "error": "The CV Studio action failed safely."}))
+        print(
+            helper_json({"ok": False, "error": "The CV Studio action failed safely."})
+        )
         return 1
 
 

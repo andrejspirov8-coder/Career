@@ -30,7 +30,9 @@ def test_sqlite_wal_journal_mode():
 def test_dispatch_note_integrity_guards():
     """Verify that the dispatch guard catches any unresolved template placeholders (curly brackets)."""
     # 1. Valid Notes must pass
-    ok_note = "Hi Alexander, I am deeply impressed by your operations management background."
+    ok_note = (
+        "Hi Alexander, I am deeply impressed by your operations management background."
+    )
     is_safe, reason = validate_note_integrity(ok_note)
     assert is_safe is True
     assert reason == ""
@@ -42,7 +44,9 @@ def test_dispatch_note_integrity_guards():
     assert "unresolved_template_tokens" in reason1
     assert "first_name" in reason1
 
-    corrupt_note2 = "Hi Jane, I aligned your experience with {company_name} and {target_role}."
+    corrupt_note2 = (
+        "Hi Jane, I aligned your experience with {company_name} and {target_role}."
+    )
     is_safe2, reason2 = validate_note_integrity(corrupt_note2)
     assert is_safe2 is False
     assert "unresolved_template_tokens" in reason2

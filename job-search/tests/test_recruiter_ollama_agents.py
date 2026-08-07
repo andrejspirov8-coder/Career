@@ -5,7 +5,7 @@ from __future__ import annotations
 import unittest
 from unittest.mock import MagicMock, patch
 
-from career_job_search.recruiters.ollama_agents import (  # noqa: E402
+from career_job_search.recruiters.ollama_agents import (
     OUTREACH_SYSTEM,
     SUPERVISOR_SYSTEM,
     CompanyAnalysis,
@@ -21,14 +21,14 @@ from career_job_search.recruiters.ollama_agents import (  # noqa: E402
     polish_outreach_note,
     supervise_row,
 )
-from career_job_search.recruiters.ollama_client import (  # noqa: E402
+from career_job_search.recruiters.ollama_client import (
     agent_enabled,
     health_check,
     llm_enabled,
     resolve_chat_model,
 )
-from career_job_search.recruiters.ollama_embed import blend_cv_score  # noqa: E402
-from career_job_search.recruiters.web_research import WebSearchHit  # noqa: E402
+from career_job_search.recruiters.ollama_embed import blend_cv_score
+from career_job_search.recruiters.web_research import WebSearchHit
 
 
 def _sample_cfg(*, enabled: bool = True) -> dict:
@@ -216,16 +216,23 @@ class TestPromptParity(unittest.TestCase):
     def setUp(self) -> None:
         # Clear lru_cache so _prompts_raw reads fresh from disk
         from career_job_search.recruiters.ollama_agents import _prompts_raw
+
         _prompts_raw.cache_clear()
 
     def test_all_yaml_agents_have_fallback(self) -> None:
         """Every agent defined in YAML must have a corresponding Python fallback."""
         raw = _prompts_raw()
         yaml_agents = set(raw.keys())
-        fallback_agents = {"discovery", "company_analyst", "outreach_writer", "supervisor"}
+        fallback_agents = {
+            "discovery",
+            "company_analyst",
+            "outreach_writer",
+            "supervisor",
+        }
         missing = yaml_agents - fallback_agents
         self.assertEqual(
-            missing, set(),
+            missing,
+            set(),
             f"YAML agents without Python fallback: {missing}",
         )
 
@@ -248,12 +255,16 @@ class TestPromptParity(unittest.TestCase):
             if block.get("few_shot"):
                 messages = agent_few_shot_messages(agent_name)
                 self.assertGreater(
-                    len(messages), 0,
+                    len(messages),
+                    0,
                     f"agent_few_shot_messages('{agent_name}') returned empty",
                 )
                 # Each pair is user + assistant
-                self.assertEqual(len(messages) % 2, 0,
-                                 f"few_shot for '{agent_name}' should have even count of messages")
+                self.assertEqual(
+                    len(messages) % 2,
+                    0,
+                    f"few_shot for '{agent_name}' should have even count of messages",
+                )
 
     def test_agent_system_prompt_uses_yaml_when_available(self) -> None:
         """agent_system_prompt should return YAML content when file exists."""
@@ -267,7 +278,8 @@ class TestPromptParity(unittest.TestCase):
             # Asking for this agent's prompt should return the YAML version
             result = agent_system_prompt(agent_name, "fallback text")
             self.assertEqual(
-                result, yaml_system,
+                result,
+                yaml_system,
                 f"agent_system_prompt('{agent_name}') returned YAML content",
             )
 

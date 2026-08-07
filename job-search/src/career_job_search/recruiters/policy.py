@@ -38,9 +38,7 @@ def validate_live_dispatch_max(
         )
     parsed = int(value)
     if parsed < 1:
-        raise SystemExit(
-            f"{option_name} must be in the range 1..{MAX_LIVE_DISPATCH}."
-        )
+        raise SystemExit(f"{option_name} must be in the range 1..{MAX_LIVE_DISPATCH}.")
     if not dry_run and parsed > MAX_LIVE_DISPATCH:
         raise SystemExit(
             f"Live {option_name} cannot exceed {MAX_LIVE_DISPATCH}; received {parsed}."
@@ -89,7 +87,9 @@ def require_live_dispatch_approvals(
 ) -> list[PolicyDecision]:
     failures: list[PolicyDecision] = []
     for profile_url, note in invites:
-        decision = can_dispatch_live(profile_url=profile_url, note=note, db_path=db_path)
+        decision = can_dispatch_live(
+            profile_url=profile_url, note=note, db_path=db_path
+        )
         if not decision.allowed:
             failures.append(decision)
     return failures

@@ -11,7 +11,9 @@ LINKEDIN_CONFIG = Path("linkedin/config.yaml")
 def _run(*args: str) -> subprocess.CompletedProcess:
     return subprocess.run(
         ["uv", "run", "python", HELPER, *args],
-        capture_output=True, text=True, cwd=".",
+        capture_output=True,
+        text=True,
+        cwd=".",
     )
 
 
@@ -41,9 +43,23 @@ def test_save_and_show_round_trip():
     try:
         minimal = {
             "linkedin_base_url": "https://www.linkedin.com",
-            "browser": {"channel": "chrome", "backend": "playwright", "debug_port": 9222, "headless": True},
-            "limits": {"max_connections": 5, "min_delay_seconds": 30, "max_delay_seconds": 90, "daily_cap": 20},
-            "matching": {"min_primary_score": 6, "require_recruiter_gate": False, "cv_min_scores": {}},
+            "browser": {
+                "channel": "chrome",
+                "backend": "playwright",
+                "debug_port": 9222,
+                "headless": True,
+            },
+            "limits": {
+                "max_connections": 5,
+                "min_delay_seconds": 30,
+                "max_delay_seconds": 90,
+                "daily_cap": 20,
+            },
+            "matching": {
+                "min_primary_score": 6,
+                "require_recruiter_gate": False,
+                "cv_min_scores": {},
+            },
             "llm": {"provider": "ollama", "model": "qwen3.5:35b", "profiles": {}},
             "automation": {"max_live_dispatch": 3, "require_llm_note": True},
         }

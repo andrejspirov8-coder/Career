@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from career_job_search.cvs.matching import (  # noqa: E402
+from career_job_search.cvs.matching import (
     load_profiles,
     match_job_to_variants,
     parse_job_file,
@@ -56,7 +56,10 @@ KPI, konversija, komandos ugdymas, atsargų papildymas ir kasa.
 """
     )
 
-    assert result["recommendation"]["variant_slug"] in {"luxury-retail-lt", "luxury-retail"}
+    assert result["recommendation"]["variant_slug"] in {
+        "luxury-retail-lt",
+        "luxury-retail",
+    }
 
 
 def test_exact_lithuanian_target_title_routes_to_lithuanian_variant() -> None:

@@ -381,7 +381,7 @@ def node_followup_learner(state: WorkflowState) -> WorkflowState:
         str(project_path("tools", "linkedin_followup.py")),
         "--headed" if state.get("headed") else "--no-headed",
     ]
-    subprocess.call(cli)  # noqa: S603
+    subprocess.call(cli)
     out["finished"] = True
     return out
 

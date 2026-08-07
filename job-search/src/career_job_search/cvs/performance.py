@@ -64,10 +64,14 @@ def analyse_by_variant(rows: list[dict[str, str]]) -> dict[str, dict[str, Any]]:
     results = {}
     for variant, outcome_counts in sorted(stats.items()):
         total_rows = outcome_counts["total_rows"]
-        submitted = sum(outcome_counts.get(outcome, 0) for outcome in SUBMITTED_OUTCOMES)
+        submitted = sum(
+            outcome_counts.get(outcome, 0) for outcome in SUBMITTED_OUTCOMES
+        )
         submitted = submitted or total_rows
 
-        interviews = sum(outcome_counts.get(outcome, 0) for outcome in POSITIVE_OUTCOMES)
+        interviews = sum(
+            outcome_counts.get(outcome, 0) for outcome in POSITIVE_OUTCOMES
+        )
         interview_rate = interviews / submitted if submitted > 0 else 0.0
 
         results[variant] = {
@@ -100,10 +104,14 @@ def analyse_by_source(rows: list[dict[str, str]]) -> dict[str, dict[str, Any]]:
     results = {}
     for source, outcome_counts in sorted(stats.items()):
         total_rows = outcome_counts["total_rows"]
-        submitted = sum(outcome_counts.get(outcome, 0) for outcome in SUBMITTED_OUTCOMES)
+        submitted = sum(
+            outcome_counts.get(outcome, 0) for outcome in SUBMITTED_OUTCOMES
+        )
         submitted = submitted or total_rows
 
-        interviews = sum(outcome_counts.get(outcome, 0) for outcome in POSITIVE_OUTCOMES)
+        interviews = sum(
+            outcome_counts.get(outcome, 0) for outcome in POSITIVE_OUTCOMES
+        )
         interview_rate = interviews / submitted if submitted > 0 else 0.0
 
         results[source] = {
@@ -119,8 +127,12 @@ def analyse_by_source(rows: list[dict[str, str]]) -> dict[str, dict[str, Any]]:
 def analyse_roi(rows: list[dict[str, str]]) -> dict[str, dict[str, dict[str, Any]]]:
     """Compare tailored vs untailored and high-score vs lower-score applications."""
     groups: dict[str, dict[str, dict[str, Any]]] = {
-        "tailored_cv": defaultdict(lambda: {"submitted": 0, "interviews": 0, "response_days": []}),
-        "match_score": defaultdict(lambda: {"submitted": 0, "interviews": 0, "response_days": []}),
+        "tailored_cv": defaultdict(
+            lambda: {"submitted": 0, "interviews": 0, "response_days": []}
+        ),
+        "match_score": defaultdict(
+            lambda: {"submitted": 0, "interviews": 0, "response_days": []}
+        ),
     }
 
     for row in rows:
@@ -129,7 +141,9 @@ def analyse_roi(rows: list[dict[str, str]]) -> dict[str, dict[str, dict[str, Any
             continue
 
         tailored = (row.get("tailored_cv") or "").strip().lower()
-        tailored_key = "tailored_yes" if tailored in {"yes", "y", "true", "1"} else "tailored_no"
+        tailored_key = (
+            "tailored_yes" if tailored in {"yes", "y", "true", "1"} else "tailored_no"
+        )
         score_key = _score_bucket(row.get("match_score") or "")
 
         for section, key in (("tailored_cv", tailored_key), ("match_score", score_key)):
@@ -151,7 +165,9 @@ def analyse_roi(rows: list[dict[str, str]]) -> dict[str, dict[str, dict[str, Any
                 "submitted": submitted,
                 "interviews": interviews,
                 "interview_rate": interviews / submitted if submitted else 0.0,
-                "avg_response_days": (sum(response_days) / len(response_days)) if response_days else None,
+                "avg_response_days": (sum(response_days) / len(response_days))
+                if response_days
+                else None,
             }
     return out
 
@@ -236,7 +252,9 @@ def print_roi_tables(results: dict[str, dict[str, dict[str, Any]]]) -> None:
         ("match_score", "HIGH-SCORE VS LOWER-SCORE APPLICATIONS"),
     ):
         print(f"\n{title}")
-        print(f"{'Group':<25} {'Submitted':>9} {'Interviews':>10} {'Rate':>7} {'Avg response':>13}")
+        print(
+            f"{'Group':<25} {'Submitted':>9} {'Interviews':>10} {'Rate':>7} {'Avg response':>13}"
+        )
         print("-" * 72)
         for key in sorted(results[section].keys()):
             data = results[section][key]
@@ -264,7 +282,9 @@ def print_csv_variant(results: dict[str, dict[str, Any]]) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Analyse job application pipeline performance.")
+    parser = argparse.ArgumentParser(
+        description="Analyse job application pipeline performance."
+    )
     parser.add_argument(
         "--by",
         type=str,
@@ -306,7 +326,9 @@ def main() -> None:
             print("source,submitted,interviews,interview_rate")
             for source in sorted(results.keys()):
                 data = results[source]
-                print(f"{source},{data['submitted']},{data['interviews']},{data['interview_rate']:.4f}")
+                print(
+                    f"{source},{data['submitted']},{data['interviews']},{data['interview_rate']:.4f}"
+                )
         else:
             print_source_table(results)
     else:

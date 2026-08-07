@@ -92,7 +92,10 @@ def test_overview_reports_schema_counts_and_approval_status(tmp_path: Path) -> N
     assert overview["counts"]["sent"] == 1
     assert len(overview["queues"]["sent"]) == 1
     assert overview["queues"]["auto_send"][0]["approval"]["approved"] is True
-    assert overview["queues"]["review"][0]["approval"]["reason"] == "missing_matching_approval"
+    assert (
+        overview["queues"]["review"][0]["approval"]["reason"]
+        == "missing_matching_approval"
+    )
     assert overview["metrics"]["personas"]["recruiter_hr"]["sent"] == 1
     assert overview["safe_actions"]["search_rank"] == SAFE_ACTIONS["search_rank"]
 
@@ -124,7 +127,9 @@ def test_overview_reports_active_run_and_recent_runs(tmp_path: Path) -> None:
     runtime_dir = tmp_path / "dashboard-runs"
     runtime_dir.mkdir()
     (runtime_dir / "dashboard-action.lock").write_text(
-        json.dumps({"action": "search_rank", "started_at": "2026-05-24T10:00:00+00:00"}),
+        json.dumps(
+            {"action": "search_rank", "started_at": "2026-05-24T10:00:00+00:00"}
+        ),
         encoding="utf-8",
     )
     for index in range(6):
@@ -175,7 +180,9 @@ def test_run_dashboard_action_persists_recent_run_result(tmp_path: Path) -> None
     assert "dashboard ok" in saved["stdout"]
 
 
-def test_update_action_plan_note_validates_and_rewrites_exact_profile(tmp_path: Path) -> None:
+def test_update_action_plan_note_validates_and_rewrites_exact_profile(
+    tmp_path: Path,
+) -> None:
     action_plan = tmp_path / "hiring_network_action_plan.jsonl"
     write_jsonl(
         action_plan,
@@ -195,14 +202,19 @@ def test_update_action_plan_note_validates_and_rewrites_exact_profile(tmp_path: 
     )
 
     assert result["updated"] is True
-    rows = [json.loads(line) for line in action_plan.read_text(encoding="utf-8").splitlines()]
+    rows = [
+        json.loads(line)
+        for line in action_plan.read_text(encoding="utf-8").splitlines()
+    ]
     assert rows[0]["note"] == "Hi Lina, updated note for review."
     assert rows[0]["note_reason"].endswith(":dashboard_edit")
 
 
 def test_update_action_plan_note_rejects_unsafe_note(tmp_path: Path) -> None:
     action_plan = tmp_path / "hiring_network_action_plan.jsonl"
-    write_jsonl(action_plan, [{"profile_url": "https://www.linkedin.com/in/lina-area/"}])
+    write_jsonl(
+        action_plan, [{"profile_url": "https://www.linkedin.com/in/lina-area/"}]
+    )
 
     with pytest.raises(ValueError, match="unresolved_template_tokens"):
         update_action_plan_note(
@@ -245,7 +257,12 @@ def test_dashboard_actions_reject_unsafe_actions_and_live_flags(tmp_path: Path) 
         run_dashboard_action(
             "preflight",
             runtime_dir=tmp_path,
-            command_override=["python", "-m", "career_job_search.recruiters.hiring_network", "--allow-live-dispatch"],
+            command_override=[
+                "python",
+                "-m",
+                "career_job_search.recruiters.hiring_network",
+                "--allow-live-dispatch",
+            ],
         )
 
 
@@ -344,7 +361,9 @@ def test_overview_builds_saved_views_and_profile_details(tmp_path: Path) -> None
     assert overview["live_dispatch"]["mode"] == "manual"
 
 
-def test_mark_profile_skipped_records_history_and_preserves_other_rows(tmp_path: Path) -> None:
+def test_mark_profile_skipped_records_history_and_preserves_other_rows(
+    tmp_path: Path,
+) -> None:
     action_plan = tmp_path / "hiring_network_action_plan.jsonl"
     history = tmp_path / "history.jsonl"
     write_jsonl(
@@ -369,7 +388,10 @@ def test_mark_profile_skipped_records_history_and_preserves_other_rows(tmp_path:
         action_history_path=history,
     )
 
-    rows = [json.loads(line) for line in action_plan.read_text(encoding="utf-8").splitlines()]
+    rows = [
+        json.loads(line)
+        for line in action_plan.read_text(encoding="utf-8").splitlines()
+    ]
     assert result["updated"] is True
     assert rows[0]["send_tier"] == "skip"
     assert rows[0]["decision"] == "skip"
@@ -380,7 +402,9 @@ def test_mark_profile_skipped_records_history_and_preserves_other_rows(tmp_path:
     assert actions[0]["new_status"] == "skip:skip"
 
 
-def test_mark_profile_review_moves_skipped_profile_back_to_review(tmp_path: Path) -> None:
+def test_mark_profile_review_moves_skipped_profile_back_to_review(
+    tmp_path: Path,
+) -> None:
     action_plan = tmp_path / "hiring_network_action_plan.jsonl"
     history = tmp_path / "history.jsonl"
     write_jsonl(
@@ -400,7 +424,10 @@ def test_mark_profile_review_moves_skipped_profile_back_to_review(tmp_path: Path
         action_history_path=history,
     )
 
-    rows = [json.loads(line) for line in action_plan.read_text(encoding="utf-8").splitlines()]
+    rows = [
+        json.loads(line)
+        for line in action_plan.read_text(encoding="utf-8").splitlines()
+    ]
     assert result["updated"] is True
     assert rows[0]["send_tier"] == "queue_review"
     assert rows[0]["decision"] == "review"
@@ -423,7 +450,9 @@ def test_bulk_status_update_rejects_bulk_approval(tmp_path: Path) -> None:
         )
 
 
-def test_overview_exposes_human_in_loop_fields(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_overview_exposes_human_in_loop_fields(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.delenv("LINKEDIN_SEND_MODE", raising=False)
     action_plan = tmp_path / "hiring_network_action_plan.jsonl"
     state_db = tmp_path / "state.sqlite3"

@@ -81,7 +81,9 @@ class SearchPreferences(BaseModel):
             if not item:
                 continue
             if len(item) > 80:
-                raise ValueError("Each search preference must be 80 characters or fewer.")
+                raise ValueError(
+                    "Each search preference must be 80 characters or fewer."
+                )
             identity = item.casefold()
             if identity in seen:
                 continue
@@ -110,7 +112,9 @@ def load_search_preferences(
     try:
         payload = json.loads(preference_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
-        raise ValueError(f"Search preferences could not be read: {preference_path}") from exc
+        raise ValueError(
+            f"Search preferences could not be read: {preference_path}"
+        ) from exc
     try:
         return SearchPreferences.model_validate(payload)
     except ValueError as exc:
@@ -158,7 +162,9 @@ def apply_search_preferences(
     scoring = opportunities.setdefault("scoring", {})
     sources = opportunities.setdefault("sources", {})
     if not all(isinstance(item, dict) for item in (geography, scoring, sources)):
-        raise ValueError("Opportunity geography, scoring, and sources must be mappings.")
+        raise ValueError(
+            "Opportunity geography, scoring, and sources must be mappings."
+        )
 
     if preferences.priority_locations:
         geography["default_regions"] = list(preferences.priority_locations)

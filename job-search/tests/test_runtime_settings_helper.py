@@ -12,7 +12,9 @@ EXAMPLE_SETTINGS = Path("config/settings.example.yaml")
 def _run(*args: str) -> subprocess.CompletedProcess:
     return subprocess.run(
         ["uv", "run", "python", HELPER, *args],
-        capture_output=True, text=True, cwd=".",
+        capture_output=True,
+        text=True,
+        cwd=".",
     )
 
 
@@ -42,12 +44,24 @@ def test_show_mode_is_valid():
 
 
 def test_save_and_show_round_trip():
-    backup = USER_SETTINGS.read_text(encoding="utf-8") if USER_SETTINGS.exists() else None
+    backup = (
+        USER_SETTINGS.read_text(encoding="utf-8") if USER_SETTINGS.exists() else None
+    )
 
     try:
         modified = {
-            "runtime": {"mode": "dry_run", "dry_run_default": True, "require_live_dispatch_ack": False, "require_approval_ledger": False},
-            "limits": {"max_live_dispatch_batch": 1, "stop_on_captcha": True, "stop_on_checkpoint": False, "stop_on_unusual_activity": True},
+            "runtime": {
+                "mode": "dry_run",
+                "dry_run_default": True,
+                "require_live_dispatch_ack": False,
+                "require_approval_ledger": False,
+            },
+            "limits": {
+                "max_live_dispatch_batch": 1,
+                "stop_on_captcha": True,
+                "stop_on_checkpoint": False,
+                "stop_on_unusual_activity": True,
+            },
             "state": {"database_path": "state/test.sqlite3", "export_csv": False},
         }
         result = _run("save", "--json", json.dumps(modified))

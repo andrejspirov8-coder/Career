@@ -25,52 +25,64 @@ def check_setup() -> dict[str, Any]:
         target_roles_filled = len(prefs.target_roles) > 0
     except Exception:
         target_roles_filled = False
-    steps.append({
-        "id": "search_profile",
-        "label": "Define what you're looking for",
-        "detail": "Target roles, locations, and salary preferences",
-        "href": "/settings",
-        "done": target_roles_filled,
-    })
+    steps.append(
+        {
+            "id": "search_profile",
+            "label": "Define what you're looking for",
+            "detail": "Target roles, locations, and salary preferences",
+            "href": "/settings",
+            "done": target_roles_filled,
+        }
+    )
 
     # Step 2: Opportunity sources
     try:
-        opp_path = USER_OPPORTUNITY_CONFIG if USER_OPPORTUNITY_CONFIG.exists() else DEFAULT_OPPORTUNITY_CONFIG
+        opp_path = (
+            USER_OPPORTUNITY_CONFIG
+            if USER_OPPORTUNITY_CONFIG.exists()
+            else DEFAULT_OPPORTUNITY_CONFIG
+        )
         if opp_path.exists():
             raw = yaml.safe_load(opp_path.read_text(encoding="utf-8")) or {}
             sources = (raw.get("opportunities") or {}).get("sources") or {}
             enabled = any(
-                isinstance(src, dict) and src.get("enabled")
-                for src in sources.values()
+                isinstance(src, dict) and src.get("enabled") for src in sources.values()
             )
         else:
             enabled = False
     except Exception:
         enabled = False
-    steps.append({
-        "id": "job_sources",
-        "label": "Enable job sources",
-        "detail": "Choose which platforms and career pages to search",
-        "href": "/settings",
-        "done": enabled,
-    })
+    steps.append(
+        {
+            "id": "job_sources",
+            "label": "Enable job sources",
+            "detail": "Choose which platforms and career pages to search",
+            "href": "/settings",
+            "done": enabled,
+        }
+    )
 
     # Step 3: LinkedIn config
     try:
         if DEFAULT_LINKEDIN_CONFIG.exists():
-            raw = yaml.safe_load(DEFAULT_LINKEDIN_CONFIG.read_text(encoding="utf-8")) or {}
+            raw = (
+                yaml.safe_load(DEFAULT_LINKEDIN_CONFIG.read_text(encoding="utf-8"))
+                or {}
+            )
             has_browser = bool(raw.get("browser"))
         else:
             has_browser = False
     except Exception:
         has_browser = False
-    steps.append({
-        "id": "linkedin",
-        "label": "Configure LinkedIn integration",
-        "detail": "Browser, search, and automation settings for recruiter workflows",
-        "href": "/settings",
-        "done": has_browser,
-    })
+    steps.append(
+        {
+            "id": "linkedin",
+            "label": "Configure LinkedIn integration",
+            "detail": "Browser, search, and automation settings for recruiter workflows",
+            "href": "/settings",
+            "done": has_browser,
+        }
+    )
 
     # Step 4: CV library
     try:
@@ -79,13 +91,15 @@ def check_setup() -> dict[str, Any]:
         cvs_ready = len(pdfs) >= 6
     except Exception:
         cvs_ready = False
-    steps.append({
-        "id": "cv_library",
-        "label": "Build CV library",
-        "detail": "Generate PDF versions for each CV variant",
-        "href": "/cvs",
-        "done": cvs_ready,
-    })
+    steps.append(
+        {
+            "id": "cv_library",
+            "label": "Build CV library",
+            "detail": "Generate PDF versions for each CV variant",
+            "href": "/cvs",
+            "done": cvs_ready,
+        }
+    )
 
     done_count = sum(1 for s in steps if s["done"])
     total = len(steps)

@@ -32,7 +32,9 @@ from career_job_search.opportunities.repository import (
 )
 
 
-def test_search_preferences_save_privately_and_validate_queue_size(tmp_path: Path) -> None:
+def test_search_preferences_save_privately_and_validate_queue_size(
+    tmp_path: Path,
+) -> None:
     path = tmp_path / "state" / "search_preferences.json"
     saved = save_search_preferences(
         {
@@ -141,7 +143,9 @@ def test_daily_queue_obeys_saved_size_and_explicit_exclusions(tmp_path: Path) ->
     assert overview["counts"]["daily_queue"] == 7
     assert overview["search_profile"]["daily_queue_size"] == 7
     summary = next(
-        row for row in overview["queues"]["all"] if row["opportunity_id"] == "opp_queue_1"
+        row
+        for row in overview["queues"]["all"]
+        if row["opportunity_id"] == "opp_queue_1"
     )
     assert summary["preference"]["reasons"][0].startswith("Matches your target role")
 

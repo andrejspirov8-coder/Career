@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import unittest
 
-from career_job_search.recruiters import hiring_network as hn  # noqa: E402
+from career_job_search.recruiters import hiring_network as hn
 from career_job_search.recruiters.discovery_bridge import (
-    validated_to_scout_records,  # noqa: E402
+    validated_to_scout_records,
 )
 from career_job_search.recruiters.discovery_csv import (
-    validated_row_partial,  # noqa: E402
+    validated_row_partial,
 )
-from career_job_search.recruiters.profile_enrichment import (  # noqa: E402
+from career_job_search.recruiters.profile_enrichment import (
     enrich_validated_rows,
     parse_exa_profile_text,
 )

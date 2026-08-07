@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import unittest
 
-from career_job_search.recruiters import matching as rm  # noqa: E402
+from career_job_search.recruiters import matching as rm
 
 
 class TestTrackRelevanceGate(unittest.TestCase):

@@ -32,14 +32,20 @@ def tier_from_score(score: float) -> str:
 
 def parse_response_status(status_str: str) -> bool:
     """Check if status indicates a response (accepted, messaged, viewed, etc.)."""
-    return bool(status_str and any(s in status_str.lower() for s in [
-        "accepted",
-        "messaged",
-        "replied",
-        "response",
-        "viewed",
-        "profile_viewed",
-    ]))
+    return bool(
+        status_str
+        and any(
+            s in status_str.lower()
+            for s in [
+                "accepted",
+                "messaged",
+                "replied",
+                "response",
+                "viewed",
+                "profile_viewed",
+            ]
+        )
+    )
 
 
 def analyze_recruiter_data(since: datetime | None = None) -> dict[str, Any]:
@@ -121,7 +127,9 @@ def analyze_recruiter_data(since: datetime | None = None) -> dict[str, Any]:
 
     # Compute company performance
     company_stats = {}
-    for company in sorted(by_company.keys(), key=lambda c: len(by_company[c]), reverse=True)[:10]:
+    for company in sorted(
+        by_company.keys(), key=lambda c: len(by_company[c]), reverse=True
+    )[:10]:
         profiles = by_company[company]
         responses = sum(1 for p in profiles if p["is_response"])
         rate = 100 * responses / len(profiles) if profiles else 0
@@ -134,7 +142,9 @@ def analyze_recruiter_data(since: datetime | None = None) -> dict[str, Any]:
     return {
         "total_sent": total_sent,
         "total_responses": total_responses,
-        "overall_response_rate": 100 * total_responses / total_sent if total_sent else 0,
+        "overall_response_rate": 100 * total_responses / total_sent
+        if total_sent
+        else 0,
         "tier_stats": tier_stats,
         "company_stats": company_stats,
         "rows_analyzed": len(rows),
@@ -146,7 +156,7 @@ def generate_report(data: dict[str, Any]) -> str:
 
     report = f"""# Recruiter Quarterly Performance Report
 
-**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}
+**Generated:** {datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")}
 
 **Rows analyzed:** {data["rows_analyzed"]}
 
@@ -156,9 +166,9 @@ def generate_report(data: dict[str, Any]) -> str:
 
 | Metric | Value | Target | Status |
 |--------|-------|--------|--------|
-| **Total contacts sent** | {data["total_sent"]} | 20–30 | {'✓' if 20 <= data["total_sent"] <= 30 else '⚠️'} |
-| **Total responses** | {data["total_responses"]} | {data["total_sent"] // 4 if data["total_sent"] else 0}+ | {'✓' if data["overall_response_rate"] >= 25 else '❌'} |
-| **Overall response rate** | {data["overall_response_rate"]:.1f}% | ≥25% | {'✓' if data["overall_response_rate"] >= 25 else '❌'} |
+| **Total contacts sent** | {data["total_sent"]} | 20–30 | {"✓" if 20 <= data["total_sent"] <= 30 else "⚠️"} |
+| **Total responses** | {data["total_responses"]} | {data["total_sent"] // 4 if data["total_sent"] else 0}+ | {"✓" if data["overall_response_rate"] >= 25 else "❌"} |
+| **Overall response rate** | {data["overall_response_rate"]:.1f}% | ≥25% | {"✓" if data["overall_response_rate"] >= 25 else "❌"} |
 
 ---
 
@@ -174,7 +184,9 @@ def generate_report(data: dict[str, Any]) -> str:
         if tier in data["tier_stats"]:
             stats = data["tier_stats"][tier]
             target = targets.get(tier, 0)
-            status = "✓" if stats["response_rate"] >= target else "❌" if target > 0 else "–"
+            status = (
+                "✓" if stats["response_rate"] >= target else "❌" if target > 0 else "–"
+            )
             report += f"| **{tier}** | {stats['sent']} | {stats['responses']} | {stats['response_rate']:.0f}% | ≥{target}% | {status} |\n"
 
     report += "\n---\n\n"
@@ -206,8 +218,12 @@ def generate_report(data: dict[str, Any]) -> str:
 
 def main():
     parser = argparse.ArgumentParser(description="Generate recruiter quarterly report")
-    parser.add_argument("--output", type=Path, default=None, help="Write to file (default: stdout)")
-    parser.add_argument("--since", type=str, default=None, help="Only analyze records since YYYY-MM-DD")
+    parser.add_argument(
+        "--output", type=Path, default=None, help="Write to file (default: stdout)"
+    )
+    parser.add_argument(
+        "--since", type=str, default=None, help="Only analyze records since YYYY-MM-DD"
+    )
     args = parser.parse_args()
 
     # Parse --since if provided

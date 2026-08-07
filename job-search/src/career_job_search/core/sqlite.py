@@ -6,8 +6,7 @@ import sqlite3
 from pathlib import Path
 
 _SCHEMA_META_SQL = (
-    "CREATE TABLE IF NOT EXISTS schema_meta "
-    "(key TEXT PRIMARY KEY, value TEXT NOT NULL)"
+    "CREATE TABLE IF NOT EXISTS schema_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)"
 )
 
 

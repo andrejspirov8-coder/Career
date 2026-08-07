@@ -91,22 +91,6 @@ DEFAULT_ROLE_TRACKS = [
     },
 ]
 
-TECHNICAL_TITLE_MISMATCH_TERMS = (
-    "data engineer",
-    "software engineer",
-    "backend engineer",
-    "front end engineer",
-    "frontend engineer",
-    "full stack engineer",
-    "platform engineer",
-    "infrastructure engineer",
-    "machine learning engineer",
-    "devops engineer",
-    "site reliability engineer",
-    "solutions architect",
-    "technical architect",
-    "engineering manager",
-)
 
 TARGET_TITLE_SIGNALS = (
     "operations",
@@ -321,13 +305,6 @@ def _opportunity_text(opportunity: Opportunity) -> str:
     ).lower()
 
 
-def _has_priority_location(
-    opportunity: Opportunity, scoring_config: dict[str, object] | None
-) -> bool:
-    text = _opportunity_text(opportunity)
-    return any(region in text for region in _priority_regions(scoring_config))
-
-
 def location_score(
     opportunity: Opportunity, scoring_config: dict[str, object] | None
 ) -> float:
@@ -406,13 +383,47 @@ def _parse_salary_amounts(salary_text: str) -> list[float]:
     return amounts
 
 
+def _parse_salary_with_knotation(salary_text: str) -> list[float]:
+    """Parse salary amounts that include k/K notation (e.g. ``2.5k``, ``43k EUR``).
+    Handles European dot-thousands (2.63 = 2630) and k-notation (2.5k = 2500)."""
+    amounts: list[float] = []
+    for match in re.finditer(
+        r"\b\d+(?:\.\d+)?(?:[.,]\d+)?\s*(?:k|m|K|M)?\b",
+        salary_text.lower(),
+    ):
+        raw_value = match.group(0).replace(" ", "")
+        if not raw_value:
+            continue
+        multiplier = 1.0
+        # Check for k/K/m/M suffix
+        if raw_value.endswith(("k", "m")):
+            multiplier = 1000
+            raw_value = raw_value[:-1]
+        # Handle European dot-thousands (2.630 = 2630)
+        if re.fullmatch(r"\d{1,3}(?:[.,]\d{3})+", raw_value):
+            cleaned = raw_value.replace(".", "").replace(",", "")
+        else:
+            cleaned = raw_value.replace(",", ".")
+        try:
+            num = float(cleaned) * multiplier
+            if num >= 500:
+                amounts.append(num)
+        except ValueError:
+            continue
+    return amounts
+
+
 def salary_score(opportunity: Opportunity) -> float:
     text = f"{opportunity.salary_text} {opportunity.description}".lower()
     if not opportunity.salary_text.strip() and not re.search(
         r"\b(eur|€|salary)\b", text
     ):
         return 0.0
+    # Try European dot-thousands (2.63 → 2630), k-notation (2.5k → 2500),
+    # and standard comma-thousands (3,400 → 3400) in addition to regular parsing.
     amounts = _parse_salary_amounts(opportunity.salary_text)
+    k_amounts = _parse_salary_with_knotation(opportunity.salary_text)
+    amounts = sorted(set(amounts + k_amounts))
     monthly_amounts = [amount for amount in amounts if amount >= 500]
     if not monthly_amounts:
         return 1.0

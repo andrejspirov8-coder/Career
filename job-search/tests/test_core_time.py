@@ -33,7 +33,9 @@ def test_utc_now_is_close_to_real_time():
 
 def test_now_vilnius_returns_vilnius_tz():
     now = now_vilnius()
-    assert now.tzinfo == VILNIUS_TIMEZONE or now.tzinfo.utcoffset(now) == VILNIUS_TIMEZONE.utcoffset(now)
+    assert now.tzinfo == VILNIUS_TIMEZONE or now.tzinfo.utcoffset(
+        now
+    ) == VILNIUS_TIMEZONE.utcoffset(now)
 
 
 def test_today_vilnius_returns_date():

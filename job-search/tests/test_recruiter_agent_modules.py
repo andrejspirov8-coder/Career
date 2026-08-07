@@ -5,21 +5,21 @@ from __future__ import annotations
 import unittest
 from unittest.mock import MagicMock, patch
 
-from career_job_search.recruiters.agent_context import (  # noqa: E402
+from career_job_search.recruiters.agent_context import (
     outreach_context,
     supervisor_context,
 )
-from career_job_search.recruiters.agent_tools import (  # noqa: E402
+from career_job_search.recruiters.agent_tools import (
     _tool_count_chars,
     _tool_lookup_persona_stats,
     dispatch_tool_call,
     tools_for_agent,
 )
-from career_job_search.recruiters.agent_validators import (  # noqa: E402
+from career_job_search.recruiters.agent_validators import (
     validate_outreach_note,
     validate_supervisor_decision,
 )
-from career_job_search.recruiters.ollama_agents import (  # noqa: E402
+from career_job_search.recruiters.ollama_agents import (
     CompanyAnalysis,
     OutreachNote,
     SupervisorDecision,
@@ -27,7 +27,7 @@ from career_job_search.recruiters.ollama_agents import (  # noqa: E402
     analyze_company,
     polish_outreach_note,
 )
-from career_job_search.recruiters.ollama_client import (  # noqa: E402
+from career_job_search.recruiters.ollama_client import (
     invoke_with_tools,
     prompt_version,
     reset_circuit_breaker,

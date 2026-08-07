@@ -7,8 +7,6 @@ Usage (from job-search/):
   python3 -m career_job_search.integrations.linkedin.harvest_score pipeline/mcp_discovery_batch.jsonl --write-action-plan
 """
 
-# ruff: noqa: E402
-
 from __future__ import annotations
 
 import argparse

@@ -9,7 +9,9 @@ HELPER = "src/career_job_search/setup/checklist.py"
 def _run(*args: str) -> subprocess.CompletedProcess:
     return subprocess.run(
         ["uv", "run", "python", HELPER, *args],
-        capture_output=True, text=True, cwd=".",
+        capture_output=True,
+        text=True,
+        cwd=".",
     )
 
 

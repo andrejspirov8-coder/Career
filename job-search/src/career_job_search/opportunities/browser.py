@@ -108,9 +108,7 @@ def opportunity_from_browser_job(
     )
     live_status = "live" if current else "unverified"
     live_note = (
-        "browser_job_card_and_detail"
-        if detail_read
-        else "browser_job_card_only"
+        "browser_job_card_and_detail" if detail_read else "browser_job_card_only"
     )
     likely_closed = False
     status = OpportunityStatus.NEW
@@ -170,9 +168,7 @@ def _parse_datetime(value: str, *, field_name: str) -> datetime:
     try:
         parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError as exc:
-        raise BrowserJobPayloadError(
-            f"{field_name} must be an ISO timestamp"
-        ) from exc
+        raise BrowserJobPayloadError(f"{field_name} must be an ISO timestamp") from exc
     if parsed.tzinfo is None:
         parsed = parsed.replace(tzinfo=UTC)
     return parsed.astimezone(UTC)

@@ -194,7 +194,6 @@ def meets_tier_scorebar(
 
 
 def tier_matches_signals(tier_rule: dict[str, Any], company_blob_lower: str) -> bool:
-
     signals = tier_rule.get("company_signals_any")
 
     if isinstance(signals, list) and signals:
@@ -211,7 +210,6 @@ def tier_matches_signals(tier_rule: dict[str, Any], company_blob_lower: str) -> 
 
 
 def sorted_tier_keys(cfg: dict[str, Any]) -> list[str]:
-
     block = cfg.get("tiers") or {}
 
     if not isinstance(block, dict):
@@ -220,7 +218,6 @@ def sorted_tier_keys(cfg: dict[str, Any]) -> list[str]:
     keys = [k for k in block.keys() if isinstance(k, str) and k.startswith("tier_")]
 
     def sort_key(token: str) -> tuple[int, str]:
-
         parts = token.split("_", maxsplit=1)
 
         suf = parts[1] if len(parts) == 2 else ""
@@ -248,7 +245,7 @@ def assign_best_tier(
         if not isinstance(rule, dict):
             continue
 
-        ok_gate, refusal = meets_tier_scorebar(
+        ok_gate, _refusal = meets_tier_scorebar(
             result, matcher=matcher, tier_rule={**matcher, **rule}
         )
 

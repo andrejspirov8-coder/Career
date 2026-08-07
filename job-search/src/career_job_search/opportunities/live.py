@@ -24,7 +24,7 @@ from career_job_search.opportunities.models import (
 )
 
 DEFAULT_LIVE_CHECK_TIMEOUT_SECONDS = 6
-DEFAULT_LIVE_CHECK_MAX_CANDIDATES = 12
+DEFAULT_LIVE_CHECK_MAX_CANDIDATES = 50
 DEFAULT_LIVE_CHECK_WORKERS = 4
 CHECKABLE_SOURCE_KINDS = {
     OpportunitySourceKind.MANUAL_INBOX,
@@ -144,13 +144,17 @@ def classify_live_page(
     if status_code in {401, 403, 429}:
         return LiveCheckResult("unverified", "public_page", f"http_{status_code}")
     if not text:
-        return LiveCheckResult("unverified", "public_page", "empty_or_script_rendered_page")
+        return LiveCheckResult(
+            "unverified", "public_page", "empty_or_script_rendered_page"
+        )
     if any(term in lowered for term in CLOSED_TERMS):
         return LiveCheckResult("closed", "public_page", "closed_or_inactive_text_found")
     if any(term in lowered for term in LOGIN_WALL_TERMS):
         return LiveCheckResult("unverified", "public_page", "login_or_access_wall")
     if len(text) < 80:
-        return LiveCheckResult("unverified", "public_page", "empty_or_script_rendered_page")
+        return LiveCheckResult(
+            "unverified", "public_page", "empty_or_script_rendered_page"
+        )
 
     matches_role = _matches_text(title, lowered)
     matches_company = _matches_text(company, lowered)
@@ -162,7 +166,9 @@ def classify_live_page(
         return LiveCheckResult("unverified", "public_page", "blocked_or_challenge_page")
     if not matches_role and not matches_company:
         return LiveCheckResult("unverified", "public_page", "page_does_not_match_role")
-    return LiveCheckResult("unverified", "public_page", "matching_role_without_apply_signal")
+    return LiveCheckResult(
+        "unverified", "public_page", "matching_role_without_apply_signal"
+    )
 
 
 def fetch_public_page_text(
@@ -182,7 +188,9 @@ def fetch_public_page_text(
         with urlopen(request, timeout=timeout) as response:  # noqa: S310
             charset = response.headers.get_content_charset() or "utf-8"
             raw = response.read(max_bytes)
-            return int(response.status), html_to_visible_text(raw.decode(charset, errors="replace"))
+            return int(response.status), html_to_visible_text(
+                raw.decode(charset, errors="replace")
+            )
     except HTTPError as exc:
         try:
             raw = exc.read(max_bytes)
@@ -200,9 +208,13 @@ def check_opportunity_liveness(
     if not opportunity.source_url:
         return LiveCheckResult("unverified", "public_page", "missing_source_url")
     try:
-        status_code, text = fetch_public_page_text(opportunity.source_url, timeout=timeout)
+        status_code, text = fetch_public_page_text(
+            opportunity.source_url, timeout=timeout
+        )
     except (TimeoutError, URLError, OSError) as exc:
-        return LiveCheckResult("unverified", "public_page", f"fetch_failed:{type(exc).__name__}")
+        return LiveCheckResult(
+            "unverified", "public_page", f"fetch_failed:{type(exc).__name__}"
+        )
     return classify_live_page(
         title=opportunity.title,
         company=opportunity.company,
@@ -244,7 +256,9 @@ def apply_daily_live_gate(
     worker_count = max(1, min(workers, len(candidates)))
     with ThreadPoolExecutor(max_workers=worker_count) as executor:
         futures = {
-            executor.submit(check_opportunity_liveness, row, timeout=timeout): row.opportunity_id
+            executor.submit(
+                check_opportunity_liveness, row, timeout=timeout
+            ): row.opportunity_id
             for row in candidates
         }
         for future in as_completed(futures):
@@ -304,14 +318,21 @@ def _stamp_live_result(
     opportunity.live_check_method = result.method
     opportunity.live_check_note = result.note
 
-    flags = [flag for flag in opportunity.evidence.risk_flags if flag not in {"likely_closed", "needs_live_verification"}]
+    flags = [
+        flag
+        for flag in opportunity.evidence.risk_flags
+        if flag not in {"likely_closed", "needs_live_verification"}
+    ]
     if result.status == "closed":
         opportunity.likely_closed = True
         opportunity.status = OpportunityStatus.EXPIRED
         flags.append("likely_closed")
     elif result.status == "unverified":
         opportunity.likely_closed = False
-        if opportunity.status not in {OpportunityStatus.APPLIED, OpportunityStatus.SKIPPED}:
+        if opportunity.status not in {
+            OpportunityStatus.APPLIED,
+            OpportunityStatus.SKIPPED,
+        }:
             opportunity.status = OpportunityStatus.REVIEW
         flags.append("needs_live_verification")
     elif result.status == "live":

@@ -334,7 +334,7 @@ def _build_canva_bytes(
                 )
             )
 
-    story = left_story + [FrameBreak()] + right_story
+    story = [*left_story, FrameBreak(), *right_story]
     doc.build(story)
     return buffer.getvalue(), doc.page
 
@@ -427,7 +427,7 @@ def _build_plain(
     out_pdf: Path,
 ) -> None:
     """ATS-oriented single column: Contact, Summary, Skills, Languages, Experience."""
-    pw, ph = A4
+    _pw, _ph = A4
     margin = 14 * mm
     doc = SimpleDocTemplate(
         str(out_pdf),

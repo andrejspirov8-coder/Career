@@ -21,6 +21,10 @@ from career_job_search.workspace.control import read_env_token, read_keychain_to
 
 DASHBOARD_DIR = JOB_ROOT / "dashboard"
 DASHBOARD_TOKEN_KEY = "CAREER_DASHBOARD_TOKEN"  # noqa: S105
+DASHBOARD_SESSION_SECRET_KEY = "CAREER_DASHBOARD_SESSION_SECRET"  # noqa: S105
+DASHBOARD_SESSION_SECRET_PLACEHOLDER = (
+    "replace-with-at-least-32-random-local-characters"  # noqa: S105
+)
 DASHBOARD_TOKEN_PLACEHOLDER = "replace-with-a-long-random-local-token"  # noqa: S105
 SERVICE_STATUS_PATH = JOB_ROOT / "state" / "dashboard_service.json"
 RESTART_REQUEST_PATH = JOB_ROOT / "state" / "dashboard_restart.request.json"
@@ -139,7 +143,7 @@ def rebuild_production_dashboard(
             ["npm", "run", "build"],  # noqa: S607
             cwd=dashboard_dir,
             env=environment,
-            shell=False,  # noqa: S603
+            shell=False,
             check=False,
             timeout=300,
         )
@@ -156,33 +160,27 @@ def rebuild_production_dashboard(
     return True, ""
 
 
-def ensure_dashboard_token(env_path: Path = DASHBOARD_DIR / ".env.local") -> bool:
-    """Create a private local token when configuration is absent or placeholder-only."""
-
+def _ensure_env_secret(
+    env_path: Path,
+    key: str,
+    placeholder: str,
+    *,
+    byte_length: int,
+) -> bool:
     existing_text = env_path.read_text(encoding="utf-8") if env_path.exists() else ""
     lines = existing_text.splitlines()
-    token_prefix = f"{DASHBOARD_TOKEN_KEY}="
-    token_index = next(
-        (index for index, line in enumerate(lines) if line.startswith(token_prefix)),
-        None,
-    )
-    current_token = (
-        lines[token_index][len(token_prefix) :].strip()
-        if token_index is not None
-        else ""
-    )
-
-    if current_token and current_token != DASHBOARD_TOKEN_PLACEHOLDER:
+    prefix = f"{key}="
+    index = next((i for i, line in enumerate(lines) if line.startswith(prefix)), None)
+    current = lines[index][len(prefix) :].strip() if index is not None else ""
+    if current and current != placeholder:
         os.chmod(env_path, 0o600)
         return False
-
-    replacement = f"{token_prefix}{secrets.token_hex(32)}"
-    if token_index is None:
+    replacement = f"{prefix}{secrets.token_hex(byte_length)}"
+    if index is None:
         lines.append(replacement)
     else:
-        lines[token_index] = replacement
+        lines[index] = replacement
     rendered = "\n".join(lines).rstrip("\n") + "\n"
-
     env_path.parent.mkdir(parents=True, exist_ok=True)
     temporary_path: Path | None = None
     try:
@@ -205,27 +203,94 @@ def ensure_dashboard_token(env_path: Path = DASHBOARD_DIR / ".env.local") -> boo
     return True
 
 
+def ensure_dashboard_token(env_path: Path = DASHBOARD_DIR / ".env.local") -> bool:
+    """Create a private local token when configuration is absent or placeholder-only."""
+    return _ensure_env_secret(
+        env_path,
+        DASHBOARD_TOKEN_KEY,
+        DASHBOARD_TOKEN_PLACEHOLDER,
+        byte_length=32,
+    )
+
+
+def ensure_dashboard_session_secret(
+    env_path: Path = DASHBOARD_DIR / ".env.local",
+) -> bool:
+    """Create a private signing secret for browser dashboard sessions."""
+    return _ensure_env_secret(
+        env_path,
+        DASHBOARD_SESSION_SECRET_KEY,
+        DASHBOARD_SESSION_SECRET_PLACEHOLDER,
+        byte_length=32,
+    )
+
+
+def _read_env_value(env_path: Path, key: str) -> str:
+    prefix = f"{key}="
+    if not env_path.exists():
+        return ""
+    for line in env_path.read_text(encoding="utf-8").splitlines():
+        if line.startswith(prefix):
+            return line[len(prefix) :].strip()
+    return ""
+
+
+def _validated_session_secret(value: str) -> str:
+    value = value.strip()
+    if not value or value == DASHBOARD_SESSION_SECRET_PLACEHOLDER:
+        return ""
+    if len(value) < 32:
+        raise RuntimeError(
+            "The private dashboard session signing secret could not be prepared."
+        )
+    return value
+
+
 def dashboard_process_environment(
     env_path: Path = DASHBOARD_DIR / ".env.local",
 ) -> tuple[dict[str, str], str, bool]:
-    """Resolve the secret without exposing it to the command line or logs."""
+    """Resolve dashboard credentials without exposing them to arguments or logs."""
 
     environment = os.environ.copy()
     keychain_token = read_keychain_token()
-    if keychain_token:
-        environment[DASHBOARD_TOKEN_KEY] = keychain_token
-        return environment, "keychain", False
-
     inherited_token = environment.get(DASHBOARD_TOKEN_KEY, "").strip()
-    if inherited_token and inherited_token != DASHBOARD_TOKEN_PLACEHOLDER:
-        return environment, "environment", False
+    token_storage = (
+        "keychain"
+        if keychain_token
+        else "environment"
+        if inherited_token and inherited_token != DASHBOARD_TOKEN_PLACEHOLDER
+        else "env_file"
+    )
 
-    created = ensure_dashboard_token(env_path)
-    file_token = read_env_token(env_path)
-    if not file_token:
-        raise RuntimeError("The private dashboard login secret could not be prepared.")
-    environment[DASHBOARD_TOKEN_KEY] = file_token
-    return environment, "env_file", created
+    if token_storage == "env_file":  # noqa: S105  # config-mode value, not a credential
+        created_token = ensure_dashboard_token(env_path)
+        file_token = read_env_token(env_path)
+        if not file_token:
+            raise RuntimeError(
+                "The private dashboard login secret could not be prepared."
+            )
+        environment[DASHBOARD_TOKEN_KEY] = file_token
+        ensure_dashboard_session_secret(env_path)
+        session_secret = _validated_session_secret(
+            _read_env_value(env_path, DASHBOARD_SESSION_SECRET_KEY)
+        )
+    else:
+        created_token = False
+        environment[DASHBOARD_TOKEN_KEY] = keychain_token or inherited_token
+        session_secret = _validated_session_secret(
+            environment.get(DASHBOARD_SESSION_SECRET_KEY, "")
+        )
+        if not session_secret:
+            session_secret = _validated_session_secret(
+                _read_env_value(env_path, DASHBOARD_SESSION_SECRET_KEY)
+            )
+        if not session_secret:
+            # External token stores must remain read-only; this process-local
+            # secret still prevents an unsigned cookie from authorizing access.
+            session_secret = secrets.token_hex(32)
+
+    environment[DASHBOARD_SESSION_SECRET_KEY] = session_secret
+    return environment, token_storage, created_token
 
 
 def service_commands(
@@ -266,9 +331,7 @@ def _terminate(process: subprocess.Popen[bytes] | None) -> None:
         process.wait(timeout=5)
 
 
-def run_service(
-    mode: str, *, poll_seconds: float = 5, port: int | None = None
-) -> int:
+def run_service(mode: str, *, poll_seconds: float = 5, port: int | None = None) -> int:
     worker_command, dashboard_command = service_commands(mode, poll_seconds, port)
     dashboard_environment: dict[str, str] | None = None
     if dashboard_command is not None:
@@ -308,7 +371,7 @@ def run_service(
         worker = subprocess.Popen(
             worker_command,
             cwd=JOB_ROOT,
-            shell=False,  # noqa: S603
+            shell=False,
             start_new_session=True,
             close_fds=True,
         )
@@ -324,7 +387,7 @@ def run_service(
             dashboard_command,
             cwd=DASHBOARD_DIR,
             env=dashboard_environment,
-            shell=False,  # noqa: S603
+            shell=False,
             start_new_session=True,
             close_fds=True,
         )
@@ -347,7 +410,9 @@ def run_service(
                 )
                 last_heartbeat = time.monotonic()
 
-            restart_request = consume_restart_request() if mode == "production" else None
+            restart_request = (
+                consume_restart_request() if mode == "production" else None
+            )
             if restart_request is not None:
                 _write_service_status(
                     mode=mode,
@@ -371,7 +436,7 @@ def run_service(
                     dashboard_command,
                     cwd=DASHBOARD_DIR,
                     env=dashboard_environment,
-                    shell=False,  # noqa: S603
+                    shell=False,
                     start_new_session=True,
                     close_fds=True,
                 )
@@ -418,9 +483,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
-        return run_service(
-            args.mode, poll_seconds=args.poll_seconds, port=args.port
-        )
+        return run_service(args.mode, poll_seconds=args.poll_seconds, port=args.port)
     except Exception as exc:
         print(f"Dashboard service failed: {exc}", file=sys.stderr)
         return 1

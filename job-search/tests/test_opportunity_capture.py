@@ -43,9 +43,10 @@ def test_url_capture_is_local_unverified_and_deduplicated(tmp_path: Path) -> Non
     rows = list_opportunities(db_path=db)
     assert len(rows) == 1
     assert "needs_live_verification" in rows[0].evidence.risk_flags
-    assert actions_for_opportunity(rows[0].opportunity_id, db_path=db)[0][
-        "action_type"
-    ] == "capture_manual"
+    assert (
+        actions_for_opportunity(rows[0].opportunity_id, db_path=db)[0]["action_type"]
+        == "capture_manual"
+    )
 
 
 def test_structured_text_capture_keeps_header_fields_and_body(tmp_path: Path) -> None:
@@ -76,7 +77,9 @@ def test_structured_text_capture_keeps_header_fields_and_body(tmp_path: Path) ->
     assert row.description == "Lead store operations and inventory in Vilnius."
 
 
-def test_plain_text_with_colons_is_not_mistaken_for_header_format(tmp_path: Path) -> None:
+def test_plain_text_with_colons_is_not_mistaken_for_header_format(
+    tmp_path: Path,
+) -> None:
     db = tmp_path / "opportunities.sqlite3"
     text = "Customer Operations Manager\nResponsibilities: lead service quality."
     capture_opportunity(

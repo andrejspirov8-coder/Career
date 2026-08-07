@@ -74,11 +74,11 @@ __all__ = [
     "DEFAULT_OPPORTUNITY_CONFIG",
     "JOB_ROOT",
     "MAX_CAPTURE_BYTES",
+    "RUN_KINDS",
     "RUN_KIND_CV_BUILD",
     "RUN_KIND_DAILY_SEARCH",
-    "RUN_KINDS",
-    "SCHEMA_SQL",
     "SCHEDULE_TIME_PATTERN",
+    "SCHEMA_SQL",
     "SOURCE_STALE_HOURS",
     "STALE_RUN_MINUTES",
     "TERMINAL_STATUSES",
@@ -108,6 +108,7 @@ __all__ = [
     "validate_schedule_time",
     "validate_timezone",
 ]
+
 
 def command_for_kind(kind: str) -> tuple[list[str], int]:
     clean_kind = validate_kind(kind)
@@ -281,7 +282,7 @@ def execute_run(
                 stdout=stdout_handle,
                 stderr=stderr_handle,
                 text=True,
-                shell=False,  # noqa: S603
+                shell=False,
                 start_new_session=True,
                 close_fds=True,
             )
@@ -446,13 +447,11 @@ def spawn_worker(*, db_path: Path | str = DEFAULT_AUTOMATION_DB) -> int:
         stdin=subprocess.DEVNULL,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
-        shell=False,  # noqa: S603
+        shell=False,
         start_new_session=True,
         close_fds=True,
     )
     return int(process.pid)
-
-
 
 
 def json_response(payload: dict[str, Any]) -> None:

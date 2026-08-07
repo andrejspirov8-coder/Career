@@ -94,9 +94,9 @@ def test_alert_import_and_daily_queue_deliver_once(
     assert first_output["data"]["new_live_jobs"][0]["source_url"].startswith(
         "https://www.linkedin.com/jobs/view/"
     )
-    assert first_output["data"]["new_live_jobs"][0]["recommended_cv_visual_pdf"].endswith(
-        ".pdf"
-    )
+    assert first_output["data"]["new_live_jobs"][0][
+        "recommended_cv_visual_pdf"
+    ].endswith(".pdf")
     assert second == 0
     assert second_output["data"]["delivery_candidate_count"] == 0
     assert second_output["data"]["omitted_count"] == 0

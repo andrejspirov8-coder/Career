@@ -93,7 +93,9 @@ def print_row(info: dict[str, Any]) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Review all generated application packs.")
+    parser = argparse.ArgumentParser(
+        description="Review all generated application packs."
+    )
     parser.add_argument(
         "--sort",
         type=str,

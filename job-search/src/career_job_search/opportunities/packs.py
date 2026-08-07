@@ -42,7 +42,9 @@ See `README.md` in the job-search folder for the full loop.
 """
 
 
-def render_keyword_gaps_md(slug: str, gaps: list[tuple[str, int]], notes: list[str]) -> str:
+def render_keyword_gaps_md(
+    slug: str, gaps: list[tuple[str, int]], notes: list[str]
+) -> str:
     lines = [
         "# Keyword gaps (suggested additions to review)",
         "",

@@ -77,7 +77,7 @@ def chrome_executable(cfg: dict[str, Any]) -> str:
 
 
 def websocket_debugger_url(port: int) -> str:
-    with urlopen(f"http://127.0.0.1:{port}/json/version", timeout=30) as r:  # noqa: S310
+    with urlopen(f"http://127.0.0.1:{port}/json/version", timeout=30) as r:
         blob = json.loads(r.read())
     ws = blob.get("webSocketDebuggerUrl")
     if not ws:
@@ -278,7 +278,7 @@ class BrowseWsLinkedInAutomator(LinkedInAutomatorBase):
     def _run_raw(self, pieces: list[str]) -> subprocess.CompletedProcess[str]:
         full = [*self._cmd_base(), *pieces]
 
-        return subprocess.run(full, capture_output=True, text=True, timeout=180)  # noqa: S603
+        return subprocess.run(full, capture_output=True, text=True, timeout=180)
 
     def _run(self, pieces: list[str]) -> dict[str, Any]:
         proc = self._run_raw(pieces)
@@ -636,7 +636,9 @@ class BrowseChromeDaemon:
         ]
 
         self.proc = subprocess.Popen(
-            argv, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL  # noqa: S603
+            argv,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
         )
 
         self._owns = True

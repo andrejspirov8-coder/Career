@@ -13,6 +13,7 @@ from uuid import uuid4
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from career_job_search.core.paths import project_path
+from career_job_search.core.sqlite import connect_sqlite
 
 JOB_ROOT = project_path()
 DEFAULT_AUTOMATION_DB = JOB_ROOT / "state" / "automation.sqlite3"
@@ -115,11 +116,7 @@ def _json_load(value: str, fallback: Any) -> Any:
 def connect(db_path: Path | str = DEFAULT_AUTOMATION_DB) -> sqlite3.Connection:
     path = Path(db_path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    con = sqlite3.connect(path, timeout=30)
-    con.row_factory = sqlite3.Row
-    con.execute("PRAGMA foreign_keys = ON")
-    con.execute("PRAGMA journal_mode = WAL")
-    con.execute("PRAGMA synchronous = NORMAL")
+    con = connect_sqlite(path, timeout_seconds=30, row_factory=True, wal=True)
     try:
         path.chmod(0o600)
     except OSError:

@@ -689,9 +689,7 @@ def collect_discovery_queue_for_session(
     pilot_mode = args.max_connections_override is not None
 
     if retry_first:
-        already_queued = {item[0] for item in queued} | {
-            item[0] for item in generic
-        }
+        already_queued = {item[0] for item in queued} | {item[0] for item in generic}
         retry_sevens = [
             (u, v, "", "", "", "", "")
             for u, v in retry_first

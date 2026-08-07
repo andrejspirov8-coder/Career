@@ -40,7 +40,12 @@ UNSAFE_COMMAND_TOKENS = frozenset(
     {"--allow-live-dispatch", "--full-auto", "--auto-send"}
 )
 SAFE_ACTIONS: dict[str, list[str]] = {
-    "preflight": [sys.executable, "-m", "career_job_search.recruiters.hiring_network", "preflight"],
+    "preflight": [
+        sys.executable,
+        "-m",
+        "career_job_search.recruiters.hiring_network",
+        "preflight",
+    ],
     "search_rank": [
         sys.executable,
         "-m",
@@ -354,7 +359,7 @@ def run_dashboard_action(
         with fd:
             fd.write(json.dumps({"action": action, "started_at": started_at}) + "\n")
         completed = subprocess.run(
-            command,  # noqa: S603
+            command,
             cwd=JOB_ROOT,
             check=False,
             capture_output=True,

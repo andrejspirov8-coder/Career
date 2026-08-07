@@ -82,7 +82,8 @@ def test_service_prefers_keychain_without_writing_env_file(tmp_path, monkeypatch
     env_path = tmp_path / ".env.local"
     monkeypatch.delenv("CAREER_DASHBOARD_TOKEN", raising=False)
     monkeypatch.setattr(
-        "career_job_search.workspace.dashboard_service.read_keychain_token", lambda: "keychain-secret"
+        "career_job_search.workspace.dashboard_service.read_keychain_token",
+        lambda: "keychain-secret",
     )
 
     environment, storage, created = dashboard_process_environment(env_path)
@@ -95,7 +96,9 @@ def test_service_prefers_keychain_without_writing_env_file(tmp_path, monkeypatch
 
 def test_service_keeps_an_explicit_environment_secret(tmp_path, monkeypatch):
     env_path = tmp_path / ".env.local"
-    monkeypatch.setattr("career_job_search.workspace.dashboard_service.read_keychain_token", lambda: "")
+    monkeypatch.setattr(
+        "career_job_search.workspace.dashboard_service.read_keychain_token", lambda: ""
+    )
     monkeypatch.setenv("CAREER_DASHBOARD_TOKEN", "inherited-secret")
 
     environment, storage, created = dashboard_process_environment(env_path)
@@ -144,5 +147,7 @@ def test_failed_rebuild_restores_the_previous_production_build(tmp_path, monkeyp
 
     assert succeeded is False
     assert "code 1" in error
-    assert (dashboard_dir / ".next" / "BUILD_ID").read_text(encoding="utf-8") == "old-build"
+    assert (dashboard_dir / ".next" / "BUILD_ID").read_text(
+        encoding="utf-8"
+    ) == "old-build"
     assert not (dashboard_dir / ".next.previous").exists()

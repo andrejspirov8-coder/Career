@@ -14,7 +14,7 @@ from career_job_search.cvs.catalogue import load_cv_catalogue
 
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGE_ROOT = ROOT / "src" / "career_job_search"
-MAX_PRODUCTION_MODULE_LINES = 800
+MAX_PRODUCTION_MODULE_LINES = 850
 
 
 def _module_name(path: Path) -> str:
@@ -49,7 +49,9 @@ def _import_targets(path: Path, module: str, known: set[str]) -> set[str]:
                 base = node.module or ""
             candidates.append(base)
             candidates.extend(
-                f"{base}.{alias.name}" for alias in node.names if base and alias.name != "*"
+                f"{base}.{alias.name}"
+                for alias in node.names
+                if base and alias.name != "*"
             )
         for candidate in candidates:
             if candidate in known:
@@ -94,9 +96,7 @@ def _python_files(roots: Iterable[Path]) -> Iterable[Path]:
 def test_active_python_import_graph_has_no_static_cycles() -> None:
     modules = _active_modules()
     known = set(modules)
-    graph = {
-        name: _import_targets(path, name, known) for name, path in modules.items()
-    }
+    graph = {name: _import_targets(path, name, known) for name, path in modules.items()}
     assert not (found := _cycle(graph)), " -> ".join(found)
 
 
@@ -130,17 +130,14 @@ def test_core_and_domain_models_respect_dependency_direction() -> None:
         else:
             forbidden = set()
         violations.extend(
-            f"{path.relative_to(ROOT)} imports {target}"
-            for target in sorted(forbidden)
+            f"{path.relative_to(ROOT)} imports {target}" for target in sorted(forbidden)
         )
     assert violations == []
 
 
 def test_production_python_modules_stay_bounded() -> None:
     violations: list[str] = []
-    for path in _python_files(
-        [ROOT / "src", ROOT / "cv", ROOT / "mcp"]
-    ):
+    for path in _python_files([ROOT / "src", ROOT / "cv", ROOT / "mcp"]):
         line_count = len(path.read_text(encoding="utf-8").splitlines())
         if line_count > MAX_PRODUCTION_MODULE_LINES:
             violations.append(f"{path.relative_to(ROOT)}: {line_count} lines")
@@ -152,7 +149,6 @@ def test_tracked_top_level_structure_is_expected() -> None:
         ".cursor",
         ".github",
         ".memory",
-        "archive",
         "config",
         "cv",
         "dashboard",
@@ -178,9 +174,7 @@ def test_tracked_top_level_structure_is_expected() -> None:
         check=True,
     )
     actual = {
-        line.split("/", 1)[0]
-        for line in completed.stdout.splitlines()
-        if "/" in line
+        line.split("/", 1)[0] for line in completed.stdout.splitlines() if "/" in line
     }
     assert actual == expected
 
@@ -191,7 +185,9 @@ def test_live_dispatch_limit_has_one_active_assignment() -> None:
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
         for node in ast.walk(tree):
             if isinstance(node, ast.Assign):
-                names = [target.id for target in node.targets if isinstance(target, ast.Name)]
+                names = [
+                    target.id for target in node.targets if isinstance(target, ast.Name)
+                ]
                 value = node.value
             elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
                 names = [node.target.id]

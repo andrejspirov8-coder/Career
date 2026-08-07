@@ -40,6 +40,12 @@ class CvCatalogueV1(BaseModel):
 
 def load_cv_catalogue(path: Path = CATALOGUE_PATH) -> CvCatalogueV1:
     raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    version = raw.get("schema") or raw.get("schema_version")
+    if version is not None and version != "cv_catalogue_v1":
+        raise ValueError(
+            f"Unsupported cv/variant_profiles.yaml schema {version!r} "
+            "(expected 'cv_catalogue_v1')"
+        )
     variants = raw.get("variants")
     if not isinstance(variants, dict) or not variants:
         raise ValueError("variant_profiles.yaml must contain a non-empty variants map")

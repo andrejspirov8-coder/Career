@@ -13,6 +13,13 @@ cleanup() {
   if [[ -n "$DASH_PID" ]]; then
     kill "$DASH_PID" > /dev/null 2>&1 || true
   fi
+  # npm run start spawns a next-server child that survives killing npm;
+  # kill anything still bound to the smoke port so later runs are not blocked.
+  local pids
+  pids="$(lsof -tiTCP:3010 -sTCP:LISTEN 2>/dev/null || true)"
+  if [[ -n "$pids" ]]; then
+    kill -9 $pids > /dev/null 2>&1 || true
+  fi
   rm -f "$TMP_JOB" "$DASH_COOKIE" "$DASH_LOG"
 }
 trap cleanup EXIT
@@ -29,7 +36,12 @@ else
 fi
 
 echo "[smoke] dashboard runtime"
-(cd dashboard && CAREER_DASHBOARD_TOKEN="$DASH_TOKEN" npm run start -- --port 3010 > "$DASH_LOG" 2>&1) &
+pids="$(lsof -tiTCP:3010 -sTCP:LISTEN 2>/dev/null || true)"
+if [[ -n "$pids" ]]; then
+  kill -9 $pids > /dev/null 2>&1 || true
+  sleep 1
+fi
+(cd dashboard && CAREER_DASHBOARD_TOKEN="$DASH_TOKEN" CAREER_DASHBOARD_SESSION_SECRET="smoke-dashboard-session-secret-0123456789" npm run start -- --port 3010 > "$DASH_LOG" 2>&1) &
 DASH_PID=$!
 sleep 6
 test "$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:3010/api/overview)" = "401"

@@ -38,10 +38,7 @@ def infer_remote_policy(text: str) -> str:
     lowered = (text or "").casefold()
     if "hybrid" in lowered or "hibrid" in lowered:
         return "hybrid"
-    if any(
-        token in lowered
-        for token in ("remote", "nuotol", "work from home", "wfh")
-    ):
+    if any(token in lowered for token in ("remote", "nuotol", "work from home", "wfh")):
         return "remote"
     if any(token in lowered for token in ("on-site", "onsite", "on site")):
         return "onsite"
@@ -70,4 +67,3 @@ def normalise_salary_range(text: str | None) -> tuple[float | None, float | None
 
     multiplier = 12.0 if is_monthly else 1.0
     return (low * multiplier, high * multiplier)
-

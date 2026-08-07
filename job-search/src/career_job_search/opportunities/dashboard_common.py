@@ -171,8 +171,7 @@ def opportunity_record(
         data["application_history"] = [
             row
             for row in csv_rows(Path(applications_csv))
-            if (row.get("opportunity_id") or "").strip()
-            == opportunity.opportunity_id
+            if (row.get("opportunity_id") or "").strip() == opportunity.opportunity_id
         ]
     data["risk"] = risk_groups(data)
     data["stage"] = pipeline_stage(data)

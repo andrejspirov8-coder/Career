@@ -8,8 +8,8 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from career_job_search.recruiters.web_cache import get_cached, put  # noqa: E402
-from career_job_search.recruiters.web_research import (  # noqa: E402
+from career_job_search.recruiters.web_cache import get_cached, put
+from career_job_search.recruiters.web_research import (
     WebResearchResult,
     WebSearchHit,
 )

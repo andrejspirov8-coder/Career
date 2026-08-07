@@ -52,7 +52,9 @@ def process_single_job(
 
         pack_files: dict[str, str] = {}
         if not dry_run:
-            pack_files = write_pack_files(result, pack_id, pack_dir, variants, overwrite=overwrite)
+            pack_files = write_pack_files(
+                result, pack_id, pack_dir, variants, overwrite=overwrite
+            )
 
         recommendation = result["recommendation"]
         return {
@@ -145,7 +147,9 @@ def generate_summary_report(results: list[dict[str, Any]]) -> str:
             lines.append(f"- **Runner-up**: `{result['runner_up']}`")
             lines.append("- **All matches**:")
             for v in result["all_variants"]:
-                lines.append(f"  - {v['slug']}: score={v['score']}, keyword_hits={v['hits']}")
+                lines.append(
+                    f"  - {v['slug']}: score={v['score']}, keyword_hits={v['hits']}"
+                )
             lines.append(f"- **Pack location**: `{result['pack_dir']}`")
             lines.append("")
 
@@ -215,7 +219,10 @@ def main() -> None:
     # Scan jobs
     job_files = scan_jobs(args.pattern)
     if not job_files:
-        print(f"No job files found matching '{args.pattern}' in {INBOX_JOBS}", file=sys.stderr)
+        print(
+            f"No job files found matching '{args.pattern}' in {INBOX_JOBS}",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     print(f"Found {len(job_files)} job file(s). Processing...", file=sys.stderr)
@@ -224,7 +231,9 @@ def main() -> None:
     results: list[dict[str, Any]] = []
     print_buffer: list[str] = []
     for job_file in job_files:
-        result = process_single_job(job_file, variants, dry_run=args.dry_run, overwrite=args.force)
+        result = process_single_job(
+            job_file, variants, dry_run=args.dry_run, overwrite=args.force
+        )
         results.append(result)
         status_mark = "✓" if result["status"] == "success" else "✗"
         print_buffer.append(f"  → {job_file.name}... {status_mark}")

@@ -51,7 +51,7 @@ def test_send_mode_defaults_to_manual(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_live_dispatch_requires_explicit_maximum_of_three_or_less() -> None:
     with pytest.raises(SystemExit, match="explicit --max"):
         validate_live_dispatch_max(None, dry_run=False)
-    with pytest.raises(SystemExit, match="range 1..3"):
+    with pytest.raises(SystemExit, match=r"range 1..3"):
         validate_live_dispatch_max(0, dry_run=False)
     with pytest.raises(SystemExit, match="cannot exceed 3"):
         validate_live_dispatch_max(4, dry_run=False)

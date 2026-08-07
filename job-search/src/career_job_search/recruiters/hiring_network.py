@@ -84,6 +84,8 @@ except ModuleNotFoundError:
     bot = None
 
 __all__ = (
+    "VISION_ALLOWED_LABELS",
+    "_DISCOVERY_PERSONA_PRESERVED",
     "CvMatchDecision",
     "Decision",
     "HistorySignals",
@@ -93,8 +95,6 @@ __all__ = (
     "RunState",
     "ScreenState",
     "SendTier",
-    "VISION_ALLOWED_LABELS",
-    "_DISCOVERY_PERSONA_PRESERVED",
     "apply_validation_rank_adjustments",
     "build_ranked_invite",
     "candidate_from_scout_record",
@@ -297,7 +297,9 @@ def build_langgraph_workflow(stage: str = "all") -> Any:
     """Build the LangGraph workflow for the three-agent pipeline."""
     from importlib import import_module
 
-    build_graph = import_module("career_job_search.recruiters.graph_workflow").build_langgraph_workflow
+    build_graph = import_module(
+        "career_job_search.recruiters.graph_workflow"
+    ).build_langgraph_workflow
 
     return build_graph(stage)  # type: ignore[arg-type]
 
@@ -383,7 +385,7 @@ def _run_scout(args: argparse.Namespace) -> int:
         cli.extend(["--browser-channel", args.browser_channel])
     if args.variant:
         cli.extend(["--variant", args.variant])
-    return subprocess.call(cli)  # noqa: S603
+    return subprocess.call(cli)
 
 
 def cmd_daily(args: argparse.Namespace) -> int:
@@ -708,7 +710,7 @@ def cmd_report(args: argparse.Namespace) -> int:
             f"{row.get('persona')} {row.get('cv_variant')} {row.get('name')}"
         )
     perf = subprocess.call(
-        [  # noqa: S603
+        [
             sys.executable,
             str(Path(__file__).resolve().parent / "recruiter_performance.py"),
             "--by-persona",
@@ -762,7 +764,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "graph":
         from importlib import import_module
 
-        cmd_graph_run = import_module("career_job_search.recruiters.graph_workflow").cmd_graph_run
+        cmd_graph_run = import_module(
+            "career_job_search.recruiters.graph_workflow"
+        ).cmd_graph_run
 
         if args.graph_cmd == "run":
             apply_full_auto_graph_args(args)

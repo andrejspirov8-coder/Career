@@ -21,7 +21,9 @@ PACKS_PARENT = project_path("packs")
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Build job-search/packs/<id>/ review folder.")
+    parser = argparse.ArgumentParser(
+        description="Build job-search/packs/<id>/ review folder."
+    )
     parser.add_argument(
         "job_file",
         type=Path,
@@ -71,7 +73,10 @@ def main() -> None:
 
     if args.variant:
         if args.variant not in valid_slugs:
-            print(f"Unknown slug {args.variant!r}. Allowed: {sorted(valid_slugs)}", file=sys.stderr)
+            print(
+                f"Unknown slug {args.variant!r}. Allowed: {sorted(valid_slugs)}",
+                file=sys.stderr,
+            )
             sys.exit(1)
         chosen = args.variant
         result["recommendation"]["variant_slug"] = chosen
@@ -83,7 +88,9 @@ def main() -> None:
     pack_dir = args.packs_dir / job_id
 
     try:
-        pack_files = write_pack_files(result, job_id, pack_dir, variants, overwrite=args.force)
+        pack_files = write_pack_files(
+            result, job_id, pack_dir, variants, overwrite=args.force
+        )
     except FileExistsError as exc:
         print(str(exc), file=sys.stderr)
         sys.exit(1)
@@ -91,7 +98,9 @@ def main() -> None:
     print(f"Wrote pack: {pack_dir.resolve()}")
     print(f"  Recommended variant: {chosen} ({result['recommendation']['confidence']})")
     print("  Open README.txt inside the pack for paths and checklist.")
-    print(f"  Pack files: {pack_files['readme']}, {pack_files['match_json']}, {pack_files['keyword_gaps']}")
+    print(
+        f"  Pack files: {pack_files['readme']}, {pack_files['match_json']}, {pack_files['keyword_gaps']}"
+    )
 
 
 if __name__ == "__main__":

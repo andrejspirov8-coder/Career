@@ -25,7 +25,9 @@ def test_backup_path_allowlist_rejects_code_secrets_and_traversal():
         PurePosixPath("src/career_job_search/workspace/control.py")
     )
     assert not control._allowed_backup_path(PurePosixPath("state/../.env"))
-    assert not control._allowed_backup_path(PurePosixPath("state/dashboard_service.json"))
+    assert not control._allowed_backup_path(
+        PurePosixPath("state/dashboard_service.json")
+    )
     assert not control._allowed_backup_path(
         PurePosixPath("state/dashboard_restart.request.json")
     )
@@ -76,7 +78,9 @@ def test_dashboard_runtime_status_reports_source_freshness_and_supervisor(
     dashboard = tmp_path / "dashboard"
     app = dashboard / "app"
     app.mkdir(parents=True)
-    (app / "page.tsx").write_text("export default function Page() {}\n", encoding="utf-8")
+    (app / "page.tsx").write_text(
+        "export default function Page() {}\n", encoding="utf-8"
+    )
     status_path = tmp_path / "state" / "dashboard_service.json"
     status_path.parent.mkdir()
     status_path.write_text(

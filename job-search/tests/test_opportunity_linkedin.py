@@ -70,8 +70,11 @@ def test_access_wall_is_reported_without_bypass(
 
 
 def test_public_job_page_without_access_marker_is_not_blocked() -> None:
-    assert access_block_reason(
-        "https://www.linkedin.com/jobs/search/",
-        "Operations Manager Vilnius",
-        cards=3,
-    ) == ""
+    assert (
+        access_block_reason(
+            "https://www.linkedin.com/jobs/search/",
+            "Operations Manager Vilnius",
+            cards=3,
+        )
+        == ""
+    )

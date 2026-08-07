@@ -11,7 +11,9 @@ PROFILES_PATH = Path("cv/variant_profiles.yaml")
 def _run(*args: str) -> subprocess.CompletedProcess:
     return subprocess.run(
         ["uv", "run", "python", HELPER, *args],
-        capture_output=True, text=True, cwd=".",
+        capture_output=True,
+        text=True,
+        cwd=".",
     )
 
 
@@ -44,7 +46,9 @@ def test_show_variant_has_expected_fields():
 
 
 def test_save_and_show_round_trip():
-    backup = PROFILES_PATH.read_text(encoding="utf-8") if PROFILES_PATH.exists() else None
+    backup = (
+        PROFILES_PATH.read_text(encoding="utf-8") if PROFILES_PATH.exists() else None
+    )
 
     try:
         minimal = {

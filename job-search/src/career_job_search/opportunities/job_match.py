@@ -20,7 +20,9 @@ from career_job_search.cvs.matching import (
 def human_summary(result: dict) -> str:
     lines = []
     job = result["job"]
-    lines.append(f"Role: {job.get('title') or '(no TITLE)'} @ {job.get('company') or '(no COMPANY)'}")
+    lines.append(
+        f"Role: {job.get('title') or '(no TITLE)'} @ {job.get('company') or '(no COMPANY)'}"
+    )
     if job.get("url"):
         lines.append(f"URL: {job['url']}")
     rec = result["recommendation"]
@@ -30,9 +32,7 @@ def human_summary(result: dict) -> str:
         f"(confidence: {rec['confidence']}, score={rec['primary_score']})"
     )
     ru = result["runner_up"]
-    lines.append(
-        f"Runner-up: {ru['variant_slug']}  (score={ru['primary_score']})"
-    )
+    lines.append(f"Runner-up: {ru['variant_slug']}  (score={ru['primary_score']})")
     lines.append("")
     lines.append("All variants (ranked):")
     for row in result["variants_ranked"]:
@@ -42,12 +42,16 @@ def human_summary(result: dict) -> str:
         )
     if rec["confidence"] == "tie_review":
         lines.append("")
-        lines.append("Note: Confidence is tie_review — open both top Markdown variants and pick manually.")
+        lines.append(
+            "Note: Confidence is tie_review — open both top Markdown variants and pick manually."
+        )
     return "\n".join(lines) + "\n"
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Match one job inbox file to CV variants.")
+    parser = argparse.ArgumentParser(
+        description="Match one job inbox file to CV variants."
+    )
     parser.add_argument(
         "job_file",
         type=Path,

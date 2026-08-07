@@ -221,7 +221,7 @@ def _write_discovered_opportunity(
                 updated_at = ?
             WHERE opportunity_id = ? AND user_id = ?
             """,
-            values + (user_id,),
+            (*values, user_id),
         )
         return
     con.execute(
@@ -379,10 +379,14 @@ def _preserve_detailed_browser_observation(
         opportunity.remote_policy = existing.remote_policy
 
     opportunity.evidence.source_facts = list(
-        dict.fromkeys(existing.evidence.source_facts + opportunity.evidence.source_facts)
+        dict.fromkeys(
+            existing.evidence.source_facts + opportunity.evidence.source_facts
+        )
     )
     opportunity.evidence.company_facts = list(
-        dict.fromkeys(existing.evidence.company_facts + opportunity.evidence.company_facts)
+        dict.fromkeys(
+            existing.evidence.company_facts + opportunity.evidence.company_facts
+        )
     )
     opportunity.evidence.role_facts = list(
         dict.fromkeys(existing.evidence.role_facts + opportunity.evidence.role_facts)

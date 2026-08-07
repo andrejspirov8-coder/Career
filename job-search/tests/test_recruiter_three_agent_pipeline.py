@@ -7,15 +7,15 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from career_job_search.recruiters import company_validation as rcv  # noqa: E402
-from career_job_search.recruiters import discovery_csv as rdc  # noqa: E402
-from career_job_search.recruiters import hiring_network as hn  # noqa: E402
-from career_job_search.recruiters.discovery_bridge import (  # noqa: E402
+from career_job_search.recruiters import company_validation as rcv
+from career_job_search.recruiters import discovery_csv as rdc
+from career_job_search.recruiters import hiring_network as hn
+from career_job_search.recruiters.discovery_bridge import (
     rows_for_bridge,
     validated_to_scout_records,
 )
-from career_job_search.recruiters.web_discovery import run_discovery  # noqa: E402
-from career_job_search.recruiters.web_research import OfflineStubBackend  # noqa: E402
+from career_job_search.recruiters.web_discovery import run_discovery
+from career_job_search.recruiters.web_research import OfflineStubBackend
 
 
 class TestDiscoveryCsv(unittest.TestCase):
@@ -84,7 +84,7 @@ class TestCompanyValidate(unittest.TestCase):
         hn_cfg = hn.load_workflow_config(
             Path(__file__).resolve().parents[1] / "linkedin" / "config.yaml"
         )
-        score, flags, rationale = rcv.score_company_from_text(
+        score, _flags, rationale = rcv.score_company_from_text(
             "Apranga Group",
             "Premium luxury fashion retail group in Vilnius Lithuania Baltics",
             hn_cfg=hn_cfg,

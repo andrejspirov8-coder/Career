@@ -9,16 +9,16 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from career_job_search.recruiters import hiring_network as hn  # noqa: E402
+from career_job_search.recruiters import hiring_network as hn
 from career_job_search.recruiters.dispatch_guard import (
-    is_stub_or_empty_row,  # noqa: E402
+    is_stub_or_empty_row,
 )
-from career_job_search.recruiters.ollama_client import (  # noqa: E402
+from career_job_search.recruiters.ollama_client import (
     _invoke_with_retry,
     agent_enabled,
     reset_circuit_breaker,
 )
-from career_job_search.recruiters.persona_stats import (  # noqa: E402
+from career_job_search.recruiters.persona_stats import (
     aggregate_persona_stats,
     persona_boost_factor,
     write_persona_stats,
@@ -257,7 +257,9 @@ class TestPersonaStats(unittest.TestCase):
         cv = hn.match_candidate_to_cv(candidate, hn.default_hiring_network_config())
         history = hn.HistorySignals(sent_count=10, accepted_count=8)
         cfg = hn.default_hiring_network_config()
-        with patch("career_job_search.recruiters.persona_stats.load_persona_stats") as mock_stats:
+        with patch(
+            "career_job_search.recruiters.persona_stats.load_persona_stats"
+        ) as mock_stats:
             mock_stats.return_value = {
                 persona.persona: {"sent": 10, "accepted": 8, "rate": 0.8}
             }
@@ -293,7 +295,10 @@ class TestPersonaStats(unittest.TestCase):
         cv = hn.match_candidate_to_cv(candidate, hn.default_hiring_network_config())
         history = hn.HistorySignals()
         cfg = hn.default_hiring_network_config()
-        with patch("career_job_search.recruiters.persona_stats.load_persona_stats", return_value={}):
+        with patch(
+            "career_job_search.recruiters.persona_stats.load_persona_stats",
+            return_value={},
+        ):
             score_a = hn.rank_candidate(candidate, persona, cv, cfg, history)
             score_b = hn.rank_candidate(candidate, persona, cv, cfg, history)
         self.assertEqual(score_a, score_b)

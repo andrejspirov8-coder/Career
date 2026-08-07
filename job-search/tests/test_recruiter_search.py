@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import unittest
 
-from career_job_search.recruiters import search as rs  # noqa: E402
+from career_job_search.recruiters import search as rs
 
 
 class TestRecruiterSearch(unittest.TestCase):

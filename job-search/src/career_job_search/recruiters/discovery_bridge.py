@@ -1,7 +1,5 @@
 """Bridge validated discovery CSV rows into scout JSONL for rank/dispatch."""
 
-# ruff: noqa: E402
-
 from __future__ import annotations
 
 import argparse

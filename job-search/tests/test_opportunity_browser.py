@@ -102,13 +102,18 @@ def test_browser_payload_rejects_non_linkedin_listing() -> None:
 
 
 def test_browser_url_canonicalization_drops_tracking() -> None:
-    assert canonical_linkedin_job_url(
-        "https://uk.linkedin.com/jobs/view/123/?trackingId=private"
-    ) == "https://uk.linkedin.com/jobs/view/123"
+    assert (
+        canonical_linkedin_job_url(
+            "https://uk.linkedin.com/jobs/view/123/?trackingId=private"
+        )
+        == "https://uk.linkedin.com/jobs/view/123"
+    )
 
 
 def test_browser_payload_loader_reads_ndjson() -> None:
-    loaded = load_browser_job_payloads(io.StringIO(json.dumps(browser_payload()) + "\n"))
+    loaded = load_browser_job_payloads(
+        io.StringIO(json.dumps(browser_payload()) + "\n")
+    )
 
     assert len(loaded) == 1
     assert loaded[0]["title"] == "Partner Performance Specialist, CS Operations"
@@ -122,9 +127,7 @@ def test_import_browser_command_persists_source_and_listing(
     db = tmp_path / "opportunities.sqlite3"
     monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(browser_payload()) + "\n"))
 
-    code = orchestrate.main(
-        ["--db", str(db), "import-browser", "--stdin"]
-    )
+    code = orchestrate.main(["--db", str(db), "import-browser", "--stdin"])
     output = json.loads(capsys.readouterr().out)
 
     assert code == 0

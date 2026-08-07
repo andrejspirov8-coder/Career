@@ -243,11 +243,15 @@ def _launch_context(playwright: Any, source_config: dict[str, Any]) -> Any:
     browser_config = source_config.get("browser") or {}
     if not isinstance(browser_config, dict):
         browser_config = {}
-    channel = str(
-        source_config.get("browser_channel")
-        or browser_config.get("channel")
-        or "chrome"
-    ).strip().lower()
+    channel = (
+        str(
+            source_config.get("browser_channel")
+            or browser_config.get("channel")
+            or "chrome"
+        )
+        .strip()
+        .lower()
+    )
     profile_value = (
         os.environ.get("LINKEDIN_JOBS_PROFILE_DIR")
         or source_config.get("profile_dir")
@@ -324,9 +328,13 @@ def discover_linkedin_jobs(config: dict[str, Any]) -> list[Opportunity]:
                         page_number=page_number,
                     )
                     try:
-                        page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
+                        page.goto(
+                            url, wait_until="domcontentloaded", timeout=timeout_ms
+                        )
                         page.wait_for_timeout(settle_ms)
-                        body = _clean_text(page.locator("body").inner_text(timeout=timeout_ms))
+                        body = _clean_text(
+                            page.locator("body").inner_text(timeout=timeout_ms)
+                        )
                     except (PlaywrightTimeoutError, TimeoutError) as exc:
                         raise LinkedInScrapeError(
                             f"LinkedIn jobs page timed out for query {query!r}."
@@ -336,7 +344,9 @@ def discover_linkedin_jobs(config: dict[str, Any]) -> list[Opportunity]:
                     if blocked:
                         raise LinkedInScrapeError(blocked)
                     if anchors_count == 0:
-                        if any(marker in body.casefold() for marker in NO_RESULTS_MARKERS):
+                        if any(
+                            marker in body.casefold() for marker in NO_RESULTS_MARKERS
+                        ):
                             break
                         raise LinkedInScrapeError(
                             "linkedin_selector_empty: no job cards were found"
@@ -374,7 +384,9 @@ def discover_linkedin_jobs(config: dict[str, Any]) -> list[Opportunity]:
             now = utc_now_iso()
             opportunities: list[Opportunity] = []
             for card in unique_cards:
-                description = details_by_id.get(card["native_source_id"]) or card["snippet"]
+                description = (
+                    details_by_id.get(card["native_source_id"]) or card["snippet"]
+                )
                 evidence = OpportunityEvidence(
                     source_facts=[
                         "linkedin:browser_jobs_search",
@@ -467,7 +479,11 @@ def main(argv: list[str] | None = None) -> int:
             manual_login(config)
             return 0
         rows = discover_linkedin_jobs(config)
-        print(json.dumps([row.to_json_dict() for row in rows], ensure_ascii=False, indent=2))
+        print(
+            json.dumps(
+                [row.to_json_dict() for row in rows], ensure_ascii=False, indent=2
+            )
+        )
         return 0
     except Exception as exc:
         print(json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False))

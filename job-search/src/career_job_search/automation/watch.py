@@ -63,7 +63,10 @@ def process_job_file(
     """Process one job file and generate pack. Returns result dict or None on error."""
     try:
         if verbose:
-            print(f"[{datetime.now().strftime('%H:%M:%S')}] Processing: {job_file.name}", flush=True)
+            print(
+                f"[{datetime.now().strftime('%H:%M:%S')}] Processing: {job_file.name}",
+                flush=True,
+            )
 
         raw = job_file.read_text(encoding="utf-8")
         parsed = parse_job_file(raw, job_file_path=str(job_file.resolve()))
@@ -73,7 +76,9 @@ def process_job_file(
         pack_dir = PACKS_DIR / pack_id
 
         try:
-            pack_files = write_pack_files(result, pack_id, pack_dir, variants, overwrite=overwrite)
+            pack_files = write_pack_files(
+                result, pack_id, pack_dir, variants, overwrite=overwrite
+            )
         except FileExistsError as exc:
             if verbose:
                 print(f"  ↷ Skipping existing pack: {exc}", flush=True)
@@ -157,7 +162,9 @@ def watch_and_process(
         if new_jobs:
             print(f"Found {len(new_jobs)} new job file(s):", flush=True)
             for job_file in new_jobs:
-                result = process_job_file(job_file, variants, verbose=True, overwrite=force)
+                result = process_job_file(
+                    job_file, variants, verbose=True, overwrite=force
+                )
                 if result:
                     processed.add(str(job_file.resolve()))
 
@@ -166,7 +173,9 @@ def watch_and_process(
             if iteration == 1:
                 print("No new jobs found.", flush=True)
             elif iteration % 12 == 0:  # Log every ~60 seconds (12 * 5s)
-                print(f"[{datetime.now().strftime('%H:%M:%S')}] No new jobs.", flush=True)
+                print(
+                    f"[{datetime.now().strftime('%H:%M:%S')}] No new jobs.", flush=True
+                )
 
         if once:
             break
@@ -197,7 +206,9 @@ def main() -> None:
     args = parser.parse_args()
 
     try:
-        watch_and_process(interval_seconds=args.interval, once=args.once, force=args.force)
+        watch_and_process(
+            interval_seconds=args.interval, once=args.once, force=args.force
+        )
     except KeyboardInterrupt:
         print("\n[Interrupted by user]", file=sys.stderr)
         sys.exit(0)

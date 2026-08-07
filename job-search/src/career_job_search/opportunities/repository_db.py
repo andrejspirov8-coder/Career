@@ -128,7 +128,7 @@ ON deliveries(run_id);
 
 def connect(db_path: Path | str = DEFAULT_OPPORTUNITY_DB) -> sqlite3.Connection:
     path = Path(db_path)
-    con = connect_sqlite(path, timeout_seconds=30, row_factory=True)
+    con = connect_sqlite(path, timeout_seconds=30, row_factory=True, wal=True)
     con.execute("PRAGMA journal_mode = WAL")
     con.execute("PRAGMA synchronous = NORMAL")
     return con

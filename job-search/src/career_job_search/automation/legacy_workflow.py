@@ -34,7 +34,7 @@ class CareerWorkflow:
             "OK": "✅",
             "WAIT": "⏳",
             "ERROR": "❌",
-            "HEADER": "📍"
+            "HEADER": "📍",
         }.get(level, "➜")
         print(f"{prefix} {message}")
 
@@ -56,5 +56,7 @@ class CareerWorkflow:
     def scout_phase(self):
         """Phase 1: Scout & Score"""
         self.log("SCOUT: Discovering & Scoring Profiles", "HEADER")
-        cmd = "uv run python3 -m career_job_search.recruiters.orchestrator scout --headed"
+        cmd = (
+            "uv run python3 -m career_job_search.recruiters.orchestrator scout --headed"
+        )
         self.run_command(cmd, "Scout")

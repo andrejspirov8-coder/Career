@@ -11,12 +11,13 @@ import html
 import re
 from datetime import date, datetime
 from html.parser import HTMLParser
+from typing import ClassVar
 
 
 class _VisibleTextParser(HTMLParser):
     """Collect readable text while keeping block boundaries."""
 
-    _BLOCK_TAGS = {
+    _BLOCK_TAGS: ClassVar[set[str]] = {
         "br",
         "div",
         "h1",

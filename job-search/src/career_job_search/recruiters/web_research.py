@@ -125,7 +125,7 @@ class FirecrawlBackend:
         ]
         try:
             proc = subprocess.run(
-                cmd,  # noqa: S603
+                cmd,
                 capture_output=True,
                 text=True,
                 timeout=90,

@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from career_job_search.recruiters.llm_trace import (  # noqa: E402
+from career_job_search.recruiters.llm_trace import (
     AgentCallTrace,
     emit_event,
     trace_enabled,

@@ -51,8 +51,10 @@ def test_write_json_atomic_writes_newline_terminated(tmp_path: Path) -> None:
 
 def test_write_json_atomic_temp_file_cleaned_on_failure(tmp_path: Path) -> None:
     path = tmp_path / "fail.json"
+
     class Unserializable:
         pass
+
     try:
         write_json_atomic(path, {"bad": Unserializable()})
         raise AssertionError("Expected TypeError")

@@ -8,6 +8,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from career_job_search.core.sqlite import connect_sqlite
 from career_job_search.integrations.linkedin.paths import PIPELINE_DIR
 from career_job_search.recruiters.web_models import WebResearchResult, WebSearchHit
 
@@ -52,8 +53,7 @@ def cache_ttl_hours(full_cfg: dict[str, Any]) -> float:
 
 
 def _connect(path: Path) -> sqlite3.Connection:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(path))
+    conn = connect_sqlite(path, wal=True)
     conn.executescript(SCHEMA_SQL)
     return conn
 

@@ -5,16 +5,30 @@ from pathlib import Path
 
 import pytest
 
-from career_job_search.cvs import performance as vp  # noqa: E402
+from career_job_search.cvs import performance as vp
 
 
-def test_analyse_by_variant_counts_and_rates(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_analyse_by_variant_counts_and_rates(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     csv_path = tmp_path / "applications.csv"
     with csv_path.open("w", encoding="utf-8", newline="") as fh:
         writer = csv.DictWriter(fh, fieldnames=["variant_slug", "source", "outcome"])
         writer.writeheader()
-        writer.writerow({"variant_slug": "luxury-retail", "source": "linkedin", "outcome": "applied"})
-        writer.writerow({"variant_slug": "luxury-retail", "source": "linkedin", "outcome": "interview"})
+        writer.writerow(
+            {
+                "variant_slug": "luxury-retail",
+                "source": "linkedin",
+                "outcome": "applied",
+            }
+        )
+        writer.writerow(
+            {
+                "variant_slug": "luxury-retail",
+                "source": "linkedin",
+                "outcome": "interview",
+            }
+        )
     monkeypatch.setattr(vp, "APPLICATIONS_CSV", csv_path)
     results = vp.analyse_by_variant(vp.load_applications())
     assert results["luxury-retail"]["submitted"] == 2
@@ -45,8 +59,12 @@ def test_analyse_roi_groups_tailoring_score_and_response_days() -> None:
 
     results = vp.analyse_roi(rows)
 
-    assert results["tailored_cv"]["tailored_yes"]["interview_rate"] == pytest.approx(1.0)
-    assert results["tailored_cv"]["tailored_yes"]["avg_response_days"] == pytest.approx(3.0)
+    assert results["tailored_cv"]["tailored_yes"]["interview_rate"] == pytest.approx(
+        1.0
+    )
+    assert results["tailored_cv"]["tailored_yes"]["avg_response_days"] == pytest.approx(
+        3.0
+    )
     assert results["match_score"]["high_score_15_plus"]["submitted"] == 1
     assert results["match_score"]["lower_score_under_15"]["submitted"] == 1
 

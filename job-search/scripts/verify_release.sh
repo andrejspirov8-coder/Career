@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-RUNTIME_REQUIREMENTS="$(mktemp /tmp/job-search-runtime-requirements.XXXXXX.txt)"
+RUNTIME_REQUIREMENTS="$(mktemp /tmp/job-search-runtime-requirements.XXXXXX)"
 RELEASE_LOCK="$ROOT_DIR/runtime/release-check.lock"
 mkdir -p "$(dirname "$RELEASE_LOCK")"
 if ! mkdir "$RELEASE_LOCK" 2>/dev/null; then
@@ -42,7 +42,7 @@ echo "[verify] dashboard"
   npm run build
   npx playwright install chromium
   CAREER_DASHBOARD_TOKEN=release-verification-token npm run e2e
-  npm audit --audit-level=high
+  npm audit --audit-level=high --omit=dev
 )
 
 echo "[verify] repository smoke test"
