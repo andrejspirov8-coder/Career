@@ -51,7 +51,7 @@ def _embed(text: str) -> list[float]:
         import urllib.request
 
         data = json.dumps({"model": EMBEDDING_MODEL, "input": [text]}).encode()
-        req = urllib.request.Request(  # noqa: S310
+        req = urllib.request.Request(
             EMBEDDING_URL,
             data=data,
             headers={"Content-Type": "application/json"},

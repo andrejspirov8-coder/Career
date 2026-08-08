@@ -301,20 +301,20 @@ import re
 def normalise_salary_range(text: str | None) -> tuple[float | None, float | None]:
     if not text:
         return (None, None)
-    
+
     clean = text.lower().replace(",", "").replace(" ", "")
     # Check if monthly indicator exists
     is_monthly = any(kw in clean for k/kw in ("mėn", "men", "month", "mo"))
-    
+
     numbers = [float(n) for n in re.findall(r"\d+(?:\.\d+)?", clean)]
     if not numbers:
         return (None, None)
-    
+
     if len(numbers) == 1:
         low = high = numbers[0]
     else:
         low, high = numbers[0], numbers[1]
-        
+
     multiplier = 12.0 if is_monthly else 1.0
     return (low * multiplier, high * multiplier)
 ```

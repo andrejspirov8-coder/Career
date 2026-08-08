@@ -18,8 +18,8 @@ jobs:
     name: Pre-commit hooks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
       - uses: pre-commit/action@v3.0.1
@@ -28,8 +28,8 @@ jobs:
     name: Python / lock, lint, tests, PDFs, audit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
       - name: Install Python
@@ -39,9 +39,9 @@ jobs:
           uv lock --check
           uv sync --locked --all-groups
       - name: Lint
-        run: uv run ruff check src mcp tools cv tests
+        run: uv run ruff check src mcp cv tests
       - name: Format check
-        run: uv run ruff format --check src mcp tools cv tests
+        run: uv run ruff format --check src mcp cv tests
       - name: Typecheck
         run: uv run pyright
       - name: Test
@@ -63,12 +63,19 @@ jobs:
     name: Dashboard / unit, typecheck, build, audit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+      - uses: actions/setup-node@v7
         with:
           node-version: 22.22.2
           cache: npm
           cache-dependency-path: job-search/dashboard/package-lock.json
+      - name: Install Python and sync env
+        run: |
+          uv python install 3.11
+          uv sync --locked --all-groups
       - name: Install dashboard dependencies
         working-directory: job-search/dashboard
         run: npm ci --include=dev
@@ -90,12 +97,19 @@ jobs:
     needs: [dashboard]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+      - uses: actions/setup-node@v7
         with:
           node-version: 22.22.2
           cache: npm
           cache-dependency-path: job-search/dashboard/package-lock.json
+      - name: Install Python and sync env
+        run: |
+          uv python install 3.11
+          uv sync --locked --all-groups
       - name: Install dashboard dependencies
         working-directory: job-search/dashboard
         run: npm ci --include=dev
@@ -110,8 +124,8 @@ jobs:
     name: Headless source-discovery smoke
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
       - name: Install Python

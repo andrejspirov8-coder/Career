@@ -15,19 +15,19 @@ dependencies = [
   "pydantic>=2.13,<3",
   "PyYAML>=6.0,<7",
   "qdrant-client>=1.13,<2",
-  "reportlab>=4.0,<5",
+  "reportlab>=4.0,<6",
   "uvicorn>=0.52.0",
 ]
 
 [build-system]
-requires = ["uv_build>=0.11.29,<0.12.0"]
+requires = ["uv_build>=0.11.29,<0.13.0"]
 build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
   "pypdf>=5.0,<7",
-  "ruff==0.15.22",
-  "pytest==9.0.3",
+  "ruff==0.16.1",
+  "pytest==9.1.1",
   "pytest-cov>=7.1.0",
   "pyright>=1.1.411",
 ]

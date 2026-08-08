@@ -146,7 +146,7 @@ def chrome_debugger_reachable(cfg: dict[str, Any]) -> tuple[bool, str]:
     port = browse_debug_port(cfg)
     url = f"http://127.0.0.1:{port}/json/version"
     try:
-        with urlopen(url, timeout=2.5) as r:  # noqa: S310
+        with urlopen(url, timeout=2.5) as r:
             blob = json.loads(r.read())
         ws = blob.get("webSocketDebuggerUrl")
         if ws:
