@@ -11,32 +11,40 @@ never reachable (measured total ~60%) and therefore never enforced.
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 BASELINE_FILE = REPO_ROOT / ".coverage-baseline"
-JSON_REPORT = "/tmp/career_coverage_ratchet.json"
 TOLERANCE = 0.5
 
 
 def run_pytest_with_coverage() -> float:
     """Run the full suite with coverage and return the total percentage."""
-    subprocess.run(
-        [
-            sys.executable,
-            "-m",
-            "pytest",
-            "--cov",
-            f"--cov-report=json:{JSON_REPORT}",
-            "-q",
-        ],
-        cwd=REPO_ROOT,
-        check=True,
+    fd, report_path = tempfile.mkstemp(
+        prefix="career_coverage_ratchet_", suffix=".json"
     )
-    data = json.loads(Path(JSON_REPORT).read_text())
-    return float(data["totals"]["percent_covered"])
+    os.close(fd)
+    try:
+        subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "pytest",
+                "--cov",
+                f"--cov-report=json:{report_path}",
+                "-q",
+            ],
+            cwd=REPO_ROOT,
+            check=True,
+        )
+        data = json.loads(Path(report_path).read_text())
+        return float(data["totals"]["percent_covered"])
+    finally:
+        Path(report_path).unlink(missing_ok=True)
 
 
 def main() -> int:

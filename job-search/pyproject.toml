@@ -50,7 +50,7 @@ skip_covered = true
 line-length = 88
 target-version = "py311"
 src = ["src", "cv", "tests"]
-include = ["src/**/*.py", "mcp/**/*.py", "tools/**/*.py", "cv/**/*.py", "tests/**/*.py"]
+include = ["src/**/*.py", "mcp/**/*.py", "tools/**/*.py", "cv/**/*.py", "scripts/**/*.py", "tests/**/*.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "S", "RUF"]

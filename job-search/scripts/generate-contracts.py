@@ -5,9 +5,18 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+
+def _which(binary: str) -> str:
+    resolved = shutil.which(binary)
+    if resolved is None:
+        raise RuntimeError(f"Required executable not found: {binary}")
+    return resolved
+
 
 HELPERS = [
     ("career_job_search.automation.control", "automation", "AutomationOverview"),
@@ -59,7 +68,7 @@ def main() -> int:
     for helper_module, helper_name, type_name in HELPERS:
         try:
             schema_json = subprocess.run(
-                ["uv", "run", "python", "-m", helper_module, "--schema"],
+                [_which("uv"), "run", "python", "-m", helper_module, "--schema"],
                 capture_output=True,
                 text=True,
                 check=True,
@@ -78,7 +87,7 @@ def main() -> int:
 def run_ts_gen(schema: dict, out_path: Path, type_name: str) -> None:
     result = subprocess.run(
         [
-            "npx",
+            _which("npx"),
             "json-schema-to-typescript",
             "--style.singleQuotes",
             "true",
