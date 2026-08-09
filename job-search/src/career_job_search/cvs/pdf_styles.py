@@ -31,7 +31,7 @@ def _discover_ttf_pair() -> tuple[Path | None, Path | None]:
         ("InterRegular.ttf", "InterBold.ttf"),
         ("Arial.ttf", "Arial Bold.ttf"),
         ("Arial Unicode.ttf", "Arial Unicode.ttf"),
-        ("DejaVuSans.ttf", "DejaVuSans-Bold.ttf"),
+        ("LiberationSans-Regular.ttf", "LiberationSans-Bold.ttf"),
     )
     roots = [
         project_path("cv", "fonts"),

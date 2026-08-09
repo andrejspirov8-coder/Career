@@ -127,6 +127,8 @@ jobs:
         run: npm ci --include=dev
       - name: Generate contracts
         run: uv run python scripts/generate-contracts.py
+      - name: Generate CV PDFs
+        run: uv run python cv/build_cv_pdf.py --all
       - name: Install Chromium
         working-directory: job-search/dashboard
         run: npx playwright install --with-deps chromium
