@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Literal
+from typing import Literal, cast
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
@@ -58,7 +58,10 @@ def load_cv_catalogue(path: Path = CATALOGUE_PATH) -> CvCatalogueV1:
             CvVariantV1(
                 slug=str(slug),
                 name=str(value.get("name") or "").strip(),
-                language=str(value.get("language") or "").strip(),
+                language=cast(
+                    Literal["English", "Lithuanian"],
+                    str(value.get("language") or "").strip(),
+                ),
                 focus=str(value.get("focus") or "").strip(),
                 display_order=int(value.get("display_order") or 0),
                 source_filename=str(value.get("markdown") or "").strip(),

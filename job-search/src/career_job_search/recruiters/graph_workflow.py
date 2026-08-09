@@ -7,7 +7,7 @@ import importlib
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Literal, TypedDict
+from typing import Any, Literal, TypedDict, cast
 
 from career_job_search.core.paths import project_path
 from career_job_search.integrations.linkedin.paths import (
@@ -85,10 +85,10 @@ def node_preflight(state: WorkflowState) -> WorkflowState:
         source_action_plan=ACTION_PLAN_JSONL,
     )
     rc = hiring.cmd_preflight(args)
-    out = dict(state)
+    out: dict[str, Any] = dict(state)
     if rc != 0:
         out.setdefault("blockers", []).append("preflight_failed")
-    return out
+    return cast(WorkflowState, out)
 
 
 def _full_cfg(state: WorkflowState) -> dict[str, Any]:
@@ -119,7 +119,7 @@ def node_web_discover(state: WorkflowState) -> WorkflowState:
     from career_job_search.recruiters.web_discovery import run_discovery
 
     _trace_node(state, "web_discover", message="start")
-    out = dict(state)
+    out: dict[str, Any] = dict(state)
     discovery_csv = Path(state.get("discovery_csv") or CANDIDATES_DISCOVERY_CSV)
     rows, errors = run_discovery(
         cfg_path=_cfg_path(state),
@@ -145,19 +145,19 @@ def node_web_discover(state: WorkflowState) -> WorkflowState:
         discovery_count=len(rows),
         needs_linkedin_url=out.get("needs_linkedin_url_count", 0),
     )
-    return out
+    return cast(WorkflowState, out)
 
 
 def node_linkedin_resolve(state: WorkflowState) -> WorkflowState:
     """MCP merge happens inside web_discover.run_discovery."""
-    return dict(state)
+    return cast(WorkflowState, dict(state))
 
 
 def node_company_validator(state: WorkflowState) -> WorkflowState:
     from career_job_search.recruiters.company_validation import run_validation
 
     _trace_node(state, "company_validator", message="start")
-    out = dict(state)
+    out: dict[str, Any] = dict(state)
     validated_csv = Path(state.get("validated_csv") or CANDIDATES_VALIDATED_CSV)
     discovery_csv = Path(state.get("discovery_csv") or CANDIDATES_DISCOVERY_CSV)
     rows = run_validation(
@@ -180,7 +180,7 @@ def node_company_validator(state: WorkflowState) -> WorkflowState:
         validated_count=len(rows),
         review_count=sum(1 for r in rows if r.get("validation_status") == "review"),
     )
-    return out
+    return cast(WorkflowState, out)
 
 
 def node_supervisor_agent(state: WorkflowState) -> WorkflowState:
@@ -191,11 +191,11 @@ def node_supervisor_agent(state: WorkflowState) -> WorkflowState:
     from career_job_search.recruiters.ollama_agents import supervise_row
     from career_job_search.recruiters.ollama_client import agent_cfg, agent_enabled
 
-    out = dict(state)
+    out: dict[str, Any] = dict(state)
     full_cfg = _full_cfg(state)
     _trace_node(state, "supervisor_agent", message="start")
     if not agent_enabled(full_cfg, "supervisor"):
-        return out
+        return cast(WorkflowState, out)
 
     validated_csv = Path(state.get("validated_csv") or CANDIDATES_VALIDATED_CSV)
     rows = read_validated_rows(validated_csv)
@@ -203,7 +203,7 @@ def node_supervisor_agent(state: WorkflowState) -> WorkflowState:
         i for i, r in enumerate(rows) if r.get("validation_status") == "review"
     ]
     if not review_indices:
-        return out
+        return cast(WorkflowState, out)
 
     sup_cfg = agent_cfg(full_cfg, "supervisor")
     cv_block = full_cfg.get("company_validation") or {}
@@ -262,7 +262,7 @@ def node_supervisor_agent(state: WorkflowState) -> WorkflowState:
         review_rows=len(review_indices),
         unresolved=unresolved,
     )
-    return out
+    return cast(WorkflowState, out)
 
 
 def node_profile_enrich(state: WorkflowState) -> WorkflowState:
@@ -273,10 +273,10 @@ def node_profile_enrich(state: WorkflowState) -> WorkflowState:
     )
 
     _trace_node(state, "profile_enrich", message="start")
-    out = dict(state)
+    out: dict[str, Any] = dict(state)
     if state.get("no_enrich"):
         _trace_node(state, "profile_enrich", message="skipped")
-        return out
+        return cast(WorkflowState, out)
 
     validated_csv = Path(state.get("validated_csv") or CANDIDATES_VALIDATED_CSV)
     rows = read_validated_rows(validated_csv)
@@ -300,13 +300,13 @@ def node_profile_enrich(state: WorkflowState) -> WorkflowState:
         message="done",
         enriched_count=out.get("enriched_count", 0),
     )
-    return out
+    return cast(WorkflowState, out)
 
 
 def node_bridge_to_scout(state: WorkflowState) -> WorkflowState:
     import yaml
 
-    out = dict(state)
+    out: dict[str, Any] = dict(state)
     validated_csv = Path(state.get("validated_csv") or CANDIDATES_VALIDATED_CSV)
     action_plan = Path(state.get("action_plan_jsonl") or ACTION_PLAN_JSONL)
     rows = read_validated_rows(validated_csv)
@@ -319,13 +319,13 @@ def node_bridge_to_scout(state: WorkflowState) -> WorkflowState:
     out["bridged_count"] = len(records)
     if records:
         append_scout_records(records, action_plan)
-    return out
+    return cast(WorkflowState, out)
 
 
 def node_rank(state: WorkflowState) -> WorkflowState:
     hiring = importlib.import_module("career_job_search.recruiters.hiring_network")
 
-    out = dict(state)
+    out: dict[str, Any] = dict(state)
     args = argparse.Namespace(
         config=_cfg_path(state),
         source_action_plan=Path(state.get("action_plan_jsonl") or ACTION_PLAN_JSONL),
@@ -336,13 +336,13 @@ def node_rank(state: WorkflowState) -> WorkflowState:
     rc = hiring.cmd_rank(args)
     if rc != 0:
         out.setdefault("blockers", []).append("rank_failed")
-    return out
+    return cast(WorkflowState, out)
 
 
 def node_dispatcher(state: WorkflowState) -> WorkflowState:
     hiring = importlib.import_module("career_job_search.recruiters.hiring_network")
 
-    out = dict(state)
+    out: dict[str, Any] = dict(state)
     full_cfg = hiring._load_full_linkedin_cfg()
     tier = "full_auto" if state.get("full_auto") else "auto_send"
     only_new = state.get("only_new")
@@ -369,13 +369,13 @@ def node_dispatcher(state: WorkflowState) -> WorkflowState:
     if rc != 0:
         out.setdefault("blockers", []).append("dispatch_failed")
     out["finished"] = True
-    return out
+    return cast(WorkflowState, out)
 
 
 def node_followup_learner(state: WorkflowState) -> WorkflowState:
-    out = dict(state)
+    out: dict[str, Any] = dict(state)
     if state.get("dry_run"):
-        return out
+        return cast(WorkflowState, out)
     cli = [
         sys.executable,
         str(project_path("tools", "linkedin_followup.py")),
@@ -383,7 +383,7 @@ def node_followup_learner(state: WorkflowState) -> WorkflowState:
     ]
     subprocess.call(cli)
     out["finished"] = True
-    return out
+    return cast(WorkflowState, out)
 
 
 def workflow_core_for_stage(stage: GraphStage = "all") -> list[WorkflowStage]:

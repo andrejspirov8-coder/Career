@@ -417,7 +417,8 @@ def _invoke_structured_fallback(
                 {"role": "user", "content": user_prompt},
             ]
         )
-        text = raw.content if hasattr(raw, "content") else str(raw)
+        raw_content = raw.content if hasattr(raw, "content") else str(raw)
+        text = raw_content if isinstance(raw_content, str) else str(raw_content)
         blob = _extract_json_object(text)
         if not blob:
             return None

@@ -121,7 +121,7 @@ def _process_alive(pid: int) -> bool:
 
 def _fresh_production_service_status(status: dict[str, Any]) -> bool:
     try:
-        pid = int(status.get("pid"))
+        pid = int(status.get("pid") or 0)
         heartbeat = datetime.fromisoformat(str(status.get("heartbeat_at")))
         if heartbeat.tzinfo is None:
             return False

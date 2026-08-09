@@ -351,7 +351,11 @@ def cmd_rank(args: argparse.Namespace) -> int:
     )
     action_records = [invite.to_action_record() for invite in invites]
     write_jsonl(Path(args.output), action_records)
-    state = RunState(queue=invites, audit_records=action_records[:50])
+    state = RunState(
+        queue=invites,
+        audit_records=action_records[:50],
+        schema="hiring_network_run_state_v1",
+    )
     HIRING_NETWORK_RUN_STATE_JSON.write_text(
         state.model_dump_json(indent=2) + "\n",
         encoding="utf-8",

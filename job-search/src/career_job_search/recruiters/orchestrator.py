@@ -61,17 +61,18 @@ from career_job_search.recruiters.workflow_models import WorkflowStage
 TOOLS_DIR = JOB_ROOT / "tools"
 
 
-def _needs_yaml() -> None:
+def _needs_yaml() -> Any:
     if yaml is None:
         raise SystemExit("Install PyYAML: pip install pyyaml")
+    return yaml
 
 
 def load_yaml_config(path: Path) -> dict[str, Any]:
-    _needs_yaml()
+    yml = _needs_yaml()
     if not path.exists():
         raise SystemExit(f"Missing config: {path}")
     with path.open(encoding="utf-8") as fh:
-        data = yaml.safe_load(fh)
+        data = yml.safe_load(fh)
     if not isinstance(data, dict):
         raise SystemExit("Config root must be a YAML mapping.")
     return data

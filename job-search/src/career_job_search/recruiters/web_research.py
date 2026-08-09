@@ -19,7 +19,13 @@ from career_job_search.recruiters.web_models import (
 
 
 class WebResearchBackend(Protocol):
+    name: str
+
     def search(self, query: str, *, num_results: int = 8) -> WebResearchResult: ...
+
+    def get_contents(
+        self, urls: list[str], *, max_characters: int = 3000
+    ) -> dict[str, str]: ...
 
 
 class ExaBackend:
@@ -168,6 +174,12 @@ class FirecrawlBackend:
             )
         return WebResearchResult(query=query, hits=hits, backend=self.name)
 
+    def get_contents(
+        self, urls: list[str], *, max_characters: int = 3000
+    ) -> dict[str, str]:
+        """Firecrawl has no per-URL fetch path; return nothing."""
+        return {}
+
 
 class OfflineStubBackend:
     """Deterministic offline hits for tests and dry runs."""
@@ -306,10 +318,7 @@ def fetch_profile_contents(
 ) -> dict[str, str]:
     """Return {profile_url: text} for LinkedIn /in/ URLs."""
     impl = pick_backend(backend)
-    getter = getattr(impl, "get_contents", None)
-    if not callable(getter):
-        return {}
-    return getter(urls, max_characters=max_characters)
+    return impl.get_contents(urls, max_characters=max_characters)
 
 
 # ── Branch H: Targeted evidence search per candidate ──────────────────────

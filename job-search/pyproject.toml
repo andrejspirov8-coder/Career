@@ -71,9 +71,14 @@ include = [
   "src/career_job_search/core",
   "src/career_job_search/opportunities/sources",
   "src/career_job_search/api",
+  "src/career_job_search/cvs",
+  "src/career_job_search/recruiters",
+  "src/career_job_search/automation",
+  "src/career_job_search/workspace",
 ]
 exclude = ["**/__pycache__"]
 extraPaths = ["src", "cv"]
 pythonVersion = "3.11"
 pythonPlatform = "All"
 typeCheckingMode = "basic"
+executionEnvironments = []

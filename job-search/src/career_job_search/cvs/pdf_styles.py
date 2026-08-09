@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import cast
 
 from reportlab.lib.colors import HexColor
 from reportlab.lib.enums import TA_LEFT
@@ -30,6 +31,7 @@ def _discover_ttf_pair() -> tuple[Path | None, Path | None]:
         ("InterRegular.ttf", "InterBold.ttf"),
         ("Arial.ttf", "Arial Bold.ttf"),
         ("Arial Unicode.ttf", "Arial Unicode.ttf"),
+        ("DejaVuSans.ttf", "DejaVuSans-Bold.ttf"),
     )
     roots = [
         project_path("cv", "fonts"),
@@ -136,7 +138,7 @@ def _style(
 
 
 def make_styles(font_regular: str, font_bold: str) -> dict[str, ParagraphStyle]:
-    base = getSampleStyleSheet()["Normal"]
+    base = cast(ParagraphStyle, getSampleStyleSheet()["Normal"])
     return {
         "L_Section": _style(
             "L_Section",

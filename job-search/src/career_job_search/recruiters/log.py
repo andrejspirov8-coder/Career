@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import csv
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from career_job_search.integrations.linkedin.paths import RECRUITERS_CSV
 
@@ -71,7 +71,7 @@ def ensure_recruiter_csv_schema(csv_path: Path = RECRUITERS_CSV) -> None:
     with csv_path.open("w", encoding="utf-8", newline="") as f:
         w = csv.DictWriter(f, fieldnames=list(CSV_HEADER))
         w.writeheader()
-        w.writerows(merged)
+        w.writerows(cast(list[dict[Any, Any]], merged))
 
 
 def append_recruiter_row(row: dict[str, Any], csv_path: Path = RECRUITERS_CSV) -> None:

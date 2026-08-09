@@ -228,7 +228,8 @@ def _result_from_process(
             {},
             str(payload.get("error") or stderr or "Daily search failed."),
         )
-    result = payload.get("data") if isinstance(payload.get("data"), dict) else {}
+    raw_data = payload.get("data")
+    result: dict[str, Any] = raw_data if isinstance(raw_data, dict) else {}
     if returncode == 2 or result.get("partial"):
         return (
             "partial",

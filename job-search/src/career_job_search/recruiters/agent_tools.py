@@ -68,6 +68,7 @@ def _tool_lookup_candidate_evidence(profile_url: str) -> str:
 
         result = rm.match_recruiter_profile(
             headline="LinkedIn profile",
+            name=profile_url,
             profile_url=profile_url,
             recruiter_cfg={"recruiter_matching": {"sector_beats_cv_min_score": 6}},
         )

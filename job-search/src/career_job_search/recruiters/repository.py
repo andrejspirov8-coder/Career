@@ -625,7 +625,7 @@ def record_operator_action(
                 now,
             ),
         )
-        action_id = int(cur.lastrowid)
+        action_id = int(cur.lastrowid or 0)
     return {
         "id": action_id,
         "action_type": action_type,

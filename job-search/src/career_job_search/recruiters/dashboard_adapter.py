@@ -506,7 +506,7 @@ def build_overview(
             queues["sent"].append(sent_record)
 
     saved_views = _build_saved_views(queues)
-    queues["saved_views"] = saved_views
+    queues["saved_views"] = saved_views  # pyright: ignore[reportArgumentType]
     run_history = _recent_runs(runtime_dir)
     send_mode = current_send_mode()
     readiness = _campaign_readiness(queues)

@@ -353,7 +353,8 @@ def passes_track_relevance_gate(
     matcher: dict[str, Any] | None = None,
 ) -> tuple[bool, str]:
     """Optional stricter gate: industry + CV floor + profile negatives."""
-    matcher = matcher or (full_cfg or {}).get("matching") or {}
+    candidate = matcher or (full_cfg or {}).get("matching") or {}
+    matcher = candidate if isinstance(candidate, dict) else {}
     if not bool(matcher.get("require_sector_and_cv_agreement", False)):
         return True, ""
 
