@@ -32,12 +32,22 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.22.2
+          cache: npm
+          cache-dependency-path: job-search/dashboard/package-lock.json
       - name: Install Python
         run: uv python install 3.11
       - name: Verify lock and install
         run: |
           uv lock --check
           uv sync --locked --all-groups
+      - name: Generate contracts for dashboard typecheck
+        run: uv run python scripts/generate-contracts.py
+      - name: Install dashboard dependencies
+        working-directory: job-search/dashboard
+        run: npm ci --include=dev
       - name: Lint
         run: uv run ruff check src mcp cv tests
       - name: Format check
@@ -79,6 +89,8 @@ jobs:
       - name: Install dashboard dependencies
         working-directory: job-search/dashboard
         run: npm ci --include=dev
+      - name: Generate contracts
+        run: uv run python scripts/generate-contracts.py
       - name: Unit tests
         working-directory: job-search/dashboard
         run: npm run test
@@ -113,6 +125,8 @@ jobs:
       - name: Install dashboard dependencies
         working-directory: job-search/dashboard
         run: npm ci --include=dev
+      - name: Generate contracts
+        run: uv run python scripts/generate-contracts.py
       - name: Install Chromium
         working-directory: job-search/dashboard
         run: npx playwright install --with-deps chromium
